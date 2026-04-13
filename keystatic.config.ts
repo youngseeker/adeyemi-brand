@@ -5,7 +5,9 @@ const githubBranch = process.env.KEYSTATIC_GITHUB_BRANCH || 'main';
 const githubClientId = process.env.KEYSTATIC_GITHUB_CLIENT_ID || '';
 const githubClientSecret = process.env.KEYSTATIC_GITHUB_CLIENT_SECRET || '';
 const keystaticSecret = process.env.KEYSTATIC_SECRET || '';
-const hasGithubStorage = Boolean(githubRepo && githubClientId && githubClientSecret && keystaticSecret);
+const hasGithubStorage = Boolean(
+	githubRepo && githubClientId && githubClientSecret && keystaticSecret && keystaticSecret.length >= 32,
+);
 
 export default config({
 	storage: hasGithubStorage

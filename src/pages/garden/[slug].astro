@@ -53,15 +53,6 @@ if (!post || !isPublicVisible) {
 	Astro.response.status = 404;
 }
 
-const title = derivePostTitle((post as { title?: unknown } | null)?.title, slug);
-const contentDocument = Array.isArray((post as { content?: unknown } | null)?.content)
-	? ((post as { content: unknown[] }).content as any[])
-	: [];
-const readingLabel = formatReadingMinutes(readingMinutesFromDocument(contentDocument));
-const articleHeadings = extractArticleHeadings(contentDocument);
-const coverImageSrc = resolveImageSrc((post as { coverImage?: unknown } | null)?.coverImage);
-const currentTags = new Set(((post?.tags as string[]) || []).map((tag) => tag.toLowerCase()));
-
 const resolveDocumentNodes = async (value: unknown): Promise<unknown[]> => {
 	if (typeof value === 'function') {
 		const resolved = await (value as () => Promise<unknown>)();
@@ -69,6 +60,13 @@ const resolveDocumentNodes = async (value: unknown): Promise<unknown[]> => {
 	}
 	return Array.isArray(value) ? value : [];
 };
+
+const title = derivePostTitle((post as { title?: unknown } | null)?.title, slug);
+const contentDocument = await resolveDocumentNodes((post as { content?: unknown } | null)?.content);
+const readingLabel = formatReadingMinutes(readingMinutesFromDocument(contentDocument));
+const articleHeadings = extractArticleHeadings(contentDocument);
+const coverImageSrc = resolveImageSrc((post as { coverImage?: unknown } | null)?.coverImage);
+const currentTags = new Set(((post?.tags as string[]) || []).map((tag) => tag.toLowerCase()));
 
 const relatedCandidates = await Promise.all(
 	rawPosts

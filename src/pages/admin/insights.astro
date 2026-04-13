@@ -97,6 +97,7 @@ import '../../styles/global.css';
 				<div class="flex flex-wrap items-center justify-between gap-2">
 					<h2 class="text-xl font-bold">Newsletter Subscribers</h2>
 					<div class="flex items-center gap-2">
+						<button id="sendLatestNewsletter" type="button" class="rounded-xl border border-brandBlue px-4 py-2 text-xs font-bold tracking-widest text-brandBlue uppercase">Send New Article</button>
 						<button id="copyNewsletterEmails" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Copy Emails</button>
 						<button id="refreshNewsletter" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Refresh</button>
 						<button id="exportNewsletterCsv" type="button" class="rounded-xl bg-brandBlue px-4 py-2 text-xs font-bold tracking-widest text-white uppercase">Export CSV</button>
@@ -141,6 +142,7 @@ import '../../styles/global.css';
 			const exportNewsletterCsv = document.getElementById('exportNewsletterCsv');
 			const copyNewsletterEmails = document.getElementById('copyNewsletterEmails');
 			const newsletterSearch = document.getElementById('newsletterSearch');
+			const sendLatestNewsletter = document.getElementById('sendLatestNewsletter');
 			const storageKey = 'admin-review-key';
 			let latestSubscribers = [];
 			let filteredSubscribers = [];
@@ -342,6 +344,42 @@ import '../../styles/global.css';
 				}
 			};
 
+			const sendNewsletterDispatch = async () => {
+				if (newsletterStatus) newsletterStatus.textContent = 'Sending latest unsent published article...';
+				if (sendLatestNewsletter instanceof HTMLButtonElement) sendLatestNewsletter.disabled = true;
+
+				try {
+					const response = await fetch('/api/newsletter/dispatch', {
+						method: 'POST',
+						headers: {
+							'x-admin-key': getAdminKey(),
+						},
+					});
+
+					const payload = await response.json();
+					if (!response.ok) {
+						if (newsletterStatus) newsletterStatus.textContent = payload.error || 'Unable to dispatch newsletter.';
+						return;
+					}
+
+					const sentCount = Array.isArray(payload.dispatched)
+						? payload.dispatched.reduce((sum, item) => sum + Number(item.recipients || 0), 0)
+						: 0;
+
+					if (newsletterStatus) {
+						newsletterStatus.textContent = payload.dispatched?.length
+							? `Dispatch complete: ${payload.dispatched.length} article(s), ${sentCount} email(s) sent.`
+							: payload.message || 'No new published article to dispatch.';
+					}
+
+					loadNewsletter();
+				} catch {
+					if (newsletterStatus) newsletterStatus.textContent = 'Dispatch failed. Please try again.';
+				} finally {
+					if (sendLatestNewsletter instanceof HTMLButtonElement) sendLatestNewsletter.disabled = false;
+				}
+			};
+
 			saveButton?.addEventListener('click', () => {
 				saveAdminKey();
 				loadQueue();
@@ -376,6 +414,10 @@ import '../../styles/global.css';
 				} catch {
 					if (newsletterStatus) newsletterStatus.textContent = 'Unable to copy emails from this browser context.';
 				}
+			});
+
+			sendLatestNewsletter?.addEventListener('click', () => {
+				sendNewsletterDispatch();
 			});
 
 			queueContainer?.addEventListener('click', (event) => {
