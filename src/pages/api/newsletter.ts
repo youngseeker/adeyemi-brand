@@ -1,12 +1,18 @@
 import type { APIRoute } from 'astro';
 import { desc, eq, sql } from 'drizzle-orm';
+import nodemailer from 'nodemailer';
 import { db } from '../../db';
 import { newsletterSubscribers } from '../../db/schema';
 
 const CONTACT_EMAIL = import.meta.env.PUBLIC_CONTACT_EMAIL || 'danieladeniji001@gmail.com';
 const ADMIN_KEY = import.meta.env.REVIEW_ADMIN_KEY || '';
-const RESEND_API_KEY = import.meta.env.RESEND_API_KEY || '';
-const NEWSLETTER_FROM_EMAIL = import.meta.env.NEWSLETTER_FROM_EMAIL || '';
+const SMTP_HOST = import.meta.env.SMTP_HOST || '';
+const SMTP_PORT = Number(import.meta.env.SMTP_PORT || 587);
+const SMTP_USER = import.meta.env.SMTP_USER || '';
+const SMTP_PASSWORD = import.meta.env.SMTP_PASSWORD || '';
+const SMTP_FROM_EMAIL = import.meta.env.SMTP_FROM_EMAIL || '';
+const SMTP_FROM_NAME = import.meta.env.SMTP_FROM_NAME || 'A.ADENIJI';
+const SMTP_SECURE = String(import.meta.env.SMTP_SECURE || '').toLowerCase() === 'true';
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -22,6 +28,20 @@ const ensureNewsletterTable = async () => {
 		CREATE UNIQUE INDEX IF NOT EXISTS newsletter_subscribers_email_unique
 		ON newsletter_subscribers (email)
 	`);
+};
+
+const getTransporter = () => {
+	if (!SMTP_HOST || !SMTP_USER || !SMTP_PASSWORD || !SMTP_FROM_EMAIL) return null;
+
+	return nodemailer.createTransport({
+		host: SMTP_HOST,
+		port: SMTP_PORT,
+		secure: SMTP_SECURE,
+		auth: {
+			user: SMTP_USER,
+			pass: SMTP_PASSWORD,
+		},
+	});
 };
 
 const getSubscriberCount = async (): Promise<number> => {
@@ -58,25 +78,18 @@ const createSubscriber = async (email: string): Promise<boolean> => {
 	return true;
 };
 
-const sendResendEmail = async ({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> => {
-	if (!RESEND_API_KEY || !NEWSLETTER_FROM_EMAIL) return false;
+const sendSmtpEmail = async ({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> => {
+	const transporter = getTransporter();
+	if (!transporter) return false;
 
 	try {
-		const response = await fetch('https://api.resend.com/emails', {
-			method: 'POST',
-			headers: {
-				Authorization: `Bearer ${RESEND_API_KEY}`,
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				from: NEWSLETTER_FROM_EMAIL,
-				to: [to],
-				subject,
-				html,
-			}),
+		await transporter.sendMail({
+			from: `${SMTP_FROM_NAME} <${SMTP_FROM_EMAIL}>`,
+			to,
+			subject,
+			html,
 		});
-
-		return response.ok;
+		return true;
 	} catch {
 		return false;
 	}
@@ -84,12 +97,12 @@ const sendResendEmail = async ({ to, subject, html }: { to: string; subject: str
 
 const sendNewsletterSignupEmails = async (subscriberEmail: string) => {
 	await Promise.allSettled([
-		sendResendEmail({
+		sendSmtpEmail({
 			to: subscriberEmail,
 			subject: 'You are subscribed to Adeyemi\'s newsletter',
 			html: `<p>Hi there,</p><p>Thanks for subscribing. You will receive new essays and publishing updates here.</p><p>- Adeyemi</p>`,
 		}),
-		sendResendEmail({
+		sendSmtpEmail({
 			to: CONTACT_EMAIL,
 			subject: 'New newsletter subscriber',
 			html: `<p>New subscriber: <strong>${subscriberEmail}</strong></p>`,
@@ -126,6 +139,7 @@ export const POST: APIRoute = async ({ request }) => {
 			ok: true,
 			message: isNewSubscriber ? 'Thanks for subscribing!' : 'You are already subscribed.',
 			contactEmail: CONTACT_EMAIL,
+			mailConfigured: Boolean(getTransporter()),
 		}), {
 			status: isNewSubscriber ? 201 : 200,
 			headers: { 'content-type': 'application/json; charset=utf-8' },

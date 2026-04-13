@@ -2,7 +2,10 @@ import { collection, component, config, fields, singleton } from '@keystatic/cor
 
 const githubRepo = process.env.KEYSTATIC_GITHUB_REPO || '';
 const githubBranch = process.env.KEYSTATIC_GITHUB_BRANCH || 'main';
-const hasGithubStorage = Boolean(githubRepo);
+const githubClientId = process.env.KEYSTATIC_GITHUB_CLIENT_ID || '';
+const githubClientSecret = process.env.KEYSTATIC_GITHUB_CLIENT_SECRET || '';
+const keystaticSecret = process.env.KEYSTATIC_SECRET || '';
+const hasGithubStorage = Boolean(githubRepo && githubClientId && githubClientSecret && keystaticSecret);
 
 export default config({
 	storage: hasGithubStorage
