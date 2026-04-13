@@ -1,0 +1,28 @@
+
+> afraid-antimatter@0.0.1 build
+> astro build
+
+07:36:51 [vite] Re-optimizing dependencies because vite config has changed
+07:36:51 [types] Generated 218ms
+07:36:51 [build] output: "server"
+07:36:51 [build] mode: "server"
+07:36:51 [build] directory: /home/samsoyombopa/adeyemi-brand/afraid-antimatter/dist/
+07:36:51 [build] adapter: @astrojs/vercel
+07:36:51 [build] Collecting build info...
+07:36:51 [build] ✓ Completed in 318ms.
+07:36:51 [build] Building server entrypoints...
+07:36:52 [vite] ✓ built in 844ms
+07:36:54 [vite] ✓ built in 1.86s
+07:37:06 [WARN] [vite] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+07:37:06 [vite] ✓ built in 12.40s
+07:37:07 [build] Rearranging server assets...
+07:37:07 [build] ✓ Completed in 15.24s.
+07:37:07 [@astrojs/vercel] Bundling function ../../../../dist/server/entry.mjs
+07:37:10 [build] Waiting for integration "@astrojs/vercel", hook "astro:build:done"...
+07:37:11 [@astrojs/vercel] Copying static files to .vercel/output/static
+07:37:11 [build] Server built in 20.23s
+07:37:11 [build] Complete!

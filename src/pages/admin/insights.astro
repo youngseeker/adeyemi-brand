@@ -1,0 +1,397 @@
+---
+import '../../styles/global.css';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Insights | A.ADENIJI</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap"
+			rel="stylesheet"
+		/>
+		<script is:inline>
+			const theme = (() => {
+				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+					return localStorage.getItem('theme');
+				}
+				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+					return 'dark';
+				}
+				return 'light';
+			})();
+
+			if (theme === 'light') {
+				document.documentElement.classList.remove('dark');
+			} else {
+				document.documentElement.classList.add('dark');
+			}
+		</script>
+	</head>
+	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+		<main class="mx-auto max-w-5xl px-6 py-16">
+			<div class="flex flex-wrap items-center justify-between gap-2">
+				<div class="flex items-center gap-4">
+					<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
+					<a href="/admin" class="text-xs font-bold tracking-[0.2em] text-gray-500 uppercase hover:text-brandBlue">Admin Hub</a>
+				</div>
+				<div class="flex items-center gap-2">
+					<button id="themeToggle" type="button" class="rounded-lg border border-gray-300 px-3 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Theme</button>
+					<button id="logoutButton" type="button" class="rounded-lg border border-red-300 px-3 py-2 text-xs font-bold tracking-widest uppercase text-red-600 dark:border-red-800 dark:text-red-400">Logout</button>
+				</div>
+			</div>
+			<h1 class="mt-6 text-4xl font-bold uppercase">Insights Console</h1>
+			<p class="mt-2 text-gray-500 dark:text-gray-300">Moderation queue + engagement overview</p>
+
+			<section class="mt-10 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
+				<label for="adminKey" class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Admin Key</label>
+				<div class="mt-3 flex gap-3">
+					<input id="adminKey" type="password" class="w-full rounded-xl border border-gray-300 px-4 py-3 dark:border-gray-700 dark:bg-transparent" placeholder="Enter REVIEW_ADMIN_KEY" />
+					<button id="saveAdminKey" type="button" class="rounded-xl bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase">Save</button>
+				</div>
+			</section>
+
+			<section class="mt-10 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
+				<h2 class="text-xl font-bold">Analytics</h2>
+				<div class="mt-4 grid gap-3 md:grid-cols-3">
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Total Views</p>
+						<p id="kpiTotalViews" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Approved Reviews</p>
+						<p id="kpiApproved" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Pending Reviews</p>
+						<p id="kpiPending" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+				</div>
+
+				<div class="mt-6">
+					<p class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Daily Views (14d)</p>
+					<div id="dailyViews" class="mt-3 grid gap-2"></div>
+				</div>
+
+				<div class="mt-6">
+					<p class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Rating Distribution</p>
+					<div id="ratingDistribution" class="mt-3 grid gap-2"></div>
+				</div>
+
+				<details class="mt-6">
+					<summary class="cursor-pointer text-xs tracking-widest text-gray-400 uppercase">Raw Analytics Payload</summary>
+					<pre id="analyticsOutput" class="mt-3 overflow-auto rounded-xl bg-gray-50 p-4 text-sm dark:bg-[#101010]">Loading...</pre>
+				</details>
+			</section>
+
+			<section class="mt-10 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
+				<div class="flex items-center justify-between">
+					<h2 class="text-xl font-bold">Moderation Queue</h2>
+					<button id="refreshQueue" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Refresh</button>
+				</div>
+				<div id="queue" class="mt-4 space-y-4"></div>
+			</section>
+
+			<section class="mt-10 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<h2 class="text-xl font-bold">Newsletter Subscribers</h2>
+					<div class="flex items-center gap-2">
+						<button id="copyNewsletterEmails" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Copy Emails</button>
+						<button id="refreshNewsletter" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Refresh</button>
+						<button id="exportNewsletterCsv" type="button" class="rounded-xl bg-brandBlue px-4 py-2 text-xs font-bold tracking-widest text-white uppercase">Export CSV</button>
+					</div>
+				</div>
+				<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">
+					Contact: <span id="newsletterContact">--</span>
+				</p>
+				<div class="mt-4 grid gap-3 md:grid-cols-2">
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Subscriber Count</p>
+						<p id="newsletterCount" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<label for="newsletterSearch" class="text-xs tracking-widest text-gray-400 uppercase">Search Subscribers</label>
+						<input id="newsletterSearch" type="search" placeholder="Search by email" class="mt-2 w-full rounded-xl border border-gray-300 px-4 py-2 text-sm dark:border-gray-700 dark:bg-transparent" />
+					</div>
+				</div>
+				<p id="newsletterStatus" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
+				<div id="newsletterList" class="mt-4 max-h-72 space-y-2 overflow-auto rounded-xl border border-gray-200 p-3 text-sm dark:border-gray-700"></div>
+			</section>
+		</main>
+
+		<script is:inline>
+			const themeToggle = document.getElementById('themeToggle');
+			const logoutButton = document.getElementById('logoutButton');
+			const keyInput = document.getElementById('adminKey');
+			const saveButton = document.getElementById('saveAdminKey');
+			const refreshButton = document.getElementById('refreshQueue');
+			const queueContainer = document.getElementById('queue');
+			const analyticsOutput = document.getElementById('analyticsOutput');
+			const kpiTotalViews = document.getElementById('kpiTotalViews');
+			const kpiApproved = document.getElementById('kpiApproved');
+			const kpiPending = document.getElementById('kpiPending');
+			const dailyViews = document.getElementById('dailyViews');
+			const ratingDistribution = document.getElementById('ratingDistribution');
+			const newsletterCount = document.getElementById('newsletterCount');
+			const newsletterContact = document.getElementById('newsletterContact');
+			const newsletterList = document.getElementById('newsletterList');
+			const newsletterStatus = document.getElementById('newsletterStatus');
+			const refreshNewsletter = document.getElementById('refreshNewsletter');
+			const exportNewsletterCsv = document.getElementById('exportNewsletterCsv');
+			const copyNewsletterEmails = document.getElementById('copyNewsletterEmails');
+			const newsletterSearch = document.getElementById('newsletterSearch');
+			const storageKey = 'admin-review-key';
+			let latestSubscribers = [];
+			let filteredSubscribers = [];
+
+			themeToggle?.addEventListener('click', () => {
+				const root = document.documentElement;
+				root.classList.toggle('dark');
+				localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+			});
+
+			logoutButton?.addEventListener('click', async () => {
+				await fetch('/api/admin/logout', { method: 'POST' });
+				window.location.href = '/admin/login';
+			});
+
+			if (keyInput) {
+				keyInput.value = localStorage.getItem(storageKey) || '';
+			}
+
+			const getAdminKey = () => (keyInput ? keyInput.value.trim() : '');
+
+			const saveAdminKey = () => {
+				localStorage.setItem(storageKey, getAdminKey());
+			};
+
+			const renderQueue = (items) => {
+				if (!queueContainer) return;
+				if (!items.length) {
+					queueContainer.innerHTML = '<p class="text-gray-500">No pending feedback.</p>';
+					return;
+				}
+
+				queueContainer.innerHTML = items
+					.map(
+						(item) =>
+							`<article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">\n<p class="text-xs tracking-widest text-gray-400 uppercase">${item.slug}</p>\n<h3 class="mt-1 text-lg font-bold">${item.title}</h3>\n<p class="mt-1 text-sm text-gray-500">${item.name} / ${item.rating} stars / ${new Date(item.createdAt).toLocaleString()}</p>\n<p class="mt-3">${item.comment}</p>\n<div class="mt-4 flex gap-2">\n<button data-action="approve" data-id="${item.id}" class="moderate rounded-lg bg-brandBlue px-3 py-2 text-xs font-bold uppercase text-white">Approve</button>\n<button data-action="reject" data-id="${item.id}" class="moderate rounded-lg border border-gray-300 px-3 py-2 text-xs font-bold uppercase dark:border-gray-600">Reject</button>\n</div>\n</article>`,
+					)
+					.join('');
+			};
+
+			const loadQueue = async () => {
+				if (!queueContainer) return;
+				queueContainer.innerHTML = '<p class="text-gray-500">Loading...</p>';
+				const response = await fetch('/api/feedback?status=pending', {
+					headers: { 'x-admin-key': getAdminKey() },
+				});
+				if (!response.ok) {
+					queueContainer.innerHTML = '<p class="text-red-500">Unauthorized or unavailable. Set admin key and refresh.</p>';
+					return;
+				}
+				const payload = await response.json();
+				renderQueue(payload.items || []);
+			};
+
+			const moderate = async (id, action) => {
+				await fetch('/api/feedback', {
+					method: 'PATCH',
+					headers: {
+						'content-type': 'application/json',
+						'x-admin-key': getAdminKey(),
+					},
+					body: JSON.stringify({ id, action }),
+				});
+				loadQueue();
+				loadAnalytics();
+			};
+
+			const loadAnalytics = async () => {
+				if (!analyticsOutput) return;
+				const response = await fetch('/api/analytics');
+				if (!response.ok) {
+					analyticsOutput.textContent = 'Unable to load analytics.';
+					return;
+				}
+				const payload = await response.json();
+				analyticsOutput.textContent = JSON.stringify(payload, null, 2);
+
+				if (kpiTotalViews) kpiTotalViews.textContent = String(payload.totalViews || 0);
+				if (kpiApproved) kpiApproved.textContent = String(payload.approvedFeedbackCount || 0);
+				if (kpiPending) kpiPending.textContent = String(payload.pendingFeedbackCount || 0);
+
+				if (dailyViews) {
+					const max = Math.max(1, ...(payload.dailyViews || []).map((entry) => Number(entry.views || 0)));
+					dailyViews.innerHTML = (payload.dailyViews || [])
+						.map((entry) => {
+							const value = Number(entry.views || 0);
+							const width = Math.max(2, Math.round((value / max) * 100));
+							return `<div class="grid grid-cols-[80px_1fr_40px] items-center gap-2 text-xs"><span class="text-gray-500">${entry.date.slice(5)}</span><div class="h-2 rounded bg-gray-200 dark:bg-gray-800"><div class="h-full rounded bg-brandBlue" style="width:${width}%"></div></div><span class="text-right">${value}</span></div>`;
+						})
+						.join('');
+				}
+
+				if (ratingDistribution) {
+					if (!(payload.ratingDistribution || []).length) {
+						ratingDistribution.innerHTML = '<p class="text-sm text-gray-500">No approved ratings yet.</p>';
+					} else {
+						ratingDistribution.innerHTML = payload.ratingDistribution
+							.map((row) => {
+								const stars = '★'.repeat(Number(row.rating || 0));
+								return `<div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm dark:border-gray-700"><span>${stars}</span><span>${row.count}</span></div>`;
+							})
+							.join('');
+					}
+				}
+			};
+
+			const toCsv = (items) => {
+				const header = 'email,created_at';
+				const rows = items.map((item) => {
+					const escapedEmail = `"${String(item.email || '').replaceAll('"', '""')}"`;
+					const escapedDate = `"${String(item.createdAt || '').replaceAll('"', '""')}"`;
+					return `${escapedEmail},${escapedDate}`;
+				});
+				return [header, ...rows].join('\n');
+			};
+
+			const downloadCsv = (filename, content) => {
+				const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement('a');
+				link.href = url;
+				link.download = filename;
+				document.body.appendChild(link);
+				link.click();
+				link.remove();
+				URL.revokeObjectURL(url);
+			};
+
+			const formatDateTime = (value) => {
+				if (!value) return '--';
+				const date = new Date(value);
+				if (Number.isNaN(date.getTime())) return '--';
+				return date.toLocaleString();
+			};
+
+			const renderNewsletterList = () => {
+				if (!newsletterList) return;
+				if (!filteredSubscribers.length) {
+					newsletterList.innerHTML = '<p class="text-gray-500">No subscribers match this filter.</p>';
+					if (exportNewsletterCsv instanceof HTMLButtonElement) exportNewsletterCsv.disabled = true;
+					if (copyNewsletterEmails instanceof HTMLButtonElement) copyNewsletterEmails.disabled = true;
+					return;
+				}
+
+				newsletterList.innerHTML = filteredSubscribers
+					.map(
+						(item) => `<div class="grid grid-cols-[minmax(0,1fr)_180px] gap-3 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"><span class="truncate">${item.email}</span><span class="text-right text-xs text-gray-500">${formatDateTime(item.createdAt)}</span></div>`,
+					)
+					.join('');
+
+				if (exportNewsletterCsv instanceof HTMLButtonElement) exportNewsletterCsv.disabled = false;
+				if (copyNewsletterEmails instanceof HTMLButtonElement) copyNewsletterEmails.disabled = false;
+			};
+
+			const applyNewsletterFilter = () => {
+				const query = newsletterSearch instanceof HTMLInputElement ? newsletterSearch.value.trim().toLowerCase() : '';
+				if (!query) {
+					filteredSubscribers = [...latestSubscribers];
+				} else {
+					filteredSubscribers = latestSubscribers.filter((item) => String(item.email || '').toLowerCase().includes(query));
+				}
+				renderNewsletterList();
+			};
+
+			const loadNewsletter = async () => {
+				if (newsletterList) newsletterList.innerHTML = '<p class="text-gray-500">Loading...</p>';
+				if (newsletterStatus) newsletterStatus.textContent = '';
+				try {
+					const response = await fetch('/api/newsletter', {
+						headers: { 'x-admin-key': getAdminKey() },
+					});
+					if (!response.ok) {
+						if (newsletterList) newsletterList.innerHTML = '<p class="text-red-500">Unable to load newsletter data.</p>';
+						return;
+					}
+					const payload = await response.json();
+					if (newsletterCount) newsletterCount.textContent = String(payload.count || 0);
+					if (newsletterContact) newsletterContact.textContent = payload.contactEmail || '--';
+					latestSubscribers = Array.isArray(payload.subscribers) ? payload.subscribers : [];
+
+					if (!latestSubscribers.length) {
+						if (newsletterList) {
+							newsletterList.innerHTML = '<p class="text-gray-500">No subscribers yet, or admin key is missing/invalid for subscriber list access.</p>';
+						}
+						if (newsletterStatus && payload.adminAccess === false) {
+							newsletterStatus.textContent = 'Subscriber list requires a valid admin key.';
+						}
+						if (exportNewsletterCsv instanceof HTMLButtonElement) exportNewsletterCsv.disabled = true;
+						if (copyNewsletterEmails instanceof HTMLButtonElement) copyNewsletterEmails.disabled = true;
+						return;
+					}
+
+					filteredSubscribers = [...latestSubscribers];
+					renderNewsletterList();
+				} catch {
+					if (newsletterList) newsletterList.innerHTML = '<p class="text-red-500">Unable to load newsletter data.</p>';
+					if (exportNewsletterCsv instanceof HTMLButtonElement) exportNewsletterCsv.disabled = true;
+					if (copyNewsletterEmails instanceof HTMLButtonElement) copyNewsletterEmails.disabled = true;
+				}
+			};
+
+			saveButton?.addEventListener('click', () => {
+				saveAdminKey();
+				loadQueue();
+				loadNewsletter();
+			});
+
+			refreshButton?.addEventListener('click', () => {
+				loadQueue();
+				loadAnalytics();
+				loadNewsletter();
+			});
+
+			refreshNewsletter?.addEventListener('click', () => {
+				loadNewsletter();
+			});
+
+			newsletterSearch?.addEventListener('input', () => {
+				applyNewsletterFilter();
+			});
+
+			exportNewsletterCsv?.addEventListener('click', () => {
+				if (!filteredSubscribers.length) return;
+				downloadCsv('newsletter-subscribers.csv', toCsv(filteredSubscribers));
+			});
+
+			copyNewsletterEmails?.addEventListener('click', async () => {
+				if (!filteredSubscribers.length) return;
+				const text = filteredSubscribers.map((item) => item.email).join('\n');
+				try {
+					await navigator.clipboard.writeText(text);
+					if (newsletterStatus) newsletterStatus.textContent = `Copied ${filteredSubscribers.length} email(s) to clipboard.`;
+				} catch {
+					if (newsletterStatus) newsletterStatus.textContent = 'Unable to copy emails from this browser context.';
+				}
+			});
+
+			queueContainer?.addEventListener('click', (event) => {
+				const target = event.target;
+				if (!(target instanceof HTMLElement)) return;
+				if (!target.classList.contains('moderate')) return;
+				const id = target.dataset.id;
+				const action = target.dataset.action;
+				if (id && action) {
+					moderate(id, action);
+				}
+			});
+
+			loadQueue();
+			loadAnalytics();
+			loadNewsletter();
+		</script>
+	</body>
+</html>

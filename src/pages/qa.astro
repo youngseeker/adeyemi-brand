@@ -1,0 +1,237 @@
+---
+import '../styles/global.css';
+
+const checks = [
+	'Home hero and navigation spacing look correct on mobile and desktop.',
+	'Email call-to-action is clearly visible on Home, Work, and About pages.',
+	'Article references render as properly separated numbered entries.',
+	'Related Articles appears below article content and links correctly.',
+	'Code blocks show language label and syntax highlighting.',
+	'Mermaid diagrams and HTML previews render without layout overflow.',
+	'Admin login and protected routes redirect behavior is correct.',
+	'Command palette opens with Ctrl/Cmd + K and core links work.',
+	'Dark/light theme toggles correctly and persists after reload.',
+	'Mobile contact chip is visible and does not overlap key controls.',
+];
+
+const deployCommit =
+	import.meta.env.PUBLIC_COMMIT_SHA ||
+	import.meta.env.VERCEL_GIT_COMMIT_SHA ||
+	import.meta.env.CF_PAGES_COMMIT_SHA ||
+	import.meta.env.GITHUB_SHA ||
+	'not provided';
+
+const deployRef =
+	import.meta.env.VERCEL_GIT_COMMIT_REF ||
+	import.meta.env.CF_PAGES_BRANCH ||
+	import.meta.env.GITHUB_REF_NAME ||
+	'not provided';
+
+const deployPlatform =
+	import.meta.env.VERCEL === '1'
+		? 'Vercel'
+		: import.meta.env.CF_PAGES === '1'
+			? 'Cloudflare Pages'
+			: 'Local/Other';
+
+const buildLabel = import.meta.env.PUBLIC_BUILD_LABEL || 'not provided';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>QA Checklist | Adeyemi Systems Atlas</title>
+		<meta name="description" content="Pre-deploy visual and interaction checklist for Adeyemi Systems Atlas." />
+		<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap" rel="stylesheet" />
+		<script is:inline define:vars={{ deployPlatform, deployRef, deployCommit, buildLabel }}>
+			const theme = (() => {
+				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+					return localStorage.getItem('theme');
+				}
+				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+					return 'dark';
+				}
+				return 'light';
+			})();
+			if (theme === 'dark') document.documentElement.classList.add('dark');
+		</script>
+	</head>
+	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+		<main class="mx-auto max-w-4xl px-6 py-14">
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
+				<div class="flex items-center gap-2">
+					<button id="resetQa" type="button" class="ui-btn ui-btn-neutral">Reset</button>
+					<button id="themeToggle" type="button" class="ui-btn ui-btn-neutral">Theme</button>
+				</div>
+			</div>
+
+			<section class="mt-8 ui-card p-6">
+				<p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Pre-Deploy QA</p>
+				<h1 class="mt-2 text-3xl font-bold uppercase">Visual Regression Checklist</h1>
+				<p class="mt-3 text-sm text-gray-600 dark:text-gray-300">Use this checklist before deployment. State is saved in your browser.</p>
+				<div class="mt-4 flex flex-wrap gap-2 text-xs">
+					<a href="/" class="ui-btn ui-btn-neutral">Home</a>
+					<a href="/work" class="ui-btn ui-btn-neutral">Work</a>
+					<a href="/about" class="ui-btn ui-btn-neutral">About</a>
+					<a href="/garden" class="ui-btn ui-btn-neutral">Garden</a>
+					<a href="/admin" class="ui-btn ui-btn-neutral">Admin</a>
+				</div>
+			</section>
+
+			<section class="mt-6 ui-card p-6">
+				<div class="mb-4 flex items-center justify-between">
+					<h2 class="text-lg font-bold uppercase">Checks</h2>
+					<p id="qaProgress" class="text-xs text-gray-500 dark:text-gray-300">0 / {checks.length} done</p>
+				</div>
+				<div id="qaList" class="space-y-3">
+					{checks.map((item, index) => (
+						<label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+							<input data-index={index} type="checkbox" class="mt-1 h-4 w-4 accent-brandBlue" />
+							<span class="text-sm leading-relaxed">{item}</span>
+						</label>
+					))}
+				</div>
+			</section>
+
+			<section class="mt-6 ui-card p-6">
+				<h2 class="text-lg font-bold uppercase">Run Context</h2>
+				<p id="qaContext" class="mt-2 text-sm text-gray-600 dark:text-gray-300">Loading browser context...</p>
+				<div class="mt-4 grid gap-2 text-xs text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+					<p><span class="font-bold text-black dark:text-white">Platform:</span> {deployPlatform}</p>
+					<p><span class="font-bold text-black dark:text-white">Branch:</span> {deployRef}</p>
+					<p class="sm:col-span-2"><span class="font-bold text-black dark:text-white">Commit:</span> {deployCommit}</p>
+					<p class="sm:col-span-2"><span class="font-bold text-black dark:text-white">Build Label:</span> {buildLabel}</p>
+				</div>
+			</section>
+
+			<section class="mt-6 ui-card p-6">
+				<div class="flex flex-wrap items-center justify-between gap-3">
+					<h2 class="text-lg font-bold uppercase">Verification Records</h2>
+					<button id="stampVerification" type="button" class="ui-btn ui-btn-primary">Stamp Verification</button>
+				</div>
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Capture a timestamped QA sign-off with current commit metadata.</p>
+				<div id="verificationRecords" class="mt-4 space-y-2"></div>
+			</section>
+		</main>
+
+		<script is:inline>
+			const STORAGE_KEY = 'qa-checklist-v1';
+			const RECORDS_KEY = 'qa-verification-records-v1';
+			const checkboxes = Array.from(document.querySelectorAll('#qaList input[type="checkbox"]'));
+			const progress = document.getElementById('qaProgress');
+			const context = document.getElementById('qaContext');
+			const resetButton = document.getElementById('resetQa');
+			const themeToggle = document.getElementById('themeToggle');
+			const stampButton = document.getElementById('stampVerification');
+			const recordsContainer = document.getElementById('verificationRecords');
+			const deployMeta = {
+				platform: deployPlatform,
+				branch: deployRef,
+				commit: deployCommit,
+				buildLabel,
+			};
+
+			const loadState = () => {
+				try {
+					const raw = localStorage.getItem(STORAGE_KEY);
+					if (!raw) return;
+					const values = JSON.parse(raw);
+					if (!Array.isArray(values)) return;
+					checkboxes.forEach((checkbox, index) => {
+						checkbox.checked = Boolean(values[index]);
+					});
+				} catch {
+					// no-op
+				}
+			};
+
+			const saveState = () => {
+				const values = checkboxes.map((checkbox) => checkbox.checked);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+			};
+
+			const updateProgress = () => {
+				const complete = checkboxes.filter((checkbox) => checkbox.checked).length;
+				if (progress) progress.textContent = `${complete} / ${checkboxes.length} done`;
+			};
+
+			const setContext = () => {
+				if (!context) return;
+				context.textContent = `Viewport ${window.innerWidth}x${window.innerHeight} | UA: ${navigator.userAgent}`;
+			};
+
+			const readRecords = () => {
+				try {
+					const raw = localStorage.getItem(RECORDS_KEY);
+					if (!raw) return [];
+					const parsed = JSON.parse(raw);
+					return Array.isArray(parsed) ? parsed : [];
+				} catch {
+					return [];
+				}
+			};
+
+			const writeRecords = (records) => {
+				localStorage.setItem(RECORDS_KEY, JSON.stringify(records.slice(0, 20)));
+			};
+
+			const renderRecords = () => {
+				if (!recordsContainer) return;
+				const records = readRecords();
+				if (!records.length) {
+					recordsContainer.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No verification stamps yet.</p>';
+					return;
+				}
+				recordsContainer.innerHTML = records
+					.map((record) => {
+						const time = new Date(record.time).toLocaleString();
+						return `<article class="rounded-lg border border-gray-200 p-3 text-xs dark:border-gray-800"><p><strong>${time}</strong></p><p class="mt-1 text-gray-600 dark:text-gray-300">Platform: ${record.platform} | Branch: ${record.branch}</p><p class="mt-1 text-gray-600 dark:text-gray-300">Commit: ${record.commit}</p><p class="mt-1 text-gray-600 dark:text-gray-300">Build Label: ${record.buildLabel}</p></article>`;
+					})
+					.join('');
+			};
+
+			loadState();
+			updateProgress();
+			setContext();
+			renderRecords();
+
+			checkboxes.forEach((checkbox) => {
+				checkbox.addEventListener('change', () => {
+					saveState();
+					updateProgress();
+				});
+			});
+
+			resetButton?.addEventListener('click', () => {
+				checkboxes.forEach((checkbox) => {
+					checkbox.checked = false;
+				});
+				saveState();
+				updateProgress();
+			});
+
+			stampButton?.addEventListener('click', () => {
+				const records = readRecords();
+				records.unshift({
+					time: Date.now(),
+					platform: deployMeta.platform,
+					branch: deployMeta.branch,
+					commit: deployMeta.commit,
+					buildLabel: deployMeta.buildLabel,
+				});
+				writeRecords(records);
+				renderRecords();
+			});
+
+			themeToggle?.addEventListener('click', () => {
+				const root = document.documentElement;
+				root.classList.toggle('dark');
+				localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+			});
+
+			window.addEventListener('resize', setContext);
+		</script>
+	</body>
+</html>

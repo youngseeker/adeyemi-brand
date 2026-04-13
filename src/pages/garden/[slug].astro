@@ -1,0 +1,605 @@
+---
+import keystaticConfig from '../../../keystatic.config';
+import { createReader } from '@keystatic/core/reader';
+import KeystaticDocument from '../../components/KeystaticDocument';
+import { extractArticleHeadings } from '../../lib/contentOutline';
+import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
+import { isPubliclyVisiblePost } from '../../lib/postVisibility';
+import '../../styles/global.css';
+
+const reader = createReader(process.cwd(), keystaticConfig);
+const { slug } = Astro.params;
+
+const prettyTitle = (value: string) =>
+	value
+		.split('-')
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(' ');
+
+const derivePostTitle = (value: unknown, fallbackSlug?: string) => {
+	if (typeof value === 'string' && value.trim()) return value.trim();
+	if (fallbackSlug) return prettyTitle(fallbackSlug);
+	return 'Post';
+};
+
+const resolveImageSrc = (image: unknown): string | null => {
+	if (!image) return null;
+	if (typeof image === 'string') return image;
+	if (typeof image === 'object' && image !== null && 'src' in image) {
+		const src = (image as { src?: unknown }).src;
+		if (typeof src === 'string') return src;
+	}
+	return null;
+};
+
+const post = slug ? await reader.collections.posts.read(slug, { resolveLinkedFiles: true }) : null;
+const rawPosts = await reader.collections.posts.all();
+
+const giscusRepo = import.meta.env.PUBLIC_GISCUS_REPO || '';
+const giscusRepoId = import.meta.env.PUBLIC_GISCUS_REPO_ID || '';
+const giscusCategory = import.meta.env.PUBLIC_GISCUS_CATEGORY || 'General';
+const giscusCategoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID || '';
+const giscusEnabled = import.meta.env.PUBLIC_GISCUS_ENABLED === 'true';
+const hasGiscusConfig = Boolean(giscusEnabled && giscusRepo && giscusRepoId && giscusCategoryId);
+const isPublicVisible = post
+	? isPubliclyVisiblePost({
+			status: (post as { status?: unknown }).status,
+			scheduledFor: (post as { scheduledFor?: unknown }).scheduledFor,
+			publishedAt: (post as { publishedAt?: unknown }).publishedAt,
+		})
+	: false;
+
+if (!post || !isPublicVisible) {
+	Astro.response.status = 404;
+}
+
+const title = derivePostTitle((post as { title?: unknown } | null)?.title, slug);
+const contentDocument = Array.isArray((post as { content?: unknown } | null)?.content)
+	? ((post as { content: unknown[] }).content as any[])
+	: [];
+const readingLabel = formatReadingMinutes(readingMinutesFromDocument(contentDocument));
+const articleHeadings = extractArticleHeadings(contentDocument);
+const coverImageSrc = resolveImageSrc((post as { coverImage?: unknown } | null)?.coverImage);
+const currentTags = new Set(((post?.tags as string[]) || []).map((tag) => tag.toLowerCase()));
+
+const resolveDocumentNodes = async (value: unknown): Promise<unknown[]> => {
+	if (typeof value === 'function') {
+		const resolved = await (value as () => Promise<unknown>)();
+		return Array.isArray(resolved) ? resolved : [];
+	}
+	return Array.isArray(value) ? value : [];
+};
+
+const relatedCandidates = await Promise.all(
+	rawPosts
+		.filter(({ slug: candidateSlug, entry }) =>
+			candidateSlug !== slug &&
+			isPubliclyVisiblePost({
+				status: (entry as { status?: unknown }).status,
+				scheduledFor: (entry as { scheduledFor?: unknown }).scheduledFor,
+				publishedAt: (entry as { publishedAt?: unknown }).publishedAt,
+			}),
+		)
+		.map(async ({ slug: candidateSlug, entry }) => {
+			const candidateTags = ((entry.tags as string[]) || []).map((tag) => tag.toLowerCase());
+			const sharedTagCount = candidateTags.filter((tag) => currentTags.has(tag)).length;
+			const docNodes = await resolveDocumentNodes((entry as { content?: unknown }).content);
+			return {
+				slug: candidateSlug,
+				title: derivePostTitle((entry as { title?: unknown }).title, candidateSlug),
+				excerpt: entry.excerpt || 'Related reading from the Digital Garden.',
+				publishedAt: entry.publishedAt || '',
+				sharedTagCount,
+				readingLabel: formatReadingMinutes(readingMinutesFromDocument(docNodes)),
+			};
+		}),
+);
+
+const relatedPosts = relatedCandidates
+	.sort((a, b) => {
+		if (b.sharedTagCount !== a.sharedTagCount) return b.sharedTagCount - a.sharedTagCount;
+		if (!a.publishedAt) return 1;
+		if (!b.publishedAt) return -1;
+		return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+	})
+	.slice(0, 3);
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>{title} | A.ADENIJI</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
+			rel="stylesheet"
+		/>
+		<script is:inline>
+			const theme = (() => {
+				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+					return localStorage.getItem('theme');
+				}
+				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+					return 'dark';
+				}
+				return 'light';
+			})();
+
+			if (theme === 'light') {
+				document.documentElement.classList.remove('dark');
+			} else {
+				document.documentElement.classList.add('dark');
+			}
+		</script>
+	</head>
+	<body data-slug={slug || ''} data-title={title} class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+		<div class="fixed top-0 left-0 z-50 h-1 w-full bg-transparent">
+			<div id="readingProgressBar" class="h-full w-0 bg-brandBlue transition-[width] duration-150"></div>
+		</div>
+		<main class="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
+			<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-12">
+				<div>
+			<div class="flex items-center justify-between gap-4">
+				<a href="/garden" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back to Garden</a>
+				<button
+					id="themeToggle"
+					type="button"
+					aria-label="Toggle theme"
+					class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700"
+				>
+					<span class="text-xs font-bold uppercase dark:hidden">L</span>
+					<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
+				</button>
+			</div>
+			<h1 class="mt-8 text-3xl font-bold tracking-tight sm:text-4xl md:text-6xl">{title}</h1>
+			{coverImageSrc && (
+				<div class="mt-8 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+					<img src={coverImageSrc} alt={title} class="h-auto w-full object-cover" loading="lazy" />
+				</div>
+			)}
+			<div class="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+				<div class="flex flex-col gap-1">
+					{post?.publishedAt && (
+						<p class="text-sm tracking-widest text-gray-500 uppercase">{post.publishedAt}</p>
+					)}
+					<p class="text-xs tracking-widest text-brandBlue uppercase">{readingLabel}</p>
+					{post?.author && (
+						<p class="text-xs text-gray-400">BY {post.author.toUpperCase()}</p>
+					)}
+				</div>
+				{post?.tags && post.tags.length > 0 && (
+					<div class="flex flex-wrap gap-2">
+						{(post.tags as string[]).map((tag) => (
+							<span class="rounded-full border border-gray-300 px-2 py-1 text-xs text-gray-600 dark:border-gray-700 dark:text-gray-400">
+								{tag}
+							</span>
+						))}
+					</div>
+				)}
+			</div>
+			{post?.excerpt && <p class="mt-8 text-xl leading-relaxed text-gray-600 dark:text-gray-300">{post.excerpt}</p>}
+
+			{articleHeadings.length > 0 && (
+				<nav class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Article sections">
+					{articleHeadings.map((heading) => (
+						<a href={`#${heading.slug}`} class="shrink-0 rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-600 transition hover:border-brandBlue hover:text-brandBlue dark:border-gray-700 dark:text-gray-300">
+							{heading.text}
+						</a>
+					))}
+				</nav>
+			)}
+
+			<section class="mt-8 rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+				<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<p class="text-sm font-bold">Article Reactions</p>
+						<p class="text-xs text-gray-500 dark:text-gray-300">Readers can like this article once per device/network.</p>
+						<p id="reactionStatus" class="mt-2 text-xs text-gray-500 dark:text-gray-300"></p>
+					</div>
+					<div class="flex items-center gap-3 self-start sm:self-auto">
+						<button id="likeButton" type="button" class="ui-btn ui-btn-secondary px-4 py-2">Like</button>
+						<p id="likeCount" class="text-sm font-bold">0</p>
+					</div>
+				</div>
+			</section>
+
+			<div class="mt-12">
+				{contentDocument.length > 0 ? (
+					<KeystaticDocument document={contentDocument} />
+				) : (
+					<p>
+						This entry has been created, but full body content is not yet available in public view.
+					</p>
+				)}
+			</div>
+
+			<section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
+				<h2 class="text-xl font-bold">Article Review</h2>
+				<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Leave a quick review. It enters moderation before public display.</p>
+				<form id="reviewForm" class="mt-4 space-y-3">
+					<div class="grid gap-3 sm:grid-cols-2">
+						<input id="reviewName" type="text" placeholder="Your name" class="rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-gray-700 dark:bg-transparent" />
+						<select id="reviewRating" class="rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-gray-700 dark:bg-transparent" required>
+							<option value="">Rating</option>
+							<option value="5">5 - Excellent</option>
+							<option value="4">4 - Great</option>
+							<option value="3">3 - Good</option>
+							<option value="2">2 - Fair</option>
+							<option value="1">1 - Weak</option>
+						</select>
+					</div>
+					<textarea id="reviewComment" placeholder="What did you think?" required rows="4" class="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm dark:border-gray-700 dark:bg-transparent"></textarea>
+					<button type="submit" class="ui-btn ui-btn-primary rounded-xl">Submit Review</button>
+				</form>
+				<p id="reviewStatus" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
+			</section>
+
+			<section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
+				<h2 class="text-xl font-bold">Approved Reader Reviews</h2>
+				<div id="approvedReviews" class="mt-4 space-y-3"></div>
+			</section>
+
+			{relatedPosts.length > 0 && (
+				<section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
+					<h2 class="text-xl font-bold">Related Articles</h2>
+					<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Continue with connected ideas and references.</p>
+					<div class="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+						{relatedPosts.map((item) => (
+							<a href={`/garden/${item.slug}`} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
+								<p class="text-[10px] tracking-widest text-gray-400 uppercase">{item.publishedAt || 'Digital Garden'} / {item.readingLabel}</p>
+								<h3 class="mt-2 text-lg font-bold">{item.title}</h3>
+								<p class="mt-2 line-clamp-3 text-sm text-gray-600 dark:text-gray-300">{item.excerpt}</p>
+							</a>
+						))}
+					</div>
+				</section>
+			)}
+
+			<section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
+				<h2 class="text-xl font-bold">Comments</h2>
+				<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Use the thread below for comments and shared reactions.</p>
+				{hasGiscusConfig ? (
+					<div class="mt-4"></div>
+				) : (
+					<p class="mt-3 text-gray-500 dark:text-gray-300">
+						Comments are currently disabled. Set `PUBLIC_GISCUS_ENABLED=true` after installing Giscus on the repository, then provide
+						`PUBLIC_GISCUS_REPO`, `PUBLIC_GISCUS_REPO_ID`, `PUBLIC_GISCUS_CATEGORY`, and `PUBLIC_GISCUS_CATEGORY_ID`.
+					</p>
+				)}
+			</section>
+				</div>
+				<aside class="hidden lg:sticky lg:top-24 lg:block lg:h-fit">
+					<div class="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
+						<p class="text-[10px] font-bold tracking-[0.25em] text-gray-400 uppercase">In this article</p>
+						{articleHeadings.length > 0 ? (
+							<nav class="mt-3 space-y-2">
+								{articleHeadings.map((heading) => (
+									<a href={`#${heading.slug}`} class={`toc-link block rounded-md px-2 py-1 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-brandBlue dark:text-gray-300 dark:hover:bg-gray-900 ${heading.level === 3 ? 'ml-3' : ''}`}>
+										{heading.text}
+									</a>
+								))}
+							</nav>
+						) : (
+							<p class="mt-3 text-sm text-gray-500 dark:text-gray-400">No section headings yet.</p>
+						)}
+					</div>
+				</aside>
+			</div>
+		</main>
+
+		{hasGiscusConfig && (
+			<script
+				src="https://giscus.app/client.js"
+				data-repo={giscusRepo}
+				data-repo-id={giscusRepoId}
+				data-category={giscusCategory}
+				data-category-id={giscusCategoryId}
+				data-mapping="pathname"
+				data-strict="0"
+				data-reactions-enabled="1"
+				data-emit-metadata="0"
+				data-input-position="top"
+				data-theme="preferred_color_scheme"
+				data-lang="en"
+				crossorigin="anonymous"
+				async
+			></script>
+		)}
+
+		<script is:inline>
+			const pageBody = document.body;
+			const articleSlug = pageBody?.dataset.slug || '';
+			const articleTitle = pageBody?.dataset.title || 'Post';
+
+			const themeToggle = document.getElementById('themeToggle');
+			if (themeToggle) {
+				themeToggle.addEventListener('click', () => {
+					const element = document.documentElement;
+					element.classList.toggle('dark');
+					const isDark = element.classList.contains('dark');
+					localStorage.setItem('theme', isDark ? 'dark' : 'light');
+				});
+			}
+
+			const reviewForm = document.getElementById('reviewForm');
+			const reviewStatus = document.getElementById('reviewStatus');
+			const approvedReviews = document.getElementById('approvedReviews');
+			const likeButton = document.getElementById('likeButton');
+			const likeCount = document.getElementById('likeCount');
+			const reactionStatus = document.getElementById('reactionStatus');
+
+			const slugifyHeading = (value) =>
+				String(value || '')
+					.toLowerCase()
+					.trim()
+					.replace(/[^a-z0-9\s-]/g, '')
+					.replace(/\s+/g, '-')
+					.replace(/-+/g, '-')
+					.replace(/^-|-$/g, '');
+
+			const assignHeadingIds = () => {
+				const used = new Map();
+				document.querySelectorAll('.article-content h2, .article-content h3').forEach((heading) => {
+					const text = heading.textContent || '';
+					if (!text.trim()) return;
+					const base = slugifyHeading(text);
+					if (!base) return;
+					const seen = used.get(base) || 0;
+					used.set(base, seen + 1);
+					heading.id = seen === 0 ? base : `${base}-${seen + 1}`;
+				});
+			};
+
+			const styleReferenceLists = () => {
+				const splitInlineReferences = (text) => {
+					const cleaned = String(text || '').replace(/\s+/g, ' ').trim();
+					if (!cleaned) return [];
+					const segments = cleaned
+						.split(/(?:^|\s)(?:\[\d+\]|\d+\.|•)\s+/g)
+						.map((item) => item.trim())
+						.filter((item) => item.length > 8);
+					if (segments.length >= 2) {
+						return segments.map((item) => (/[.!?]$/.test(item) ? item : `${item}.`));
+					}
+					return [];
+				};
+
+				document.querySelectorAll('.article-content h2, .article-content h3').forEach((heading) => {
+					const title = (heading.textContent || '').trim().toLowerCase();
+					if (!/^(references|bibliography|citations|sources)$/.test(title)) return;
+
+					const createReferenceList = (entries) => {
+						const list = document.createElement('ol');
+						list.className = 'references-list';
+						entries.forEach((entry) => {
+							const li = document.createElement('li');
+							li.textContent = String(entry || '').trim();
+							list.appendChild(li);
+						});
+						return list;
+					};
+
+					let cursor = heading.nextElementSibling;
+					const betweenNodes = [];
+					while (cursor && !cursor.matches('h1, h2, h3, h4, h5, h6')) {
+						betweenNodes.push(cursor);
+						cursor = cursor.nextElementSibling;
+					}
+
+					if (!betweenNodes.length) return;
+
+					const explicitOrderedList = betweenNodes.find((node) => node.matches('ol'));
+					if (explicitOrderedList) {
+						explicitOrderedList.classList.add('references-list');
+						return;
+					}
+
+					const explicitUnorderedList = betweenNodes.find((node) => node.matches('ul'));
+					if (explicitUnorderedList) {
+						const items = Array.from(explicitUnorderedList.querySelectorAll('li'))
+							.map((li) => (li.textContent || '').trim())
+							.filter(Boolean);
+						if (items.length) {
+							const normalized = createReferenceList(items);
+							explicitUnorderedList.replaceWith(normalized);
+							betweenNodes.forEach((node) => {
+								if (node !== explicitUnorderedList) node.remove();
+							});
+							return;
+						}
+					}
+
+					const aggregateText = betweenNodes
+						.map((node) => (node.textContent || '').trim())
+						.filter(Boolean)
+						.join(' ');
+					if (!aggregateText || aggregateText.length < 80) return;
+
+					const entries = splitInlineReferences(aggregateText);
+					if (entries.length >= 2) {
+						const normalized = createReferenceList(entries);
+						betweenNodes[0].replaceWith(normalized);
+						betweenNodes.slice(1).forEach((node) => node.remove());
+					}
+				});
+			};
+
+			const updateReadingProgress = () => {
+				const bar = document.getElementById('readingProgressBar');
+				if (!bar) return;
+				const article = document.querySelector('.article-content');
+				if (!article) return;
+				const rect = article.getBoundingClientRect();
+				const total = Math.max(1, rect.height - window.innerHeight * 0.4);
+				const progressed = Math.min(total, Math.max(0, -rect.top + window.innerHeight * 0.2));
+				const pct = Math.max(0, Math.min(100, (progressed / total) * 100));
+				bar.style.width = `${pct}%`;
+			};
+
+			const activateCurrentTocLink = () => {
+				const headings = Array.from(document.querySelectorAll('.article-content h2[id], .article-content h3[id]'));
+				if (!headings.length) return;
+				let activeId = headings[0].id;
+				headings.forEach((heading) => {
+					const rect = heading.getBoundingClientRect();
+					if (rect.top <= 140) activeId = heading.id;
+				});
+				document.querySelectorAll('.toc-link').forEach((link) => {
+					const href = link.getAttribute('href') || '';
+					const isActive = href === `#${activeId}`;
+					link.classList.toggle('bg-gray-100', isActive);
+					link.classList.toggle('text-brandBlue', isActive);
+					link.classList.toggle('dark:bg-gray-900', isActive);
+				});
+			};
+
+			const initCodeHighlighting = async () => {
+				const codeNodes = Array.from(document.querySelectorAll('.article-content pre code'));
+				if (!codeNodes.length) return;
+				try {
+					await import('prismjs');
+					await Promise.all([
+						import('prismjs/components/prism-javascript'),
+						import('prismjs/components/prism-typescript'),
+						import('prismjs/components/prism-python'),
+						import('prismjs/components/prism-bash'),
+						import('prismjs/components/prism-json'),
+						import('prismjs/components/prism-sql'),
+						import('prismjs/components/prism-markup'),
+					]);
+					const Prism = window.Prism;
+					if (!Prism) return;
+					codeNodes.forEach((node) => Prism.highlightElement(node));
+				} catch {
+					// no-op: code remains readable without highlighting
+				}
+			};
+
+			const initMermaid = async () => {
+				if (!document.querySelector('.article-content .mermaid')) return;
+				try {
+					const mermaid = (await import('mermaid')).default;
+					mermaid.initialize({ startOnLoad: false, theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default' });
+					await mermaid.run({ querySelector: '.article-content .mermaid' });
+				} catch {
+					// no-op: keep raw diagram text if renderer fails
+				}
+			};
+
+			const loadApprovedReviews = async () => {
+				if (!approvedReviews || !articleSlug) return;
+				const response = await fetch(`/api/feedback?slug=${encodeURIComponent(articleSlug)}`);
+				if (!response.ok) {
+					approvedReviews.innerHTML = '<p class="text-gray-500">Unable to load reviews.</p>';
+					return;
+				}
+				const payload = await response.json();
+				const items = payload.items || [];
+				if (!items.length) {
+					approvedReviews.innerHTML = '<p class="text-gray-500">No approved reviews yet.</p>';
+					return;
+				}
+				approvedReviews.innerHTML = items
+					.map(
+						(item) =>
+							`<article class="rounded-xl border border-gray-200 p-4 dark:border-gray-700"><p class="text-sm font-bold">${item.name} / ${'★'.repeat(item.rating)}</p><p class="mt-2">${item.comment}</p></article>`,
+					)
+					.join('');
+			};
+
+			reviewForm?.addEventListener('submit', async (event) => {
+				event.preventDefault();
+				const name = document.getElementById('reviewName');
+				const rating = document.getElementById('reviewRating');
+				const comment = document.getElementById('reviewComment');
+
+				if (!(name instanceof HTMLInputElement) || !(rating instanceof HTMLSelectElement) || !(comment instanceof HTMLTextAreaElement)) {
+					return;
+				}
+
+				const response = await fetch('/api/feedback', {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({
+						slug: articleSlug,
+						title: articleTitle,
+						name: name.value,
+						rating: Number(rating.value),
+						comment: comment.value,
+					}),
+				});
+
+				if (!response.ok) {
+					if (reviewStatus) reviewStatus.textContent = 'Unable to submit review right now.';
+					return;
+				}
+
+				if (reviewStatus) {
+					reviewStatus.textContent = 'Thank you. Your review is submitted for moderation.';
+				}
+				reviewForm.reset();
+			});
+
+			const trackView = async () => {
+				if (!articleSlug) return;
+				await fetch('/api/analytics', {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ slug: articleSlug }),
+				});
+			};
+
+			const loadReactions = async () => {
+				if (!articleSlug) return;
+				const response = await fetch(`/api/reactions?slug=${encodeURIComponent(articleSlug)}`);
+				if (!response.ok) return;
+				const payload = await response.json();
+				if (likeCount) likeCount.textContent = String(payload.likes || 0);
+				if (reactionStatus && payload.reactionsEnabled === false) {
+					reactionStatus.textContent = 'Reactions are temporarily unavailable. Initialize the reactions table to enable likes.';
+				}
+				if (likeButton instanceof HTMLButtonElement && payload.reactionsEnabled === false) {
+					likeButton.disabled = true;
+					likeButton.textContent = 'Unavailable';
+					return;
+				}
+				if (likeButton instanceof HTMLButtonElement && payload.hasLiked) {
+					likeButton.disabled = true;
+					likeButton.textContent = 'Liked';
+				}
+			};
+
+			likeButton?.addEventListener('click', async () => {
+				if (!(likeButton instanceof HTMLButtonElement) || !articleSlug) return;
+				likeButton.disabled = true;
+				const response = await fetch('/api/reactions', {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ slug: articleSlug }),
+				});
+				if (!response.ok) {
+					if (reactionStatus) reactionStatus.textContent = 'Unable to save your like right now.';
+					likeButton.disabled = false;
+					return;
+				}
+				const payload = await response.json();
+				if (likeCount) likeCount.textContent = String(payload.likes || 0);
+				likeButton.textContent = 'Liked';
+			});
+
+			assignHeadingIds();
+			styleReferenceLists();
+			initCodeHighlighting();
+			initMermaid();
+			updateReadingProgress();
+			activateCurrentTocLink();
+			window.addEventListener('scroll', () => {
+				updateReadingProgress();
+				activateCurrentTocLink();
+			});
+			trackView();
+			loadApprovedReviews();
+			loadReactions();
+		</script>
+	</body>
+</html>
