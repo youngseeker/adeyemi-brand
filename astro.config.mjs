@@ -9,7 +9,9 @@ import tailwindcss from '@tailwindcss/vite';
 // https://astro.build/config
 export default defineConfig({
 	output: 'server',
-	adapter: vercel(),
+	adapter: vercel({
+		includeFiles: ['src/content/posts', 'src/content/site.json', 'public/uploads/posts'],
+	}),
 	integrations: [react(), keystatic()],
   vite: {
     plugins: [tailwindcss()]

@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@astrojs/react": "5.0.3",
-    "@astrojs/vercel": "9.0.5",
+    "@astrojs/vercel": "^9.0.5",
     "@keystatic/astro": "^5.0.6",
     "@keystatic/core": "^0.5.50",
     "@neondatabase/serverless": "^1.0.2",
