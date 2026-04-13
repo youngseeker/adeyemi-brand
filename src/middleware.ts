@@ -8,14 +8,15 @@ const hashSecret = (secret: string) => createHash('sha256').update(secret).diges
 const DEV_FALLBACK_ADMIN_PASSWORD = 'dev-admin-pass';
 
 const withSecurityHeaders = (response: Response) => {
-	response.headers.set('x-content-type-options', 'nosniff');
-	response.headers.set('x-frame-options', 'SAMEORIGIN');
-	response.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
-	response.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()');
+	const securedResponse = new Response(response.body, response);
+	securedResponse.headers.set('x-content-type-options', 'nosniff');
+	securedResponse.headers.set('x-frame-options', 'SAMEORIGIN');
+	securedResponse.headers.set('referrer-policy', 'strict-origin-when-cross-origin');
+	securedResponse.headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()');
 	if (!import.meta.env.DEV) {
-		response.headers.set('strict-transport-security', 'max-age=31536000; includeSubDomains; preload');
+		securedResponse.headers.set('strict-transport-security', 'max-age=31536000; includeSubDomains; preload');
 	}
-	return response;
+	return securedResponse;
 };
 
 export const onRequest = defineMiddleware(async (context, next) => {
