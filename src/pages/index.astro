@@ -5,7 +5,7 @@ import { formatReadingMinutes, readingMinutesFromDocument } from '../lib/reading
 import { isPubliclyVisiblePost } from '../lib/postVisibility';
 import '../styles/global.css';
 
-const reader = createReader(process.cwd(), keystaticConfig);
+const reader = createReader(process.cwd(), { ...keystaticConfig, storage: { kind: 'local' } });
 const rawPosts = await reader.collections.posts.all();
 const logo = 'A.ADENIJI // SYSTEMS';
 const linktreeUrl = 'https://linktr.ee/_adeyemiadeniji';

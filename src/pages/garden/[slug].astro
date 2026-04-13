@@ -7,7 +7,7 @@ import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/read
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
 import '../../styles/global.css';
 
-const reader = createReader(process.cwd(), keystaticConfig);
+const reader = createReader(process.cwd(), { ...keystaticConfig, storage: { kind: 'local' } });
 const { slug } = Astro.params;
 
 const prettyTitle = (value: string) =>
