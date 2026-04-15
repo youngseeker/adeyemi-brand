@@ -1,20 +1,52 @@
 import { collection, component, config, fields, singleton } from '@keystatic/core';
 
+const isProduction = process.env.NODE_ENV === 'production';
 const githubRepo = process.env.KEYSTATIC_GITHUB_REPO || '';
-const githubBranch = process.env.KEYSTATIC_GITHUB_BRANCH || 'main';
 const githubClientId = process.env.KEYSTATIC_GITHUB_CLIENT_ID || '';
 const githubClientSecret = process.env.KEYSTATIC_GITHUB_CLIENT_SECRET || '';
 const keystaticSecret = process.env.KEYSTATIC_SECRET || '';
+
+const getGithubRepoConfig = () => {
+	const [owner, ...nameParts] = githubRepo.split('/');
+	const name = nameParts.join('/');
+
+	if (!owner || !name) {
+		throw new Error('KEYSTATIC_GITHUB_REPO must be in owner/name format when using Keystatic GitHub storage.');
+	}
+
+	return { owner, name };
+};
+
+const requiredGithubEnvVars = [
+	['KEYSTATIC_GITHUB_REPO', githubRepo],
+	['KEYSTATIC_GITHUB_CLIENT_ID', githubClientId],
+	['KEYSTATIC_GITHUB_CLIENT_SECRET', githubClientSecret],
+	['KEYSTATIC_SECRET', keystaticSecret],
+] as const;
+
+const missingGithubEnvVars = requiredGithubEnvVars
+	.filter(([, value]) => value.trim().length === 0)
+	.map(([name]) => name);
+
+if (isProduction && missingGithubEnvVars.length > 0) {
+	throw new Error(
+		`Keystatic GitHub storage is required in production, but these environment variables are missing: ${missingGithubEnvVars.join(', ')}`,
+	);
+}
+
 const hasGithubStorage = Boolean(
 	githubRepo && githubClientId && githubClientSecret && keystaticSecret && keystaticSecret.length >= 32,
 );
 
+if (isProduction && !hasGithubStorage) {
+	throw new Error('Keystatic GitHub storage is required in production, but KEYSTATIC_SECRET must be at least 32 characters long.');
+}
+
 export default config({
-	storage: hasGithubStorage
+	storage: isProduction
 		? {
 				kind: 'github',
-				repo: githubRepo,
-				branch: githubBranch,
+				repo: getGithubRepoConfig(),
 			}
 		: {
 				kind: 'local',
