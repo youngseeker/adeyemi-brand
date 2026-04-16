@@ -1,7 +1,9 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { getCollection } from 'astro:content';
+import { renderArticleContent } from '../../lib/articleContent';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
+import { getIpHash, getPollResults } from '../../lib/polls';
 import '../../styles/global.css';
 
 const { slug } = Astro.params;
@@ -60,13 +62,10 @@ if (!post || !isPublicVisible) {
 }
 
 const title = derivePostTitle(post?.data.title, slug);
-const renderResult = post ? await render(post) : null;
-const Content = renderResult?.Content;
-const articleHeadings = (renderResult?.headings || []).map((heading) => ({
-	text: heading.text,
-	slug: heading.slug,
-	level: heading.depth,
-}));
+const articleBody = post ? renderArticleContent(post.body) : null;
+const articleHeadings = articleBody?.headings || [];
+const pollDefinitions = articleBody?.polls || [];
+const pollState = post ? await getPollResults(post.id, getIpHash(Astro.request)) : { enabled: false as const, results: [] };
 const readingLabel = formatReadingMinutes(readingMinutesFromDocument(post?.body || ''));
 const coverImageSrc = resolveImageSrc(post?.data.coverImage);
 const currentTags = new Set((post?.data.tags || []).map((tag) => tag.toLowerCase()));
@@ -216,16 +215,93 @@ const relatedPosts = relatedCandidates
 			</section>
 
 			<div class="mt-12">
-				{Content ? (
-					<div class="article-content space-y-4 text-base leading-7 text-gray-700 sm:space-y-5 sm:text-lg sm:leading-relaxed dark:text-gray-200">
-						<Content />
-					</div>
+				{articleBody?.html ? (
+					<div class="article-content space-y-4 text-base leading-7 text-gray-700 sm:space-y-5 sm:text-lg sm:leading-relaxed dark:text-gray-200" set:html={articleBody.html} />
 				) : (
 					<p>
 						This entry has been created, but full body content is not yet available in public view.
 					</p>
 				)}
 			</div>
+
+			{pollDefinitions.length > 0 && (
+				<script type="application/json" id="pollDefinitions">{JSON.stringify(pollDefinitions)}</script>
+			)}
+			<script type="application/json" id="pollResults">{JSON.stringify(pollState)}</script>
+
+			<script is:inline>
+				const articleSlug = document.body.dataset.slug || '';
+				const pollDefinitionsElement = document.getElementById('pollDefinitions');
+				const pollResultsElement = document.getElementById('pollResults');
+				const pollDefinitions = pollDefinitionsElement ? JSON.parse(pollDefinitionsElement.textContent || '[]') : [];
+				const initialPollResults = pollResultsElement ? JSON.parse(pollResultsElement.textContent || '{"enabled":false,"results":[]}') : { enabled: false, results: [] };
+				const pollResultMap = new Map((initialPollResults.results || []).map((result) => [result.pollKey, result]));
+
+				const formatPercent = (value) => `${Math.round(value * 100)}%`;
+				const renderPollResults = (pollElement, result) => {
+					const rows = pollElement.querySelectorAll('[data-poll-result-row]');
+					const buttons = pollElement.querySelectorAll('[data-poll-vote]');
+					const status = pollElement.querySelector('[data-poll-status]');
+					const total = result?.total || 0;
+					const counts = result?.counts || [];
+					const selectedIndex = typeof result?.myVoteIndex === 'number' ? result.myVoteIndex : null;
+
+					rows.forEach((row, index) => {
+						const count = counts[index] || 0;
+						const percent = total > 0 ? count / total : 0;
+						const label = row.querySelector('[data-poll-result-label]');
+						const bar = row.querySelector('[data-poll-result-bar]');
+						if (label) label.textContent = `${formatPercent(percent)} · ${count}`;
+						if (bar) bar.style.width = `${Math.max(0, Math.min(100, percent * 100))}%`;
+						row.classList.toggle('ring-1', selectedIndex === index);
+						row.classList.toggle('ring-brandBlue', selectedIndex === index);
+					});
+
+					buttons.forEach((button) => {
+						button.disabled = selectedIndex !== null;
+						button.setAttribute('aria-pressed', selectedIndex !== null && Number(button.dataset.pollOptionIndex) === selectedIndex ? 'true' : 'false');
+					});
+
+					if (status) {
+						status.textContent = selectedIndex !== null
+							? `Your vote has been recorded. ${total} total vote${total === 1 ? '' : 's'}.`
+							: `This poll has received ${total} vote${total === 1 ? '' : 's'}.`;
+					}
+				};
+
+				document.querySelectorAll('[data-poll-key]').forEach((pollElement) => {
+					const pollKey = pollElement.dataset.pollKey || '';
+					renderPollResults(pollElement, pollResultMap.get(pollKey));
+
+					pollElement.querySelectorAll('[data-poll-vote]').forEach((button) => {
+						button.addEventListener('click', async () => {
+							if (button.disabled) return;
+							const optionIndex = Number(button.dataset.pollOptionIndex || '0');
+							const status = pollElement.querySelector('[data-poll-status]');
+							if (status) status.textContent = 'Submitting your vote...';
+
+							try {
+								const response = await fetch('/api/polls', {
+									method: 'POST',
+									headers: { 'content-type': 'application/json' },
+									body: JSON.stringify({ slug: articleSlug, pollKey, optionIndex }),
+								});
+
+								const data = await response.json();
+								if (!response.ok || !data?.ok) {
+									throw new Error(data?.error || 'Vote failed');
+								}
+
+								const updatedResult = (data.results || []).find((entry) => entry.pollKey === pollKey);
+								pollResultMap.set(pollKey, updatedResult || { pollKey, counts: [], total: 0, myVoteIndex: optionIndex });
+								renderPollResults(pollElement, pollResultMap.get(pollKey));
+							} catch (error) {
+								if (status) status.textContent = error instanceof Error ? error.message : 'Unable to submit vote.';
+							}
+						});
+					});
+				});
+			</script>
 
 			<section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
 				<h2 class="text-xl font-bold">Article Review</h2>

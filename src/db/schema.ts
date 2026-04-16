@@ -1,4 +1,4 @@
-import { bigint, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
+import { bigint, integer, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
 export const reviews = pgTable('reviews', {
   id: serial('id').primaryKey(),
@@ -47,5 +47,20 @@ export const articleReactions = pgTable(
   },
   (table) => ({
     slugIpUnique: uniqueIndex('article_reactions_slug_ip_unique').on(table.slug, table.ipHash),
+  }),
+);
+
+export const pollVotes = pgTable(
+  'poll_votes',
+  {
+    id: serial('id').primaryKey(),
+    slug: varchar('slug', { length: 255 }).notNull(),
+    pollKey: varchar('poll_key', { length: 255 }).notNull(),
+    optionIndex: integer('option_index').notNull(),
+    ipHash: varchar('ip_hash', { length: 128 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => ({
+    slugPollIpUnique: uniqueIndex('poll_votes_slug_poll_ip_unique').on(table.slug, table.pollKey, table.ipHash),
   }),
 );

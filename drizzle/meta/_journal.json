@@ -15,6 +15,13 @@
       "when": 1776069900000,
       "tag": "0001_core_tables",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776344479767,
+      "tag": "0002_keen_logan",
+      "breakpoints": true
     }
   ]
 }
