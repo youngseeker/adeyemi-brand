@@ -37,11 +37,11 @@ const formatDate = (value: unknown): string => {
 
 const posts = (
 	await Promise.all(
-		rawPosts.map(async ({ slug, data, body }) => {
+		rawPosts.map(async ({ id, data, body }) => {
 			const readingMinutes = readingMinutesFromDocument(body);
 			return {
-				slug,
-				title: derivePostTitle(data.title, slug),
+				slug: id,
+				title: derivePostTitle(data.title, id),
 				excerpt: data.excerpt || 'Fresh ideas from the Digital Garden.',
 				coverImage: resolveImageSrc(data.coverImage),
 				status: data.status,

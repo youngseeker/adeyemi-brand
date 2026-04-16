@@ -37,7 +37,7 @@ const formatDate = (value: unknown): string => {
 };
 
 const rawPosts = await getCollection('posts');
-const post = slug ? rawPosts.find((entry) => entry.slug === slug) ?? null : null;
+const post = slug ? rawPosts.find((entry) => entry.id === slug) ?? null : null;
 
 const giscusRepo = import.meta.env.PUBLIC_GISCUS_REPO || '';
 const giscusRepoId = import.meta.env.PUBLIC_GISCUS_REPO_ID || '';
@@ -72,7 +72,7 @@ const currentTags = new Set((post?.data.tags || []).map((tag) => tag.toLowerCase
 const relatedCandidates = rawPosts
 	.filter(
 		(entry) =>
-			entry.slug !== slug &&
+			entry.id !== slug &&
 			isPubliclyVisiblePost({
 				status: entry.data.status,
 				scheduledFor: entry.data.scheduledFor,
@@ -83,8 +83,8 @@ const relatedCandidates = rawPosts
 		const candidateTags = (entry.data.tags || []).map((tag) => tag.toLowerCase());
 		const sharedTagCount = candidateTags.filter((tag) => currentTags.has(tag)).length;
 		return {
-			slug: entry.slug,
-			title: derivePostTitle(entry.data.title, entry.slug),
+			slug: entry.id,
+			title: derivePostTitle(entry.data.title, entry.id),
 			excerpt: entry.data.excerpt || 'Related reading from the Digital Garden.',
 			publishedAt: formatDate(entry.data.publishedAt),
 			sharedTagCount,

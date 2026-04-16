@@ -33,11 +33,11 @@ const formatDate = (value: unknown): string => {
 };
 
 const resolvedPosts = await Promise.all(
-	rawPosts.map(async ({ slug, data, body }) => {
+	rawPosts.map(async ({ id, data, body }) => {
 		const readingLabel = formatReadingMinutes(readingMinutesFromDocument(body));
 		return {
-			slug,
-			title: derivePostTitle(data.title, slug),
+			slug: id,
+			title: derivePostTitle(data.title, id),
 			excerpt: data.excerpt || 'Featured from the Digital Garden.',
 			featured: Boolean(data.featured),
 			status: data.status,
