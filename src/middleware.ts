@@ -43,7 +43,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 	if (sessionCookie !== expectedSession) {
 		const loginPath = `/admin/login?next=${encodeURIComponent(pathname)}`;
-		return withSecurityHeaders(Response.redirect(loginPath, 302));
+		return withSecurityHeaders(Response.redirect(new URL(loginPath, context.url.origin), 302));
 	}
 
 	const response = await next();
