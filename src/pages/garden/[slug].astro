@@ -261,7 +261,7 @@ const relatedPosts = relatedCandidates
 			<script type="application/json" id="pollResults">{JSON.stringify(pollState)}</script>
 
 			<script is:inline>
-				const articleSlug = document.body.dataset.slug || '';
+				const pollArticleSlug = document.body.dataset.slug || '';
 				const pollLocalVoteKey = '__poll_local_votes__';
 				const loadLocalPollVotes = () => {
 					try {
@@ -281,7 +281,7 @@ const relatedPosts = relatedCandidates
 				const pollDefinitions = pollDefinitionsElement ? JSON.parse(pollDefinitionsElement.textContent || '[]') : [];
 				const initialPollResults = pollResultsElement ? JSON.parse(pollResultsElement.textContent || '{"enabled":false,"results":[]}') : { enabled: false, results: [] };
 				const pollResultMap = new Map((initialPollResults.results || []).map((result) => [result.pollKey, result]));
-				const localVotesForSlug = loadLocalPollVotes()[articleSlug] || {};
+				const localVotesForSlug = loadLocalPollVotes()[pollArticleSlug] || {};
 
 				const formatPercent = (value) => `${Math.round(value * 100)}%`;
 				const renderPollResults = (pollElement, result) => {
@@ -304,7 +304,7 @@ const relatedPosts = relatedCandidates
 					});
 
 					buttons.forEach((button) => {
-						button.disabled = selectedIndex !== null;
+						button.disabled = false;
 						button.setAttribute('aria-pressed', selectedIndex !== null && Number(button.dataset.pollOptionIndex) === selectedIndex ? 'true' : 'false');
 					});
 
@@ -331,12 +331,16 @@ const relatedPosts = relatedCandidates
 							const optionIndex = Number(button.dataset.pollOptionIndex || '0');
 							const status = pollElement.querySelector('[data-poll-status]');
 							if (status) status.textContent = 'Submitting your vote...';
+							const pollButtons = pollElement.querySelectorAll('[data-poll-vote]');
+							pollButtons.forEach((node) => {
+								if (node instanceof HTMLButtonElement) node.disabled = true;
+							});
 
 							try {
 								const response = await fetch('/api/polls', {
 									method: 'POST',
 									headers: { 'content-type': 'application/json' },
-									body: JSON.stringify({ slug: articleSlug, pollKey, optionIndex }),
+									body: JSON.stringify({ slug: pollArticleSlug, pollKey, optionIndex }),
 								});
 
 								const data = await response.json();
@@ -346,10 +350,10 @@ const relatedPosts = relatedCandidates
 
 								const updatedResult = (data.results || []).find((entry) => entry.pollKey === pollKey);
 								pollResultMap.set(pollKey, updatedResult || { pollKey, counts: [], total: 0, myVoteIndex: optionIndex });
-								saveLocalPollVote(articleSlug, pollKey, optionIndex);
+								saveLocalPollVote(pollArticleSlug, pollKey, optionIndex);
 								renderPollResults(pollElement, pollResultMap.get(pollKey));
 							} catch (error) {
-								saveLocalPollVote(articleSlug, pollKey, optionIndex);
+								saveLocalPollVote(pollArticleSlug, pollKey, optionIndex);
 								const fallbackResult = pollResultMap.get(pollKey) || { pollKey, counts: [], total: 0, myVoteIndex: null };
 								fallbackResult.myVoteIndex = optionIndex;
 								pollResultMap.set(pollKey, fallbackResult);
@@ -357,6 +361,10 @@ const relatedPosts = relatedCandidates
 								if (status) {
 									status.textContent = 'Vote saved on this device. Sync will resume when service is available.';
 								}
+							} finally {
+								pollButtons.forEach((node) => {
+									if (node instanceof HTMLButtonElement) node.disabled = false;
+								});
 							}
 						});
 					});
