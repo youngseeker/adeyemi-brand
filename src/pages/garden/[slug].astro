@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
 import '../../styles/global.css';
@@ -58,7 +58,7 @@ if (!post || !isPublicVisible) {
 }
 
 const title = derivePostTitle(post?.data.title, slug);
-const renderResult = post ? await post.render() : null;
+const renderResult = post ? await render(post) : null;
 const Content = renderResult?.Content;
 const articleHeadings = (renderResult?.headings || []).map((heading) => ({
 	text: heading.text,
