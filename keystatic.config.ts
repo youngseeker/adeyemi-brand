@@ -1,6 +1,10 @@
 import { collection, component, config, fields, singleton } from '@keystatic/core';
 
-const githubRepo = process.env.KEYSTATIC_GITHUB_REPO || '';
+const isProduction = process.env.NODE_ENV === 'production';
+const inferredVercelRepo = process.env.VERCEL_GIT_REPO_OWNER && process.env.VERCEL_GIT_REPO_SLUG
+	? `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`
+	: '';
+const githubRepo = process.env.KEYSTATIC_GITHUB_REPO || inferredVercelRepo;
 const githubClientId = process.env.KEYSTATIC_GITHUB_CLIENT_ID || '';
 const githubClientSecret = process.env.KEYSTATIC_GITHUB_CLIENT_SECRET || '';
 const keystaticSecret = process.env.KEYSTATIC_SECRET || '';
@@ -16,18 +20,9 @@ const getGithubRepoConfig = () => {
 	return { owner, name };
 };
 
-const requiredGithubEnvVars = [
-	['KEYSTATIC_GITHUB_REPO', githubRepo],
-	['KEYSTATIC_GITHUB_CLIENT_ID', githubClientId],
-	['KEYSTATIC_GITHUB_CLIENT_SECRET', githubClientSecret],
-	['KEYSTATIC_SECRET', keystaticSecret],
-] as const;
+const hasGithubRepo = Boolean(githubRepo && githubRepo.includes('/'));
 
-const hasGithubStorage = Boolean(
-	githubRepo && githubClientId && githubClientSecret && keystaticSecret && keystaticSecret.length >= 32,
-);
-
-const storage = hasGithubStorage
+const storage = isProduction && hasGithubRepo
 	? ({
 			kind: 'github',
 			repo: getGithubRepoConfig(),
