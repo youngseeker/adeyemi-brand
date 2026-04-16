@@ -27,14 +27,15 @@ const ensurePollVotesTable = async () => {
 	`);
 };
 
-export const getIpHash = (request: Request): string => {
-	const forwarded = request.headers.get('x-forwarded-for') || '';
-	const realIp = request.headers.get('x-real-ip') || '';
-	const cfIp = request.headers.get('cf-connecting-ip') || '';
-	const vercelForwarded = request.headers.get('x-vercel-forwarded-for') || '';
+export const getIpHash = (input: Request | Headers): string => {
+	const headers = input instanceof Request ? input.headers : input;
+	const forwarded = headers.get('x-forwarded-for') || '';
+	const realIp = headers.get('x-real-ip') || '';
+	const cfIp = headers.get('cf-connecting-ip') || '';
+	const vercelForwarded = headers.get('x-vercel-forwarded-for') || '';
 	const ip = (forwarded.split(',')[0] || vercelForwarded.split(',')[0] || realIp || cfIp || 'unknown').trim();
-	const visitorId = (request.headers.get('x-poll-visitor-id') || '').trim();
-	const userAgent = (request.headers.get('user-agent') || '').trim();
+	const visitorId = (headers.get('x-poll-visitor-id') || '').trim();
+	const userAgent = (headers.get('user-agent') || '').trim();
 	const identity = [ip || 'unknown-ip', visitorId || 'unknown-visitor', userAgent || 'unknown-agent'].join('|');
 	return createHash('sha256').update(identity).digest('hex');
 };

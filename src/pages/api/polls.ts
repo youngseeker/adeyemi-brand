@@ -26,11 +26,9 @@ export const GET: APIRoute = async ({ request, url, cookies }) => {
 	}
 
 	const visitorId = ensurePollVisitorId(cookies);
-	const requestWithVisitor = new Request(request, {
-		headers: new Headers(request.headers),
-	});
-	requestWithVisitor.headers.set('x-poll-visitor-id', visitorId);
-	const ipHash = getIpHash(requestWithVisitor);
+	const visitorHeaders = new Headers(request.headers);
+	visitorHeaders.set('x-poll-visitor-id', visitorId);
+	const ipHash = getIpHash(visitorHeaders);
 	const results = await getPollResults(slug, ipHash);
 
 	return new Response(
@@ -60,11 +58,9 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	}
 
 	const visitorId = ensurePollVisitorId(cookies);
-	const requestWithVisitor = new Request(request, {
-		headers: new Headers(request.headers),
-	});
-	requestWithVisitor.headers.set('x-poll-visitor-id', visitorId);
-	const ipHash = getIpHash(requestWithVisitor);
+	const visitorHeaders = new Headers(request.headers);
+	visitorHeaders.set('x-poll-visitor-id', visitorId);
+	const ipHash = getIpHash(visitorHeaders);
 	const result = await savePollVote({ slug, pollKey, optionIndex, ipHash });
 
 	if (!result) {

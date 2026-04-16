@@ -89,11 +89,9 @@ if (!existingPollVisitorId) {
 		maxAge: 60 * 60 * 24 * 365,
 	});
 }
-const pollRequestWithVisitor = new Request(Astro.request, {
-	headers: new Headers(Astro.request.headers),
-});
-pollRequestWithVisitor.headers.set('x-poll-visitor-id', pollVisitorId);
-const pollState = post ? await getPollResults(post.id, getIpHash(pollRequestWithVisitor)) : { enabled: false as const, results: [] };
+const pollVisitorHeaders = new Headers(Astro.request.headers);
+pollVisitorHeaders.set('x-poll-visitor-id', pollVisitorId);
+const pollState = post ? await getPollResults(post.id, getIpHash(pollVisitorHeaders)) : { enabled: false as const, results: [] };
 const readingLabel = formatReadingMinutes(readingMinutesFromDocument(post?.body || ''));
 const coverImageSrc = resolveImageSrc(post?.data.coverImage);
 const currentTags = new Set((post?.data.tags || []).map((tag) => tag.toLowerCase()));
@@ -264,11 +262,26 @@ const relatedPosts = relatedCandidates
 
 			<script is:inline>
 				const articleSlug = document.body.dataset.slug || '';
+				const pollLocalVoteKey = '__poll_local_votes__';
+				const loadLocalPollVotes = () => {
+					try {
+						return JSON.parse(localStorage.getItem(pollLocalVoteKey) || '{}');
+					} catch {
+						return {};
+					}
+				};
+				const saveLocalPollVote = (slug, pollKey, optionIndex) => {
+					const data = loadLocalPollVotes();
+					if (!data[slug] || typeof data[slug] !== 'object') data[slug] = {};
+					data[slug][pollKey] = optionIndex;
+					localStorage.setItem(pollLocalVoteKey, JSON.stringify(data));
+				};
 				const pollDefinitionsElement = document.getElementById('pollDefinitions');
 				const pollResultsElement = document.getElementById('pollResults');
 				const pollDefinitions = pollDefinitionsElement ? JSON.parse(pollDefinitionsElement.textContent || '[]') : [];
 				const initialPollResults = pollResultsElement ? JSON.parse(pollResultsElement.textContent || '{"enabled":false,"results":[]}') : { enabled: false, results: [] };
 				const pollResultMap = new Map((initialPollResults.results || []).map((result) => [result.pollKey, result]));
+				const localVotesForSlug = loadLocalPollVotes()[articleSlug] || {};
 
 				const formatPercent = (value) => `${Math.round(value * 100)}%`;
 				const renderPollResults = (pollElement, result) => {
@@ -304,6 +317,12 @@ const relatedPosts = relatedCandidates
 
 				document.querySelectorAll('[data-poll-key]').forEach((pollElement) => {
 					const pollKey = pollElement.dataset.pollKey || '';
+					const localVoteIndex = typeof localVotesForSlug[pollKey] === 'number' ? localVotesForSlug[pollKey] : null;
+					if (localVoteIndex !== null && !pollResultMap.get(pollKey)?.myVoteIndex) {
+						const localSnapshot = pollResultMap.get(pollKey) || { pollKey, counts: [], total: 0, myVoteIndex: null };
+						localSnapshot.myVoteIndex = localVoteIndex;
+						pollResultMap.set(pollKey, localSnapshot);
+					}
 					renderPollResults(pollElement, pollResultMap.get(pollKey));
 
 					pollElement.querySelectorAll('[data-poll-vote]').forEach((button) => {
@@ -327,9 +346,17 @@ const relatedPosts = relatedCandidates
 
 								const updatedResult = (data.results || []).find((entry) => entry.pollKey === pollKey);
 								pollResultMap.set(pollKey, updatedResult || { pollKey, counts: [], total: 0, myVoteIndex: optionIndex });
+								saveLocalPollVote(articleSlug, pollKey, optionIndex);
 								renderPollResults(pollElement, pollResultMap.get(pollKey));
 							} catch (error) {
-								if (status) status.textContent = error instanceof Error ? error.message : 'Unable to submit vote.';
+								saveLocalPollVote(articleSlug, pollKey, optionIndex);
+								const fallbackResult = pollResultMap.get(pollKey) || { pollKey, counts: [], total: 0, myVoteIndex: null };
+								fallbackResult.myVoteIndex = optionIndex;
+								pollResultMap.set(pollKey, fallbackResult);
+								renderPollResults(pollElement, fallbackResult);
+								if (status) {
+									status.textContent = 'Vote saved on this device. Sync will resume when service is available.';
+								}
 							}
 						});
 					});
@@ -433,6 +460,7 @@ const relatedPosts = relatedCandidates
 			const pageBody = document.body;
 			const articleSlug = pageBody?.dataset.slug || '';
 			const articleTitle = pageBody?.dataset.title || 'Post';
+			const supportEmail = 'danieladeniji001@gmail.com';
 
 			const themeToggle = document.getElementById('themeToggle');
 			if (themeToggle) {
@@ -710,8 +738,62 @@ const relatedPosts = relatedCandidates
 				likeButton.textContent = 'Liked';
 			});
 
+			const parseJsonSafe = async (response) => {
+				try {
+					return await response.json();
+				} catch {
+					return {};
+				}
+			};
+
+			const bindInlineNewsletterForms = () => {
+				document.querySelectorAll('[data-inline-newsletter-form]').forEach((form) => {
+					if (!(form instanceof HTMLFormElement)) return;
+					if (form.dataset.bound === 'true') return;
+					form.dataset.bound = 'true';
+
+					const emailInput = form.querySelector('[data-newsletter-email]');
+					const statusNode = form.querySelector('[data-newsletter-status]');
+
+					form.addEventListener('submit', async (event) => {
+						event.preventDefault();
+						if (!(emailInput instanceof HTMLInputElement)) return;
+						const email = emailInput.value.trim();
+						if (!email) {
+							if (statusNode) statusNode.textContent = 'Enter your email first.';
+							return;
+						}
+
+						if (statusNode) statusNode.textContent = 'Submitting...';
+						try {
+							const response = await fetch('/api/newsletter', {
+								method: 'POST',
+								headers: { 'content-type': 'application/json' },
+								body: JSON.stringify({ email }),
+							});
+							const payload = await parseJsonSafe(response);
+							if (!response.ok) {
+								if (statusNode) {
+									const contact = payload?.contactEmail || supportEmail;
+									statusNode.innerHTML = `${payload?.error || 'Unable to subscribe right now.'} <a href="mailto:${contact}" class="font-semibold text-brandBlue underline underline-offset-4">Contact support</a>.`;
+								}
+								return;
+							}
+
+							emailInput.value = '';
+							if (statusNode) statusNode.textContent = payload?.message || 'Subscribed successfully.';
+						} catch {
+							if (statusNode) {
+								statusNode.innerHTML = `Unable to subscribe right now. <a href="mailto:${supportEmail}" class="font-semibold text-brandBlue underline underline-offset-4">Email us directly</a>.`;
+							}
+						}
+					});
+				});
+			};
+
 			assignHeadingIds();
 			styleReferenceLists();
+			bindInlineNewsletterForms();
 			initCodeHighlighting();
 			initMermaid();
 			updateReadingProgress();

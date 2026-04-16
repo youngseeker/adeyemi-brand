@@ -159,18 +159,21 @@ const createConfig = () => {
 					const note = getStringAttribute(node.attributes.note).trim();
 					const key = `footnote-${footnoteIndex}`;
 
-					return new Markdoc.Tag('sup', {
+					return new Markdoc.Tag('p', {
 						id: `${key}-ref`,
-						class: 'article-footnote-ref',
+						class: 'article-footnote-anchor',
 						'data-footnote-key': key,
 						'data-footnote-marker': marker,
 						'data-footnote-note': note,
 					}, [
-						new Markdoc.Tag('a', {
-							href: `#${key}-note`,
-							class: 'article-footnote-link',
-							'aria-label': `Footnote ${marker}`,
-						}, [marker]),
+						new Markdoc.Tag('span', { class: 'article-footnote-anchor-text' }, ['Referenced note ']),
+						new Markdoc.Tag('sup', { class: 'article-footnote-ref' }, [
+							new Markdoc.Tag('a', {
+								href: `#${key}-note`,
+								class: 'article-footnote-link',
+								'aria-label': `Footnote ${marker}`,
+							}, [marker]),
+						]),
 					]);
 				},
 			},
@@ -358,11 +361,35 @@ const createConfig = () => {
 					const description = getStringAttribute(node.attributes.description);
 					const buttonLabel = getStringAttribute(node.attributes.buttonLabel) || 'Subscribe';
 					const buttonUrl = getStringAttribute(node.attributes.buttonUrl);
+					const formId = `article-newsletter-${slugify(heading || 'newsletter')}-${Math.random().toString(36).slice(2, 8)}`;
 
 					return new Markdoc.Tag('section', { class: 'my-8 rounded-2xl border border-brandBlue/30 bg-brandBlue/5 p-5 dark:bg-brandBlue/10' }, [
 						new Markdoc.Tag('h3', { class: 'text-lg font-bold text-gray-900 dark:text-white' }, [heading]),
 						description ? new Markdoc.Tag('p', { class: 'mt-2 text-sm text-gray-600 dark:text-gray-300' }, [description]) : '',
-						buttonUrl ? new Markdoc.Tag('a', { href: buttonUrl, class: 'ui-btn ui-btn-primary mt-4' }, [buttonLabel]) : '',
+						buttonUrl
+							? new Markdoc.Tag('a', { href: buttonUrl, class: 'ui-btn ui-btn-primary mt-4' }, [buttonLabel])
+							: new Markdoc.Tag('form', {
+								class: 'mt-4 flex flex-col gap-2 sm:flex-row sm:items-center',
+								'data-inline-newsletter-form': '',
+								'aria-label': 'Inline newsletter signup',
+								id: formId,
+							}, [
+								new Markdoc.Tag('input', {
+									type: 'email',
+									required: true,
+									placeholder: 'you@example.com',
+									class: 'w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700',
+									'data-newsletter-email': '',
+								}),
+								new Markdoc.Tag('button', {
+									type: 'submit',
+									class: 'ui-btn ui-btn-primary rounded-xl',
+								}, [buttonLabel]),
+								new Markdoc.Tag('p', {
+									class: 'text-sm text-gray-600 dark:text-gray-300 sm:ml-3',
+									'data-newsletter-status': '',
+								}),
+							]),
 					]);
 				},
 			},
@@ -483,7 +510,7 @@ const collectRenderData = (node: RenderableNode, output: RenderedArticleContent)
 		output.polls.push({ key, index: output.polls.length + 1, question, options, note });
 	}
 
-	if (tagName === 'sup' && typeof node.attributes?.['data-footnote-key'] === 'string') {
+	if (tagName === 'p' && typeof node.attributes?.['data-footnote-key'] === 'string') {
 		output.footnotes.push({
 			key: String(node.attributes['data-footnote-key']),
 			index: output.footnotes.length + 1,

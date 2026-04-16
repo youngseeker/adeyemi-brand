@@ -382,14 +382,24 @@ const fallbackCards = [
 			const newsletterForm = document.getElementById('newsletterForm');
 			const newsletterStatus = document.getElementById('newsletterStatus');
 			const newsletterEmail = document.getElementById('newsletterEmail');
+			const supportEmail = 'danieladeniji001@gmail.com';
+			const parseJsonSafe = async (response) => {
+				try {
+					return await response.json();
+				} catch {
+					return {};
+				}
+			};
 
 			newsletterForm?.addEventListener('submit', async (event) => {
 				event.preventDefault();
 				if (!(newsletterEmail instanceof HTMLInputElement)) return;
 				const email = newsletterEmail.value.trim();
 				if (!email) return;
+				const submitButton = newsletterForm.querySelector('button[type="submit"]');
 
 				if (newsletterStatus) newsletterStatus.textContent = 'Submitting...';
+				if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true;
 
 				try {
 					const response = await fetch('/api/newsletter', {
@@ -397,17 +407,23 @@ const fallbackCards = [
 						headers: { 'content-type': 'application/json' },
 						body: JSON.stringify({ email }),
 					});
-					const payload = await response.json();
+					const payload = await parseJsonSafe(response);
 					if (!response.ok) {
 						if (newsletterStatus) {
-							newsletterStatus.textContent = payload.error || `Unable to subscribe right now. Contact ${payload.contactEmail || 'admin'}.`;
+							const contact = payload.contactEmail || supportEmail;
+							newsletterStatus.innerHTML = `${payload.error || 'Unable to subscribe right now.'} <a href="mailto:${contact}" class="font-semibold text-brandBlue underline underline-offset-4">Contact support</a>.`;
 						}
+						if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
 						return;
 					}
 					newsletterEmail.value = '';
 					if (newsletterStatus) newsletterStatus.textContent = payload.message || 'Subscription successful.';
+					if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
 				} catch {
-					if (newsletterStatus) newsletterStatus.textContent = 'Unable to subscribe right now. Please try again later.';
+					if (newsletterStatus) {
+						newsletterStatus.innerHTML = `Unable to subscribe right now. <a href="mailto:${supportEmail}" class="font-semibold text-brandBlue underline underline-offset-4">Email us directly</a>.`;
+					}
+					if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
 				}
 			});
 

@@ -220,6 +220,24 @@
 		vertical-align: super;
 	}
 
+	.article-content .article-footnote-anchor {
+		margin: 0.35rem 0 0.85rem;
+		font-size: 0.84rem;
+		line-height: 1.2;
+		color: #64748b;
+	}
+
+	.dark .article-content .article-footnote-anchor {
+		color: #94a3b8;
+	}
+
+	.article-content .article-footnote-anchor-text {
+		font-size: 0.72rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
 	.article-content .article-footnote-link {
 		display: inline-flex;
 		align-items: center;
