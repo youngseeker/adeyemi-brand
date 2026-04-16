@@ -1,14 +1,9 @@
 ---
-import keystaticConfig from '../../../keystatic.config';
-import { createReader } from '@keystatic/core/reader';
-import KeystaticDocument from '../../components/KeystaticDocument';
-import { extractArticleHeadings } from '../../lib/contentOutline';
+import { getCollection } from 'astro:content';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
-import { projectRoot } from '../../lib/projectRoot';
 import '../../styles/global.css';
 
-const reader = createReader(projectRoot, { ...keystaticConfig, storage: { kind: 'local' } });
 const { slug } = Astro.params;
 
 const prettyTitle = (value: string) =>
@@ -33,8 +28,16 @@ const resolveImageSrc = (image: unknown): string | null => {
 	return null;
 };
 
-const post = slug ? await reader.collections.posts.read(slug, { resolveLinkedFiles: true }) : null;
-const rawPosts = await reader.collections.posts.all();
+const formatDate = (value: unknown): string => {
+	if (value instanceof Date && !Number.isNaN(value.getTime())) {
+		return value.toISOString().slice(0, 10);
+	}
+	if (typeof value === 'string') return value;
+	return '';
+};
+
+const rawPosts = await getCollection('posts');
+const post = slug ? rawPosts.find((entry) => entry.slug === slug) ?? null : null;
 
 const giscusRepo = import.meta.env.PUBLIC_GISCUS_REPO || '';
 const giscusRepoId = import.meta.env.PUBLIC_GISCUS_REPO_ID || '';
@@ -44,9 +47,9 @@ const giscusEnabled = import.meta.env.PUBLIC_GISCUS_ENABLED === 'true';
 const hasGiscusConfig = Boolean(giscusEnabled && giscusRepo && giscusRepoId && giscusCategoryId);
 const isPublicVisible = post
 	? isPubliclyVisiblePost({
-			status: (post as { status?: unknown }).status,
-			scheduledFor: (post as { scheduledFor?: unknown }).scheduledFor,
-			publishedAt: (post as { publishedAt?: unknown }).publishedAt,
+			status: post.data.status,
+			scheduledFor: post.data.scheduledFor,
+			publishedAt: post.data.publishedAt,
 		})
 	: false;
 
@@ -54,45 +57,40 @@ if (!post || !isPublicVisible) {
 	Astro.response.status = 404;
 }
 
-const resolveDocumentNodes = async (value: unknown): Promise<unknown[]> => {
-	if (typeof value === 'function') {
-		const resolved = await (value as () => Promise<unknown>)();
-		return Array.isArray(resolved) ? resolved : [];
-	}
-	return Array.isArray(value) ? value : [];
-};
+const title = derivePostTitle(post?.data.title, slug);
+const renderResult = post ? await post.render() : null;
+const Content = renderResult?.Content;
+const articleHeadings = (renderResult?.headings || []).map((heading) => ({
+	text: heading.text,
+	slug: heading.slug,
+	level: heading.depth,
+}));
+const readingLabel = formatReadingMinutes(readingMinutesFromDocument(post?.body || ''));
+const coverImageSrc = resolveImageSrc(post?.data.coverImage);
+const currentTags = new Set((post?.data.tags || []).map((tag) => tag.toLowerCase()));
 
-const title = derivePostTitle((post as { title?: unknown } | null)?.title, slug);
-const contentDocument = await resolveDocumentNodes((post as { content?: unknown } | null)?.content);
-const readingLabel = formatReadingMinutes(readingMinutesFromDocument(contentDocument));
-const articleHeadings = extractArticleHeadings(contentDocument);
-const coverImageSrc = resolveImageSrc((post as { coverImage?: unknown } | null)?.coverImage);
-const currentTags = new Set(((post?.tags as string[]) || []).map((tag) => tag.toLowerCase()));
-
-const relatedCandidates = await Promise.all(
-	rawPosts
-		.filter(({ slug: candidateSlug, entry }) =>
-			candidateSlug !== slug &&
+const relatedCandidates = rawPosts
+	.filter(
+		(entry) =>
+			entry.slug !== slug &&
 			isPubliclyVisiblePost({
-				status: (entry as { status?: unknown }).status,
-				scheduledFor: (entry as { scheduledFor?: unknown }).scheduledFor,
-				publishedAt: (entry as { publishedAt?: unknown }).publishedAt,
+				status: entry.data.status,
+				scheduledFor: entry.data.scheduledFor,
+				publishedAt: entry.data.publishedAt,
 			}),
-		)
-		.map(async ({ slug: candidateSlug, entry }) => {
-			const candidateTags = ((entry.tags as string[]) || []).map((tag) => tag.toLowerCase());
-			const sharedTagCount = candidateTags.filter((tag) => currentTags.has(tag)).length;
-			const docNodes = await resolveDocumentNodes((entry as { content?: unknown }).content);
-			return {
-				slug: candidateSlug,
-				title: derivePostTitle((entry as { title?: unknown }).title, candidateSlug),
-				excerpt: entry.excerpt || 'Related reading from the Digital Garden.',
-				publishedAt: entry.publishedAt || '',
-				sharedTagCount,
-				readingLabel: formatReadingMinutes(readingMinutesFromDocument(docNodes)),
-			};
-		}),
-);
+	)
+	.map((entry) => {
+		const candidateTags = (entry.data.tags || []).map((tag) => tag.toLowerCase());
+		const sharedTagCount = candidateTags.filter((tag) => currentTags.has(tag)).length;
+		return {
+			slug: entry.slug,
+			title: derivePostTitle(entry.data.title, entry.slug),
+			excerpt: entry.data.excerpt || 'Related reading from the Digital Garden.',
+			publishedAt: formatDate(entry.data.publishedAt),
+			sharedTagCount,
+			readingLabel: formatReadingMinutes(readingMinutesFromDocument(entry.body)),
+		};
+	});
 
 const relatedPosts = relatedCandidates
 	.sort((a, b) => {
@@ -158,17 +156,17 @@ const relatedPosts = relatedCandidates
 			)}
 			<div class="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
 				<div class="flex flex-col gap-1">
-					{post?.publishedAt && (
-						<p class="text-sm tracking-widest text-gray-500 uppercase">{post.publishedAt}</p>
+					{post?.data.publishedAt && (
+						<p class="text-sm tracking-widest text-gray-500 uppercase">{formatDate(post.data.publishedAt)}</p>
 					)}
 					<p class="text-xs tracking-widest text-brandBlue uppercase">{readingLabel}</p>
-					{post?.author && (
-						<p class="text-xs text-gray-400">BY {post.author.toUpperCase()}</p>
+					{post?.data.author && (
+						<p class="text-xs text-gray-400">BY {post.data.author.toUpperCase()}</p>
 					)}
 				</div>
-				{post?.tags && post.tags.length > 0 && (
+				{post?.data.tags && post.data.tags.length > 0 && (
 					<div class="flex flex-wrap gap-2">
-						{(post.tags as string[]).map((tag) => (
+						{post.data.tags.map((tag) => (
 							<span class="rounded-full border border-gray-300 px-2 py-1 text-xs text-gray-600 dark:border-gray-700 dark:text-gray-400">
 								{tag}
 							</span>
@@ -176,7 +174,7 @@ const relatedPosts = relatedCandidates
 					</div>
 				)}
 			</div>
-			{post?.excerpt && <p class="mt-8 text-xl leading-relaxed text-gray-600 dark:text-gray-300">{post.excerpt}</p>}
+			{post?.data.excerpt && <p class="mt-8 text-xl leading-relaxed text-gray-600 dark:text-gray-300">{post.data.excerpt}</p>}
 
 			{articleHeadings.length > 0 && (
 				<nav class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Article sections">
@@ -203,8 +201,10 @@ const relatedPosts = relatedCandidates
 			</section>
 
 			<div class="mt-12">
-				{contentDocument.length > 0 ? (
-					<KeystaticDocument document={contentDocument} />
+				{Content ? (
+					<div class="article-content space-y-4 text-base leading-7 text-gray-700 sm:space-y-5 sm:text-lg sm:leading-relaxed dark:text-gray-200">
+						<Content />
+					</div>
 				) : (
 					<p>
 						This entry has been created, but full body content is not yet available in public view.

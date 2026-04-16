@@ -15,7 +15,7 @@ export default defineConfig({
   },
     output: 'server',
     adapter: vercel({
-        includeFiles: ['src/content/posts', 'src/content/site.json', 'public/uploads/posts'],
+      includeFiles: ['src/content/posts', 'src/content/site.json', 'public/uploads/posts'],
     }),
     integrations: [react(), markdoc(), keystatic()],
     vite: {

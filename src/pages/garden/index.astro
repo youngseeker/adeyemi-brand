@@ -1,13 +1,10 @@
 ---
-import keystaticConfig from '../../../keystatic.config';
-import { createReader } from '@keystatic/core/reader';
+import { getCollection } from 'astro:content';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
-import { projectRoot } from '../../lib/projectRoot';
 import '../../styles/global.css';
 
-const reader = createReader(projectRoot, { ...keystaticConfig, storage: { kind: 'local' } });
-const rawPosts = await reader.collections.posts.all();
+const rawPosts = await getCollection('posts');
 
 const prettyTitle = (value: string) =>
 	value
@@ -30,29 +27,28 @@ const resolveImageSrc = (image: unknown): string | null => {
 	return null;
 };
 
-const resolveDocumentNodes = async (value: unknown): Promise<unknown[]> => {
-	if (typeof value === 'function') {
-		const resolved = await (value as () => Promise<unknown>)();
-		return Array.isArray(resolved) ? resolved : [];
+const formatDate = (value: unknown): string => {
+	if (value instanceof Date && !Number.isNaN(value.getTime())) {
+		return value.toISOString().slice(0, 10);
 	}
-	return Array.isArray(value) ? value : [];
+	if (typeof value === 'string') return value;
+	return '';
 };
 
 const posts = (
 	await Promise.all(
-		rawPosts.map(async ({ slug, entry }) => {
-			const content = await resolveDocumentNodes((entry as { content?: unknown }).content);
-			const readingMinutes = readingMinutesFromDocument(content);
+		rawPosts.map(async ({ slug, data, body }) => {
+			const readingMinutes = readingMinutesFromDocument(body);
 			return {
 				slug,
-				title: derivePostTitle((entry as { title?: unknown }).title, slug),
-				excerpt: entry.excerpt || 'Fresh ideas from the Digital Garden.',
-				coverImage: resolveImageSrc((entry as { coverImage?: unknown }).coverImage),
-				status: (entry as { status?: unknown }).status,
-				scheduledFor: (entry as { scheduledFor?: unknown }).scheduledFor,
-				publishedAt: entry.publishedAt || '',
-				author: entry.author || 'Adeyemi Adeniji',
-				tags: (entry.tags as string[]) || [],
+				title: derivePostTitle(data.title, slug),
+				excerpt: data.excerpt || 'Fresh ideas from the Digital Garden.',
+				coverImage: resolveImageSrc(data.coverImage),
+				status: data.status,
+				scheduledFor: data.scheduledFor,
+				publishedAt: formatDate(data.publishedAt),
+				author: data.author || 'Adeyemi Adeniji',
+				tags: data.tags || [],
 				readingLabel: formatReadingMinutes(readingMinutes),
 			};
 		}),

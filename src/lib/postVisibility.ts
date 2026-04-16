@@ -7,6 +7,11 @@ type VisibilityInput = {
 };
 
 const parseMs = (value: unknown): number | null => {
+	if (value instanceof Date) {
+		const parsed = value.getTime();
+		return Number.isNaN(parsed) ? null : parsed;
+	}
+
 	if (typeof value !== 'string' || !value.trim()) return null;
 	const parsed = Date.parse(value);
 	return Number.isNaN(parsed) ? null : parsed;
