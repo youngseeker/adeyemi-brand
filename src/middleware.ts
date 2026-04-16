@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { defineMiddleware } from 'astro:middleware';
 
-const protectedPrefixes = ['/admin', '/keystatic', '/publish'];
+const protectedPrefixes = ['/admin', '/api/admin', '/keystatic', '/publish'];
 const publicAdminRoutes = ['/admin/login', '/api/admin/auth', '/api/admin/logout', '/keystatic/entry-creation', '/keystatic/live-client'];
 
 const hashSecret = (secret: string) => createHash('sha256').update(secret).digest('hex');

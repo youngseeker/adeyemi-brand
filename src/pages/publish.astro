@@ -181,6 +181,11 @@ const advancedTopics = [
 					If commits still fail after env setup, confirm your GitHub OAuth app callback URL is set to
 					<strong> /api/keystatic/github/oauth/callback</strong> on your site domain and that the OAuth app has repo write access.
 				</p>
+				<div class="mt-5 flex flex-wrap items-center gap-3">
+					<button id="runCmsHealth" type="button" class="ui-btn ui-btn-neutral">Run Live CMS Health Check</button>
+					<p id="cmsHealthStatus" class="text-sm text-gray-600 dark:text-gray-300"></p>
+				</div>
+				<div id="cmsHealthResults" class="mt-4 space-y-2"></div>
 			</section>
 		</main>
 		<script is:inline>
@@ -194,6 +199,9 @@ const advancedTopics = [
 			const slugInput = document.getElementById('previewSlugInput');
 			const openPreviewButton = document.getElementById('openPreviewButton');
 			const previewStatus = document.getElementById('previewStatus');
+			const runCmsHealthButton = document.getElementById('runCmsHealth');
+			const cmsHealthStatus = document.getElementById('cmsHealthStatus');
+			const cmsHealthResults = document.getElementById('cmsHealthResults');
 
 			const normalizeToSlug = (value) => {
 				const trimmed = String(value || '').trim();
@@ -232,6 +240,59 @@ const advancedTopics = [
 					openPreview();
 				}
 			});
+
+			const renderHealthChecks = (payload) => {
+				if (!cmsHealthResults) return;
+				const checks = Array.isArray(payload?.checks) ? payload.checks : [];
+				if (checks.length === 0) {
+					cmsHealthResults.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No health checks were returned.</p>';
+					return;
+				}
+
+				cmsHealthResults.innerHTML = checks
+					.map((check) => {
+						const ok = Boolean(check?.ok);
+						const label = String(check?.label || 'Check');
+						const detail = String(check?.detail || '');
+						const itemClass = ok
+							? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30'
+							: 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/30';
+						const badgeClass = ok
+							? 'text-emerald-700 dark:text-emerald-300'
+							: 'text-rose-700 dark:text-rose-300';
+
+						return `<article class="rounded-xl border px-3 py-2 ${itemClass}"><p class="text-sm font-bold ${badgeClass}">${ok ? 'PASS' : 'FAIL'} · ${label}</p><p class="mt-1 text-xs text-gray-700 dark:text-gray-300">${detail}</p></article>`;
+					})
+					.join('');
+			};
+
+			const runCmsHealthCheck = async () => {
+				if (cmsHealthStatus) cmsHealthStatus.textContent = 'Checking CMS health...';
+				try {
+					const response = await fetch('/api/admin/cms-health', {
+						method: 'GET',
+						headers: { accept: 'application/json' },
+					});
+					const payload = await response.json();
+					if (!response.ok) {
+						throw new Error(payload?.error || 'Unable to run CMS health check.');
+					}
+
+					renderHealthChecks(payload);
+					if (cmsHealthStatus) {
+						cmsHealthStatus.textContent = payload?.isReady
+							? 'CMS is ready for GitHub commits.'
+							: 'CMS is not fully ready. Resolve the failing checks below.';
+					}
+				} catch (error) {
+					if (cmsHealthStatus) {
+						cmsHealthStatus.textContent = error instanceof Error ? error.message : 'CMS health check failed.';
+					}
+				}
+			};
+
+			runCmsHealthButton?.addEventListener('click', runCmsHealthCheck);
+			runCmsHealthCheck();
 		</script>
 	</body>
 </html>
