@@ -1,4 +1,5 @@
 ---
+import { createHash } from 'node:crypto';
 import { getCollection } from 'astro:content';
 import { renderArticleContent } from '../../lib/articleContent';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
@@ -40,6 +41,15 @@ const formatDate = (value: unknown): string => {
 
 const rawPosts = await getCollection('posts');
 const post = slug ? rawPosts.find((entry) => entry.id === slug) ?? null : null;
+const previewRequested = Astro.url.searchParams.get('preview') === '1';
+
+const hashSecret = (secret: string) => createHash('sha256').update(secret).digest('hex');
+const DEV_FALLBACK_ADMIN_PASSWORD = 'dev-admin-pass';
+const configuredAdminPassword = import.meta.env.ADMIN_PAGE_PASSWORD || '';
+const adminPassword = configuredAdminPassword || (import.meta.env.DEV ? DEV_FALLBACK_ADMIN_PASSWORD : '');
+const expectedSession = adminPassword ? hashSecret(adminPassword) : '';
+const sessionCookie = Astro.cookies.get('admin_session')?.value || '';
+const canPreviewUnpublished = previewRequested && Boolean(expectedSession) && sessionCookie === expectedSession;
 
 const giscusRepo = import.meta.env.PUBLIC_GISCUS_REPO || '';
 const giscusRepoId = import.meta.env.PUBLIC_GISCUS_REPO_ID || '';
@@ -56,8 +66,10 @@ const isPublicVisible = post
 			publishedAt: post.data.publishedAt,
 		})
 	: false;
+const canViewPost = Boolean(post) && (isPublicVisible || canPreviewUnpublished);
+const isUnpublishedPreview = canPreviewUnpublished && !isPublicVisible;
 
-if (!post || !isPublicVisible) {
+if (!canViewPost) {
 	Astro.response.status = 404;
 }
 
@@ -107,9 +119,9 @@ const relatedPosts = relatedCandidates
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
-		<title>{title} | A.ADENIJI</title>
+		<title>{isUnpublishedPreview ? `[Preview] ${title}` : title} | A.ADENIJI</title>
 		{canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
-		{noIndex && <meta name="robots" content="noindex, nofollow" />}
+		{(noIndex || isUnpublishedPreview) && <meta name="robots" content="noindex, nofollow" />}
 		<link
 			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
 			rel="stylesheet"
@@ -137,6 +149,11 @@ const relatedPosts = relatedCandidates
 			<div id="readingProgressBar" class="h-full w-0 bg-brandBlue transition-[width] duration-150"></div>
 		</div>
 		<main class="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-20">
+			{isUnpublishedPreview && (
+				<div class="mb-8 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
+					Preview mode: this post is not publicly visible yet.
+				</div>
+			)}
 			<div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-12">
 				<div>
 			<div class="flex items-center justify-between gap-4">
