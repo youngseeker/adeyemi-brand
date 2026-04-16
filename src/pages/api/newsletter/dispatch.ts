@@ -6,6 +6,7 @@ import keystaticConfig from '../../../../keystatic.config';
 import { db } from '../../../db';
 import { newsletterSubscribers } from '../../../db/schema';
 import { isPubliclyVisiblePost } from '../../../lib/postVisibility';
+import { projectRoot } from '../../../lib/projectRoot';
 
 type DispatchRecord = {
 	slug: string;
@@ -26,7 +27,7 @@ const SMTP_FROM_EMAIL = import.meta.env.SMTP_FROM_EMAIL || '';
 const SMTP_FROM_NAME = import.meta.env.SMTP_FROM_NAME || 'A.ADENIJI';
 const SMTP_SECURE = String(import.meta.env.SMTP_SECURE || '').toLowerCase() === 'true';
 
-const reader = createReader(process.cwd(), keystaticConfig);
+const reader = createReader(projectRoot, { ...keystaticConfig, storage: { kind: 'local' } });
 
 const newsletterDispatches = {
 	table: sql.identifier('newsletter_article_dispatches'),

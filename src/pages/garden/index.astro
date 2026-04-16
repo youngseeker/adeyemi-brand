@@ -3,9 +3,10 @@ import keystaticConfig from '../../../keystatic.config';
 import { createReader } from '@keystatic/core/reader';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
+import { projectRoot } from '../../lib/projectRoot';
 import '../../styles/global.css';
 
-const reader = createReader(process.cwd(), { ...keystaticConfig, storage: { kind: 'local' } });
+const reader = createReader(projectRoot, { ...keystaticConfig, storage: { kind: 'local' } });
 const rawPosts = await reader.collections.posts.all();
 
 const prettyTitle = (value: string) =>

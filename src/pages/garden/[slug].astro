@@ -5,9 +5,10 @@ import KeystaticDocument from '../../components/KeystaticDocument';
 import { extractArticleHeadings } from '../../lib/contentOutline';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
+import { projectRoot } from '../../lib/projectRoot';
 import '../../styles/global.css';
 
-const reader = createReader(process.cwd(), { ...keystaticConfig, storage: { kind: 'local' } });
+const reader = createReader(projectRoot, { ...keystaticConfig, storage: { kind: 'local' } });
 const { slug } = Astro.params;
 
 const prettyTitle = (value: string) =>
