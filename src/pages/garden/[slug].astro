@@ -1,5 +1,5 @@
 ---
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { getCollection } from 'astro:content';
 import { renderArticleContent } from '../../lib/articleContent';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
@@ -77,7 +77,23 @@ const title = derivePostTitle(post?.data.title, slug);
 const articleBody = post ? renderArticleContent(post.body) : null;
 const articleHeadings = articleBody?.headings || [];
 const pollDefinitions = articleBody?.polls || [];
-const pollState = post ? await getPollResults(post.id, getIpHash(Astro.request)) : { enabled: false as const, results: [] };
+const pollVisitorCookie = 'poll_visitor_id';
+const existingPollVisitorId = Astro.cookies.get(pollVisitorCookie)?.value;
+const pollVisitorId = existingPollVisitorId && existingPollVisitorId.trim() ? existingPollVisitorId : randomUUID();
+if (!existingPollVisitorId) {
+	Astro.cookies.set(pollVisitorCookie, pollVisitorId, {
+		httpOnly: true,
+		secure: !import.meta.env.DEV,
+		sameSite: 'lax',
+		path: '/',
+		maxAge: 60 * 60 * 24 * 365,
+	});
+}
+const pollRequestWithVisitor = new Request(Astro.request, {
+	headers: new Headers(Astro.request.headers),
+});
+pollRequestWithVisitor.headers.set('x-poll-visitor-id', pollVisitorId);
+const pollState = post ? await getPollResults(post.id, getIpHash(pollRequestWithVisitor)) : { enabled: false as const, results: [] };
 const readingLabel = formatReadingMinutes(readingMinutesFromDocument(post?.body || ''));
 const coverImageSrc = resolveImageSrc(post?.data.coverImage);
 const currentTags = new Set((post?.data.tags || []).map((tag) => tag.toLowerCase()));

@@ -106,6 +106,22 @@ const createMathHtml = (latex: string, displayMode: boolean) => {
 	}
 };
 
+const renderFootnotesSection = (footnotes: FootnoteDefinition[]) => {
+	if (footnotes.length === 0) return '';
+
+	const items = footnotes
+		.map((footnote) => {
+			const marker = escapeHtml(footnote.marker || String(footnote.index));
+			const note = escapeHtml(footnote.note);
+			const noteId = `${footnote.key}-note`;
+			const refId = `${footnote.key}-ref`;
+			return `<li id="${noteId}" class="article-footnotes__item"><span class="article-footnotes__marker">${marker}.</span><span class="article-footnotes__text">${note}</span><a href="#${refId}" class="article-footnotes__backlink" aria-label="Back to reference ${marker}">↩</a></li>`;
+		})
+		.join('');
+
+	return `<section class="article-footnotes mt-12 border-t border-gray-200 pt-8 dark:border-gray-800"><h3 class="text-2xl font-bold tracking-tight">Notes</h3><ol class="article-footnotes__list mt-4">${items}</ol></section>`;
+};
+
 const createConfig = () => {
 	let pollIndex = 0;
 	let footnoteIndex = 0;
@@ -143,14 +159,18 @@ const createConfig = () => {
 					const note = getStringAttribute(node.attributes.note).trim();
 					const key = `footnote-${footnoteIndex}`;
 
-					return new Markdoc.Tag('aside', {
-						id: key,
-						class: 'my-8 rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950',
+					return new Markdoc.Tag('sup', {
+						id: `${key}-ref`,
+						class: 'article-footnote-ref',
 						'data-footnote-key': key,
 						'data-footnote-marker': marker,
+						'data-footnote-note': note,
 					}, [
-						new Markdoc.Tag('p', { class: 'text-[10px] font-bold tracking-widest text-gray-400 uppercase' }, [`Footnote ${marker}`]),
-						new Markdoc.Tag('p', { class: 'mt-2 text-sm text-gray-600 dark:text-gray-300' }, [note]),
+						new Markdoc.Tag('a', {
+							href: `#${key}-note`,
+							class: 'article-footnote-link',
+							'aria-label': `Footnote ${marker}`,
+						}, [marker]),
 					]);
 				},
 			},
@@ -463,12 +483,12 @@ const collectRenderData = (node: RenderableNode, output: RenderedArticleContent)
 		output.polls.push({ key, index: output.polls.length + 1, question, options, note });
 	}
 
-	if (tagName === 'aside' && typeof node.attributes?.['data-footnote-key'] === 'string') {
+	if (tagName === 'sup' && typeof node.attributes?.['data-footnote-key'] === 'string') {
 		output.footnotes.push({
 			key: String(node.attributes['data-footnote-key']),
 			index: output.footnotes.length + 1,
 			marker: String(node.attributes['data-footnote-marker'] || ''),
-			note: getNodeText(node.children || []).trim(),
+			note: String(node.attributes['data-footnote-note'] || '').trim(),
 		});
 	}
 
@@ -482,12 +502,13 @@ export const renderArticleContent = (body: string): RenderedArticleContent => {
 	const nodes = Array.isArray(transformed) ? transformed : [transformed];
 
 	const output: RenderedArticleContent = {
-		html: nodes.map(renderNode).join(''),
+		html: '',
 		headings: [],
 		polls: [],
 		footnotes: [],
 	};
 
 	for (const node of nodes) collectRenderData(node, output);
+	output.html = `${nodes.map(renderNode).join('')}${renderFootnotesSection(output.footnotes)}`;
 	return output;
 };

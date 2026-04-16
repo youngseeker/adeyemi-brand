@@ -30,8 +30,13 @@ const ensurePollVotesTable = async () => {
 export const getIpHash = (request: Request): string => {
 	const forwarded = request.headers.get('x-forwarded-for') || '';
 	const realIp = request.headers.get('x-real-ip') || '';
-	const ip = (forwarded.split(',')[0] || realIp || 'unknown').trim();
-	return createHash('sha256').update(ip).digest('hex');
+	const cfIp = request.headers.get('cf-connecting-ip') || '';
+	const vercelForwarded = request.headers.get('x-vercel-forwarded-for') || '';
+	const ip = (forwarded.split(',')[0] || vercelForwarded.split(',')[0] || realIp || cfIp || 'unknown').trim();
+	const visitorId = (request.headers.get('x-poll-visitor-id') || '').trim();
+	const userAgent = (request.headers.get('user-agent') || '').trim();
+	const identity = [ip || 'unknown-ip', visitorId || 'unknown-visitor', userAgent || 'unknown-agent'].join('|');
+	return createHash('sha256').update(identity).digest('hex');
 };
 
 const getPollRows = async (slug: string) => {

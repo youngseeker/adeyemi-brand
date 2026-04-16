@@ -108,6 +108,52 @@
 	.article-content {
 		overflow-wrap: anywhere;
 		word-break: normal;
+		max-width: 74ch;
+		margin-inline: auto;
+		font-size: clamp(1rem, 0.96rem + 0.28vw, 1.14rem);
+		line-height: 1.86;
+	}
+
+	.article-content h1,
+	.article-content h2,
+	.article-content h3,
+	.article-content h4 {
+		margin-top: 2.1em;
+		margin-bottom: 0.72em;
+		line-height: 1.2;
+		letter-spacing: -0.012em;
+		font-weight: 700;
+		color: #0f172a;
+	}
+
+	.dark .article-content h1,
+	.dark .article-content h2,
+	.dark .article-content h3,
+	.dark .article-content h4 {
+		color: #f8fafc;
+	}
+
+	.article-content p {
+		margin-top: 1em;
+		margin-bottom: 1em;
+	}
+
+	.article-content blockquote {
+		margin: 1.4rem 0;
+		padding: 0.9rem 1rem;
+		border-left: 3px solid var(--color-brandBlue);
+		border-radius: 0.65rem;
+		background: rgba(43, 89, 195, 0.06);
+	}
+
+	.dark .article-content blockquote {
+		background: rgba(43, 89, 195, 0.14);
+	}
+
+	.article-content img,
+	.article-content video,
+	.article-content iframe {
+		border-radius: 0.85rem;
 	}
 
 	.article-content pre {
@@ -166,6 +212,70 @@
 		text-indent: -0.2rem;
 		font-size: 0.98rem;
 		line-height: 1.7;
+	}
+
+	.article-content .article-footnote-ref {
+		margin-left: 0.12em;
+		font-size: 0.72em;
+		vertical-align: super;
+	}
+
+	.article-content .article-footnote-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 1.15rem;
+		height: 1.15rem;
+		padding: 0 0.28rem;
+		border-radius: 9999px;
+		border: 1px solid rgba(43, 89, 195, 0.35);
+		background: rgba(43, 89, 195, 0.08);
+		font-size: 0.7rem;
+		font-weight: 700;
+		line-height: 1;
+		color: var(--color-brandBlue);
+	}
+
+	.article-content .article-footnotes__list {
+		list-style: none;
+		padding-left: 0;
+		display: grid;
+		gap: 0.8rem;
+	}
+
+	.article-content .article-footnotes__item {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: 0.55rem;
+		align-items: start;
+		padding: 0.72rem 0.78rem;
+		border-radius: 0.7rem;
+		border: 1px solid #e5e7eb;
+		background: #f8fafc;
+	}
+
+	.dark .article-content .article-footnotes__item {
+		border-color: #374151;
+		background: rgba(17, 24, 39, 0.55);
+	}
+
+	.article-content .article-footnotes__marker {
+		font-weight: 700;
+		color: var(--color-brandBlue);
+	}
+
+	.article-content .article-footnotes__text {
+		color: #334155;
+	}
+
+	.dark .article-content .article-footnotes__text {
+		color: #cbd5e1;
+	}
+
+	.article-content .article-footnotes__backlink {
+		font-weight: 700;
+		color: var(--color-brandBlue);
+		text-decoration: none;
 	}
 }
 
