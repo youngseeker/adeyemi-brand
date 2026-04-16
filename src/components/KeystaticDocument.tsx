@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { DocumentRenderer } from '@keystatic/core/renderer';
+import katex from 'katex';
 
 type KeystaticNode = {
 	children?: KeystaticNode[];
@@ -21,11 +22,130 @@ const headingClasses: Record<number, string> = {
 };
 
 export default function KeystaticDocument({ document }: Props) {
+	const renderFormula = (latex: unknown, displayMode: unknown) => {
+		if (typeof latex !== 'string' || !latex.trim()) {
+			return <p className="rounded-xl border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">Formula is missing.</p>;
+		}
+
+		try {
+			const html = katex.renderToString(latex, {
+				displayMode: displayMode !== false,
+				throwOnError: false,
+			});
+
+			return <span dangerouslySetInnerHTML={{ __html: html }} />;
+		} catch {
+			return <code className="rounded bg-gray-100 px-2 py-1 font-mono text-xs dark:bg-gray-900">{latex}</code>;
+		}
+	};
+
 	return (
 		<div className="article-content space-y-4 text-base leading-7 text-gray-700 sm:space-y-5 sm:text-lg sm:leading-relaxed dark:text-gray-200">
 			<DocumentRenderer
 				document={document as any}
 				componentBlocks={{
+					dividerBlock: () => <hr className="my-8 border-gray-200 dark:border-gray-800" />,
+					footnote: ({ marker, note }) => (
+						<aside className="my-8 rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">
+							<p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Footnote {typeof marker === 'string' && marker.trim() ? marker : ''}</p>
+							<p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{typeof note === 'string' ? note : ''}</p>
+						</aside>
+					),
+					poll: ({ question, options, note }) => (
+						<section className="my-8 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
+							{question && <h3 className="text-lg font-bold">{question}</h3>}
+							{Array.isArray(options) && options.length > 0 ? (
+								<div className="mt-4 space-y-2">
+									{options.filter((option: unknown) => typeof option === 'string' && option.trim()).map((option: string, index: number) => (
+										<div key={`poll-option-${index}`} className="rounded-xl border border-gray-200 px-4 py-3 text-sm dark:border-gray-800">
+											{option.trim()}
+										</div>
+									))}
+								</div>
+							) : (
+								<p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Add some options to turn this into a poll.</p>
+							)}
+							{note && <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">{note}</p>}
+						</section>
+					),
+					imageFigure: ({ image, alt, caption, credit, creditUrl }) => {
+						const src = typeof image === 'object' && image && 'src' in image ? String((image as { src?: unknown }).src || '') : typeof image === 'string' ? image : '';
+						return (
+							<figure className="my-8 overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800">
+								{src ? <img src={src} alt={typeof alt === 'string' ? alt : 'Article image'} className="h-auto w-full object-cover" loading="lazy" /> : <div className="px-4 py-10 text-sm text-gray-500 dark:text-gray-400">Image is missing.</div>}
+								<div className="space-y-2 px-4 py-3">
+									{caption && <figcaption className="text-sm text-gray-500 dark:text-gray-400">{caption}</figcaption>}
+									{credit && (
+										<p className="text-xs tracking-wide text-gray-400 uppercase">
+											Credit:{' '}
+											{creditUrl && typeof creditUrl === 'string' ? (
+												<a href={creditUrl} className="text-brandBlue underline underline-offset-4">{credit}</a>
+											) : (
+												credit
+											)}
+										</p>
+									)}
+								</div>
+							</figure>
+						);
+					},
+					audioEmbed: ({ title, sourceUrl, caption }) => (
+						<figure className="my-8 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
+							{title && <p className="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">{title}</p>}
+							{typeof sourceUrl === 'string' && sourceUrl ? (
+								<audio controls className="w-full">
+									<source src={sourceUrl} />
+									Your browser does not support audio playback.
+								</audio>
+							) : (
+								<p className="rounded-xl border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">Audio URL is missing.</p>
+							)}
+							{caption && <figcaption className="mt-2 text-sm text-gray-500 dark:text-gray-400">{caption}</figcaption>}
+						</figure>
+					),
+					videoEmbed: ({ title, sourceUrl, caption }) => (
+						<figure className="my-8 overflow-hidden rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
+							{title && <p className="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">{title}</p>}
+							{typeof sourceUrl === 'string' && sourceUrl ? (
+								<video controls className="w-full rounded-xl border border-gray-200 bg-black dark:border-gray-800">
+									<source src={sourceUrl} />
+									Your browser does not support video playback.
+								</video>
+							) : (
+								<p className="rounded-xl border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">Video URL is missing.</p>
+							)}
+							{caption && <figcaption className="mt-2 text-sm text-gray-500 dark:text-gray-400">{caption}</figcaption>}
+						</figure>
+					),
+					formula: ({ label, latex, displayMode }) => (
+						<figure className="my-8 rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
+							{label && <p className="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">{label}</p>}
+							<div className="overflow-x-auto rounded-xl bg-gray-50 p-4 dark:bg-gray-950">{renderFormula(latex, displayMode)}</div>
+						</figure>
+					),
+					button: ({ label, href, variant, external }) => (
+						<div className="my-8">
+							<a
+								href={typeof href === 'string' ? href : '#'}
+								className={`ui-btn ${variant === 'secondary' ? 'ui-btn-secondary' : variant === 'neutral' ? 'ui-btn-neutral' : 'ui-btn-primary'}`}
+								target={external ? '_blank' : undefined}
+								rel={external ? 'noreferrer' : undefined}
+							>
+								{typeof label === 'string' ? label : 'Open'}
+							</a>
+						</div>
+					),
+					newsletterCta: ({ heading, description, buttonLabel, buttonUrl }) => (
+						<section className="my-8 rounded-2xl border border-brandBlue/30 bg-brandBlue/5 p-5 dark:bg-brandBlue/10">
+							{heading && <h3 className="text-lg font-bold text-gray-900 dark:text-white">{heading}</h3>}
+							{description && <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{description}</p>}
+							{buttonUrl && typeof buttonUrl === 'string' && (
+								<a href={buttonUrl} className="ui-btn ui-btn-primary mt-4">
+									{typeof buttonLabel === 'string' && buttonLabel.trim() ? buttonLabel : 'Subscribe'}
+								</a>
+							)}
+						</section>
+					),
 					htmlCanvas: ({ title, html, height, caption }) => (
 						<figure className="my-8 overflow-hidden rounded-2xl border border-gray-200 p-3 dark:border-gray-800">
 							{title && <p className="mb-3 text-sm font-bold text-gray-700 dark:text-gray-200">{title}</p>}
@@ -98,13 +218,14 @@ export default function KeystaticDocument({ document }: Props) {
 								{children}
 							</a>
 						),
+							strikethrough: ({ children }) => <s>{children}</s>,
 						code: ({ children }) => (
 							<code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs sm:text-sm dark:bg-gray-900">{children}</code>
 						),
 					},
 					block: {
 						paragraph: ({ children, textAlign }) => (
-							<p className="my-3 break-words" style={{ textAlign }}>
+							<p className="my-3 wrap-break-word" style={{ textAlign }}>
 								{children}
 							</p>
 						),

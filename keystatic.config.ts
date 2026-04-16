@@ -71,6 +71,15 @@ export default config({
 					label: 'Publish date',
 					defaultValue: { kind: 'today' },
 				}),
+				canonicalUrl: fields.url({
+					label: 'Canonical URL',
+					description: 'Use when this article is mirrored or syndicated elsewhere.',
+					validation: { isRequired: false },
+				}),
+				noIndex: fields.checkbox({
+					label: 'Hide from search engines',
+					defaultValue: false,
+				}),
 				excerpt: fields.text({
 					label: 'Excerpt',
 					multiline: true,
@@ -78,6 +87,16 @@ export default config({
 				author: fields.text({
 					label: 'Author',
 					defaultValue: 'Adeyemi Adeniji',
+				}),
+				coverImageCredit: fields.text({
+					label: 'Cover image credit',
+					description: 'Photographer, artist, or source credit for the cover image.',
+					validation: { isRequired: false },
+				}),
+				coverImageCreditUrl: fields.url({
+					label: 'Cover image credit URL',
+					description: 'Optional source link for the cover image credit.',
+					validation: { isRequired: false },
 				}),
 				tags: fields.array(
 					fields.text({ label: 'Tag' }),
@@ -89,7 +108,12 @@ export default config({
 				content: fields.document({
 					label: 'Content',
 					formatting: {
-						inlineMarks: true,
+						inlineMarks: {
+							bold: true,
+							italic: true,
+							strikethrough: true,
+							code: true,
+						},
 						listTypes: true,
 						headingLevels: true,
 						blockTypes: true,
@@ -99,48 +123,101 @@ export default config({
 							end: true,
 						},
 					},
+					dividers: true,
 					links: true,
 					componentBlocks: {
-						htmlCanvas: component({
-							label: 'HTML Canvas',
+						dividerBlock: component({
+							label: 'Divider',
+							schema: {},
+							preview: () => null,
+						}),
+						footnote: component({
+							label: 'Footnote',
 							schema: {
-								title: fields.text({ label: 'Title' }),
-								html: fields.text({ label: 'HTML', multiline: true }),
-								height: fields.integer({ label: 'Height (px)', defaultValue: 380 }),
-								caption: fields.text({ label: 'Caption', multiline: true }),
+								marker: fields.text({ label: 'Marker', defaultValue: '1' }),
+								note: fields.text({ label: 'Note', multiline: true }),
 							},
 							preview: () => null,
 						}),
-						embedFrame: component({
-							label: 'Embed Frame',
+						poll: component({
+							label: 'Poll',
 							schema: {
-								title: fields.text({ label: 'Title' }),
-								url: fields.url({ label: 'Embed URL' }),
-								height: fields.integer({ label: 'Height (px)', defaultValue: 420 }),
-								caption: fields.text({ label: 'Caption', multiline: true }),
+								question: fields.text({ label: 'Question' }),
+								options: fields.array(fields.text({ label: 'Option' }), {
+									label: 'Options',
+									itemLabel: (props) => props.value || 'Option',
+								}),
+								note: fields.text({ label: 'Note', multiline: true, validation: { isRequired: false } }),
 							},
 							preview: () => null,
 						}),
-						mermaidDiagram: component({
-							label: 'Mermaid Diagram',
+						imageFigure: component({
+							label: 'Image with Credit',
 							schema: {
-								title: fields.text({ label: 'Title' }),
-								diagram: fields.text({ label: 'Mermaid syntax', multiline: true }),
-								caption: fields.text({ label: 'Caption', multiline: true }),
+								image: fields.image({
+									label: 'Image',
+									directory: 'public/uploads/posts',
+									publicPath: '/uploads/posts/',
+								}),
+								alt: fields.text({ label: 'Alt text' }),
+								caption: fields.text({ label: 'Caption', multiline: true, validation: { isRequired: false } }),
+								credit: fields.text({ label: 'Credit', validation: { isRequired: false } }),
+								creditUrl: fields.url({ label: 'Credit URL', validation: { isRequired: false } }),
 							},
 							preview: () => null,
 						}),
-						referencesList: component({
-							label: 'References List',
+						audioEmbed: component({
+							label: 'Audio',
 							schema: {
-								title: fields.text({ label: 'Section title', defaultValue: 'References' }),
-								items: fields.array(
-									fields.text({ label: 'Reference entry', multiline: true }),
-									{
-										label: 'Entries',
-										itemLabel: (props) => props.value?.slice(0, 50) || 'Reference',
-									},
-								),
+								title: fields.text({ label: 'Title', validation: { isRequired: false } }),
+								sourceUrl: fields.url({ label: 'Audio URL' }),
+								caption: fields.text({ label: 'Caption', multiline: true, validation: { isRequired: false } }),
+							},
+							preview: () => null,
+						}),
+						videoEmbed: component({
+							label: 'Video',
+							schema: {
+								title: fields.text({ label: 'Title', validation: { isRequired: false } }),
+								sourceUrl: fields.url({ label: 'Video URL' }),
+								caption: fields.text({ label: 'Caption', multiline: true, validation: { isRequired: false } }),
+							},
+							preview: () => null,
+						}),
+						formula: component({
+							label: 'Formula',
+							schema: {
+								label: fields.text({ label: 'Label', validation: { isRequired: false } }),
+								latex: fields.text({ label: 'LaTeX', multiline: true }),
+								displayMode: fields.checkbox({ label: 'Display mode', defaultValue: true }),
+							},
+							preview: () => null,
+						}),
+						button: component({
+							label: 'Button',
+							schema: {
+								label: fields.text({ label: 'Button label' }),
+								href: fields.url({ label: 'Button URL' }),
+								variant: fields.select({
+									label: 'Style',
+									defaultValue: 'primary',
+									options: [
+										{ label: 'Primary', value: 'primary' },
+										{ label: 'Secondary', value: 'secondary' },
+										{ label: 'Neutral', value: 'neutral' },
+									],
+								}),
+								external: fields.checkbox({ label: 'Open in new tab', defaultValue: true }),
+							},
+							preview: () => null,
+						}),
+						newsletterCta: component({
+							label: 'Newsletter Subscribe',
+							schema: {
+								heading: fields.text({ label: 'Heading', defaultValue: 'Subscribe to the newsletter' }),
+								description: fields.text({ label: 'Description', multiline: true }),
+								buttonLabel: fields.text({ label: 'Button label', defaultValue: 'Subscribe' }),
+								buttonUrl: fields.url({ label: 'Button URL', validation: { isRequired: false } }),
 							},
 							preview: () => null,
 						}),
