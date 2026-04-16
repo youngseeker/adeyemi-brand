@@ -15,6 +15,7 @@
     "db:push": "drizzle-kit push --config drizzle.config.ts"
   },
   "dependencies": {
+    "@astrojs/markdoc": "^0.15.11",
     "@astrojs/react": "5.0.3",
     "@astrojs/vercel": "^9.0.5",
     "@keystatic/astro": "^5.0.6",
