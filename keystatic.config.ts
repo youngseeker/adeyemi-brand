@@ -4,13 +4,15 @@ const isProduction = process.env.NODE_ENV === 'production';
 const inferredVercelRepo = process.env.VERCEL_GIT_REPO_OWNER && process.env.VERCEL_GIT_REPO_SLUG
 	? `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`
 	: '';
-const githubRepo = process.env.KEYSTATIC_GITHUB_REPO || inferredVercelRepo;
+// Keep a deterministic fallback so the browser bundle and API agree on storage mode in production.
+const fallbackGithubRepo = 'youngseeker/afraid-antimatter';
+const githubRepo = process.env.KEYSTATIC_GITHUB_REPO || inferredVercelRepo || fallbackGithubRepo;
 const githubClientId = process.env.KEYSTATIC_GITHUB_CLIENT_ID || '';
 const githubClientSecret = process.env.KEYSTATIC_GITHUB_CLIENT_SECRET || '';
 const keystaticSecret = process.env.KEYSTATIC_SECRET || '';
 
-const getGithubRepoConfig = () => {
-	const [owner, ...nameParts] = githubRepo.split('/');
+const getGithubRepoConfig = (repoValue: string) => {
+	const [owner, ...nameParts] = repoValue.split('/');
 	const name = nameParts.join('/');
 
 	if (!owner || !name) {
@@ -25,7 +27,7 @@ const hasGithubRepo = Boolean(githubRepo && githubRepo.includes('/'));
 const storage = isProduction && hasGithubRepo
 	? ({
 			kind: 'github',
-			repo: getGithubRepoConfig(),
+			repo: getGithubRepoConfig(githubRepo),
 	  } as const)
 	: ({
 		kind: 'local',
