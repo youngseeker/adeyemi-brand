@@ -13,6 +13,8 @@ export type FeedbackItem = {
 
 type RuntimeStore = {
 	feedback: FeedbackItem[];
+	newsletterSubscribers: Array<{ email: string; createdAt: string }>;
+	pollVotes: Array<{ slug: string; pollKey: string; optionIndex: number; ipHash: string; createdAt: string }>;
 	views: Record<string, number>;
 };
 
@@ -23,6 +25,8 @@ const globalRuntime = globalThis as unknown as Record<string, RuntimeStore | und
 if (!globalRuntime[runtimeStoreKey]) {
 	globalRuntime[runtimeStoreKey] = {
 		feedback: [],
+		newsletterSubscribers: [],
+		pollVotes: [],
 		views: {},
 	};
 }

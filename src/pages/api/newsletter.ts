@@ -3,6 +3,9 @@ import { desc, eq, sql } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
 import { db } from '../../db';
 import { newsletterSubscribers } from '../../db/schema';
+import { isAdminAuthorized } from '../../lib/adminAuth';
+import { logAppError } from '../../lib/errorTelemetry';
+import { runtimeStore } from '../../lib/runtimeStore';
 
 const CONTACT_EMAIL = import.meta.env.PUBLIC_CONTACT_EMAIL || 'danieladeniji001@gmail.com';
 const ADMIN_KEY = import.meta.env.REVIEW_ADMIN_KEY || '';
@@ -45,8 +48,12 @@ const getTransporter = () => {
 };
 
 const getSubscriberCount = async (): Promise<number> => {
-	const [row] = await db.select({ total: sql<number>`count(*)::int` }).from(newsletterSubscribers);
-	return Number(row?.total || 0);
+	try {
+		const [row] = await db.select({ total: sql<number>`count(*)::int` }).from(newsletterSubscribers);
+		return Number(row?.total || 0) + runtimeStore.newsletterSubscribers.length;
+	} catch {
+		return runtimeStore.newsletterSubscribers.length;
+	}
 };
 
 const listSubscribers = async (): Promise<Array<{ email: string; createdAt: string }>> => {
@@ -78,6 +85,17 @@ const createSubscriber = async (email: string): Promise<boolean> => {
 	return true;
 };
 
+const createRuntimeSubscriber = (email: string): boolean => {
+	const existing = runtimeStore.newsletterSubscribers.find((subscriber) => subscriber.email === email);
+	if (existing) return false;
+
+	runtimeStore.newsletterSubscribers.push({
+		email,
+		createdAt: new Date().toISOString(),
+	});
+	return true;
+};
+
 const sendSmtpEmail = async ({ to, subject, html }: { to: string; subject: string; html: string }): Promise<boolean> => {
 	const transporter = getTransporter();
 	if (!transporter) return false;
@@ -91,6 +109,12 @@ const sendSmtpEmail = async ({ to, subject, html }: { to: string; subject: strin
 		});
 		return true;
 	} catch {
+		void logAppError({
+			area: 'newsletter',
+			code: 'newsletter_smtp_send_failed',
+			detail: 'SMTP send failed during newsletter flow.',
+			path: '/api/newsletter',
+		});
 		return false;
 	}
 };
@@ -125,10 +149,13 @@ export const POST: APIRoute = async ({ request }) => {
 			await ensureNewsletterTable();
 			isNewSubscriber = await createSubscriber(email);
 		} catch {
-			return new Response(
-				JSON.stringify({ ok: false, error: 'Newsletter service is temporarily unavailable', contactEmail: CONTACT_EMAIL }),
-				{ status: 503, headers: { 'content-type': 'application/json; charset=utf-8' } },
-			);
+			isNewSubscriber = createRuntimeSubscriber(email);
+			void logAppError({
+				area: 'newsletter',
+				code: 'newsletter_subscribe_storage_unavailable',
+				detail: 'Unable to save subscriber to storage.',
+				path: '/api/newsletter',
+			});
 		}
 
 		if (isNewSubscriber) {
@@ -145,6 +172,12 @@ export const POST: APIRoute = async ({ request }) => {
 			headers: { 'content-type': 'application/json; charset=utf-8' },
 		});
 	} catch {
+		void logAppError({
+			area: 'newsletter',
+			code: 'newsletter_subscribe_invalid_json',
+			detail: 'Subscription request body could not be parsed as JSON.',
+			path: '/api/newsletter',
+		});
 		return new Response(JSON.stringify({ error: 'Invalid JSON body' }), { status: 400 });
 	}
 };
@@ -157,8 +190,7 @@ export const GET: APIRoute = async ({ request }) => {
 	try {
 		await ensureNewsletterTable();
 		countValue = await getSubscriberCount();
-		const requestAdminKey = request.headers.get('x-admin-key') || '';
-		if (ADMIN_KEY && requestAdminKey && requestAdminKey === ADMIN_KEY) {
+		if (isAdminAuthorized(request)) {
 			adminAccess = true;
 			subscribers = await listSubscribers();
 		}

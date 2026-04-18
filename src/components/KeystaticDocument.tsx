@@ -47,8 +47,10 @@ export default function KeystaticDocument({ document }: Props) {
 					dividerBlock: () => <hr className="my-8 border-gray-200 dark:border-gray-800" />,
 					footnote: ({ marker, note }) => (
 						<aside className="my-8 rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">
-							<p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">Footnote {typeof marker === 'string' && marker.trim() ? marker : ''}</p>
-							<p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{typeof note === 'string' ? note : ''}</p>
+							<p className="text-sm text-gray-600 dark:text-gray-300">
+								<sup className="mr-2 font-bold text-brandBlue">{typeof marker === 'string' && marker.trim() ? marker : ''}</sup>
+								{typeof note === 'string' ? note : ''}
+							</p>
 						</aside>
 					),
 					poll: ({ question, options, note }) => (

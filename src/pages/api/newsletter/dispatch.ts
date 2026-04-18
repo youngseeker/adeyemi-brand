@@ -7,6 +7,8 @@ import { db } from '../../../db';
 import { newsletterSubscribers } from '../../../db/schema';
 import { isPubliclyVisiblePost } from '../../../lib/postVisibility';
 import { projectRoot } from '../../../lib/projectRoot';
+import { hasValidAdminSession } from '../../../lib/adminAuth';
+import { logAppError } from '../../../lib/errorTelemetry';
 
 type DispatchRecord = {
 	slug: string;
@@ -38,6 +40,8 @@ const newsletterDispatches = {
 };
 
 const isValidAdminRequest = (request: Request) => {
+	if (hasValidAdminSession(request)) return true;
+
 	const adminKey = request.headers.get('x-admin-key') || '';
 	if (ADMIN_KEY && adminKey === ADMIN_KEY) return true;
 
@@ -183,6 +187,12 @@ const sendBroadcastForPost = async ({
 }) => {
 	const transporter = getTransporter();
 	if (!transporter) {
+		void logAppError({
+			area: 'newsletter',
+			code: 'newsletter_dispatch_smtp_unconfigured',
+			detail: 'Dispatch requested without SMTP configuration.',
+			path: '/api/newsletter/dispatch',
+		});
 		return { ok: false, sent: 0, error: 'SMTP is not configured' };
 	}
 
@@ -204,6 +214,12 @@ const sendBroadcastForPost = async ({
 			});
 			sent += recipients.length;
 		} catch {
+			void logAppError({
+				area: 'newsletter',
+				code: 'newsletter_dispatch_batch_failed',
+				detail: `Batch send failed for article ${slug}.`,
+				path: '/api/newsletter/dispatch',
+			});
 			// Continue sending next batch to maximize partial delivery.
 		}
 	}
@@ -301,11 +317,31 @@ const runDispatch = async (siteOrigin: string) => {
 
 export const GET: APIRoute = async ({ request, url }) => {
 	if (!isValidAdminRequest(request)) {
+		void logAppError({
+			area: 'newsletter',
+			code: 'newsletter_dispatch_unauthorized',
+			detail: 'Unauthorized GET dispatch attempt.',
+			path: '/api/newsletter/dispatch',
+		});
 		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
 	}
 
 	const siteOrigin = import.meta.env.PUBLIC_SITE_URL || url.origin;
-	const result = await runDispatch(siteOrigin);
+	let result;
+	try {
+		result = await runDispatch(siteOrigin);
+	} catch {
+		void logAppError({
+			area: 'newsletter',
+			code: 'newsletter_dispatch_runtime_failed',
+			detail: 'Dispatch GET failed due to runtime/storage error.',
+			path: '/api/newsletter/dispatch',
+		});
+		return new Response(JSON.stringify({ error: 'Dispatch failed' }), {
+			status: 500,
+			headers: { 'content-type': 'application/json; charset=utf-8' },
+		});
+	}
 
 	return new Response(JSON.stringify(result), {
 		status: 200,
@@ -315,11 +351,31 @@ export const GET: APIRoute = async ({ request, url }) => {
 
 export const POST: APIRoute = async ({ request, url }) => {
 	if (!isValidAdminRequest(request)) {
+		void logAppError({
+			area: 'newsletter',
+			code: 'newsletter_dispatch_unauthorized',
+			detail: 'Unauthorized POST dispatch attempt.',
+			path: '/api/newsletter/dispatch',
+		});
 		return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
 	}
 
 	const siteOrigin = import.meta.env.PUBLIC_SITE_URL || url.origin;
-	const result = await runDispatch(siteOrigin);
+	let result;
+	try {
+		result = await runDispatch(siteOrigin);
+	} catch {
+		void logAppError({
+			area: 'newsletter',
+			code: 'newsletter_dispatch_runtime_failed',
+			detail: 'Dispatch POST failed due to runtime/storage error.',
+			path: '/api/newsletter/dispatch',
+		});
+		return new Response(JSON.stringify({ error: 'Dispatch failed' }), {
+			status: 500,
+			headers: { 'content-type': 'application/json; charset=utf-8' },
+		});
+	}
 
 	return new Response(JSON.stringify(result), {
 		status: 200,

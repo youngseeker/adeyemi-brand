@@ -3,6 +3,7 @@ import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../../db';
 import { reviews } from '../../db/schema';
 import { createHash } from 'node:crypto';
+import { isAdminAuthorized } from '../../lib/adminAuth';
 
 type FeedbackStatus = 'pending' | 'approved' | 'rejected';
 
@@ -32,13 +33,7 @@ const getIpHash = (request: Request): string => {
 	return createHash('sha256').update(ip).digest('hex');
 };
 
-const getAdminKey = () => import.meta.env.REVIEW_ADMIN_KEY || '';
-
-const isAuthorized = (request: Request) => {
-	const key = getAdminKey();
-	if (!key) return false;
-	return request.headers.get('x-admin-key') === key;
-};
+const isAuthorized = (request: Request) => isAdminAuthorized(request);
 
 export const GET: APIRoute = async ({ request, url }) => {
 	try {

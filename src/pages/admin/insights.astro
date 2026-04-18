@@ -45,10 +45,86 @@ import '../../styles/global.css';
 			<p class="mt-2 text-gray-500 dark:text-gray-300">Moderation queue + engagement overview</p>
 
 			<section class="mt-10 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
-				<label for="adminKey" class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Admin Key</label>
-				<div class="mt-3 flex gap-3">
-					<input id="adminKey" type="password" class="w-full rounded-xl border border-gray-300 px-4 py-3 dark:border-gray-700 dark:bg-transparent" placeholder="Enter REVIEW_ADMIN_KEY" />
-					<button id="saveAdminKey" type="button" class="rounded-xl bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase">Save</button>
+				<h2 class="text-sm font-bold tracking-[0.2em] text-gray-400 uppercase">Admin Session</h2>
+				<p class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+					Insights actions now use your authenticated admin session cookie. For legacy integrations, you can still send
+					<code class="rounded bg-gray-100 px-1 py-0.5 text-xs dark:bg-gray-900">x-admin-key</code>
+					directly from external tools.
+				</p>
+			</section>
+
+			<section class="mt-10 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
+				<div class="flex flex-wrap items-center justify-between gap-2">
+					<h2 class="text-xl font-bold">Poll Diagnostics</h2>
+					<button id="refreshPollDiagnostics" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Refresh Poll Health</button>
+				</div>
+				<p id="pollDiagnosticsStatus" class="mt-3 text-sm text-gray-500 dark:text-gray-300">Loading poll diagnostics...</p>
+				<div class="mt-4 grid gap-3 md:grid-cols-4">
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Total Poll Votes</p>
+						<p id="pollVotesTotal" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Votes (24h)</p>
+						<p id="pollVotesLast24h" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Active Polls</p>
+						<p id="pollActivePolls" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs tracking-widest text-gray-400 uppercase">Active Articles</p>
+						<p id="pollActiveArticles" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-rose-200 p-4 dark:border-rose-900/60">
+						<div class="flex items-center justify-between gap-2">
+							<p class="text-xs tracking-widest text-rose-500 uppercase">Errors (24h)</p>
+							<span id="errorsTotalBadge" class="rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase">--</span>
+						</div>
+						<p id="errorsTotal24h" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-amber-200 p-4 dark:border-amber-900/60">
+						<div class="flex items-center justify-between gap-2">
+							<p class="text-xs tracking-widest text-amber-500 uppercase">Poll Errors (24h)</p>
+							<span id="errorsPollBadge" class="rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase">--</span>
+						</div>
+						<p id="errorsPoll24h" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+					<div class="rounded-xl border border-orange-200 p-4 dark:border-orange-900/60">
+						<div class="flex items-center justify-between gap-2">
+							<p class="text-xs tracking-widest text-orange-500 uppercase">Newsletter Errors (24h)</p>
+							<span id="errorsNewsletterBadge" class="rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase">--</span>
+						</div>
+						<p id="errorsNewsletter24h" class="mt-2 text-2xl font-bold">--</p>
+					</div>
+				</div>
+				<div class="mt-5 grid gap-4 md:grid-cols-3">
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Top Polls (24h)</p>
+						<div id="pollTopList" class="mt-3 space-y-2 text-sm"></div>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<p class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Recent Votes</p>
+						<div id="pollRecentList" class="mt-3 space-y-2 text-sm"></div>
+					</div>
+					<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+						<div class="flex items-center justify-between gap-2">
+							<p class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Recent Errors</p>
+							<div id="recentErrorFilters" class="flex items-center gap-1">
+								<button type="button" data-error-filter="all" class="rounded-full border border-gray-300 px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase dark:border-gray-700">All</button>
+								<button type="button" data-error-filter="polls" class="rounded-full border border-gray-300 px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase dark:border-gray-700">Polls</button>
+								<button type="button" data-error-filter="newsletter" class="rounded-full border border-gray-300 px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase dark:border-gray-700">Newsletter</button>
+							</div>
+						</div>
+						<div id="recentErrorsList" class="mt-3 space-y-2 text-sm"></div>
+					</div>
+				</div>
+				<div class="mt-4 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+					<div class="flex flex-wrap items-center justify-between gap-2">
+						<p class="text-xs font-bold tracking-[0.2em] text-gray-400 uppercase">Error Code Guide</p>
+						<p class="text-xs text-gray-500 dark:text-gray-400">Use this to triage amber/red spikes quickly.</p>
+					</div>
+					<div id="errorCodeGuide" class="mt-3 grid gap-2 text-sm md:grid-cols-2"></div>
 				</div>
 			</section>
 
@@ -96,7 +172,7 @@ import '../../styles/global.css';
 			<section class="mt-10 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
 				<div class="flex flex-wrap items-center justify-between gap-2">
 					<h2 class="text-xl font-bold">Newsletter Subscribers</h2>
-					<div class="flex items-center gap-2">
+					<div class="flex flex-wrap items-center gap-2">
 						<button id="sendLatestNewsletter" type="button" class="rounded-xl border border-brandBlue px-4 py-2 text-xs font-bold tracking-widest text-brandBlue uppercase">Send New Article</button>
 						<button id="copyNewsletterEmails" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Copy Emails</button>
 						<button id="refreshNewsletter" type="button" class="rounded-xl border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Refresh</button>
@@ -124,8 +200,6 @@ import '../../styles/global.css';
 		<script is:inline>
 			const themeToggle = document.getElementById('themeToggle');
 			const logoutButton = document.getElementById('logoutButton');
-			const keyInput = document.getElementById('adminKey');
-			const saveButton = document.getElementById('saveAdminKey');
 			const refreshButton = document.getElementById('refreshQueue');
 			const queueContainer = document.getElementById('queue');
 			const analyticsOutput = document.getElementById('analyticsOutput');
@@ -143,9 +217,101 @@ import '../../styles/global.css';
 			const copyNewsletterEmails = document.getElementById('copyNewsletterEmails');
 			const newsletterSearch = document.getElementById('newsletterSearch');
 			const sendLatestNewsletter = document.getElementById('sendLatestNewsletter');
-			const storageKey = 'admin-review-key';
+			const refreshPollDiagnostics = document.getElementById('refreshPollDiagnostics');
+			const pollDiagnosticsStatus = document.getElementById('pollDiagnosticsStatus');
+			const pollVotesTotal = document.getElementById('pollVotesTotal');
+			const pollVotesLast24h = document.getElementById('pollVotesLast24h');
+			const pollActivePolls = document.getElementById('pollActivePolls');
+			const pollActiveArticles = document.getElementById('pollActiveArticles');
+			const errorsTotal24h = document.getElementById('errorsTotal24h');
+			const errorsPoll24h = document.getElementById('errorsPoll24h');
+			const errorsNewsletter24h = document.getElementById('errorsNewsletter24h');
+			const errorsTotalBadge = document.getElementById('errorsTotalBadge');
+			const errorsPollBadge = document.getElementById('errorsPollBadge');
+			const errorsNewsletterBadge = document.getElementById('errorsNewsletterBadge');
+			const pollTopList = document.getElementById('pollTopList');
+			const pollRecentList = document.getElementById('pollRecentList');
+			const recentErrorsList = document.getElementById('recentErrorsList');
+			const recentErrorFilters = document.getElementById('recentErrorFilters');
+			const errorCodeGuide = document.getElementById('errorCodeGuide');
 			let latestSubscribers = [];
 			let filteredSubscribers = [];
+			let activeErrorFilter = 'all';
+
+			const ERROR_CODE_DICTIONARY = {
+				poll_query_failed: {
+					label: 'Poll read failed',
+					fix: 'Verify database connectivity and poll_votes table access.',
+				},
+				poll_bootstrap_failed: {
+					label: 'Poll table bootstrap failed',
+					fix: 'Run migrations and confirm DB user can create tables/indexes.',
+				},
+				poll_vote_save_failed: {
+					label: 'Poll vote save failed',
+					fix: 'Check DB write permissions and unique index health.',
+				},
+				poll_vote_invalid_json: {
+					label: 'Invalid poll request body',
+					fix: 'Inspect client payload format and API request serialization.',
+				},
+				poll_vote_storage_unavailable: {
+					label: 'Poll storage unavailable',
+					fix: 'Confirm database uptime and poll table readiness checks.',
+				},
+				newsletter_smtp_send_failed: {
+					label: 'SMTP send failed',
+					fix: 'Verify SMTP credentials, host/port, and provider limits.',
+				},
+				newsletter_subscribe_storage_unavailable: {
+					label: 'Subscriber save failed',
+					fix: 'Check newsletter_subscribers table and DB write access.',
+				},
+				newsletter_subscribe_invalid_json: {
+					label: 'Invalid subscribe request body',
+					fix: 'Validate frontend request body and content-type headers.',
+				},
+				newsletter_dispatch_smtp_unconfigured: {
+					label: 'Dispatch SMTP not configured',
+					fix: 'Set SMTP env vars before running dispatch.',
+				},
+				newsletter_dispatch_batch_failed: {
+					label: 'Dispatch batch failed',
+					fix: 'Check SMTP throttling/provider outages and retry later.',
+				},
+				newsletter_dispatch_unauthorized: {
+					label: 'Unauthorized dispatch attempt',
+					fix: 'Re-authenticate admin session or verify cron/admin secret.',
+				},
+				newsletter_dispatch_runtime_failed: {
+					label: 'Dispatch runtime failure',
+					fix: 'Inspect server logs for DB/read errors and restart job.',
+				},
+			};
+
+			const getErrorHelp = (code) => {
+				return ERROR_CODE_DICTIONARY[code] || {
+					label: 'Unknown error code',
+					fix: 'Inspect recent deployment logs and add this code to the guide.',
+				};
+			};
+
+			const renderErrorCodeGuide = () => {
+				if (!errorCodeGuide) return;
+				errorCodeGuide.innerHTML = Object.entries(ERROR_CODE_DICTIONARY)
+					.map(([code, meta]) => `<article class="rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"><p class="font-semibold">${meta.label}</p><p class="text-xs text-gray-500">${code}</p><p class="mt-1 text-xs text-gray-500">Fix: ${meta.fix}</p></article>`)
+					.join('');
+			};
+
+			const renderErrorFilterState = () => {
+				recentErrorFilters?.querySelectorAll('[data-error-filter]').forEach((button) => {
+					if (!(button instanceof HTMLButtonElement)) return;
+					const isActive = button.dataset.errorFilter === activeErrorFilter;
+					button.className = isActive
+						? 'rounded-full border border-brandBlue bg-brandBlue/10 px-2 py-0.5 text-[10px] font-bold tracking-widest text-brandBlue uppercase'
+						: 'rounded-full border border-gray-300 px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase dark:border-gray-700';
+				});
+			};
 
 			themeToggle?.addEventListener('click', () => {
 				const root = document.documentElement;
@@ -157,16 +323,6 @@ import '../../styles/global.css';
 				await fetch('/api/admin/logout', { method: 'POST' });
 				window.location.href = '/admin/login';
 			});
-
-			if (keyInput) {
-				keyInput.value = localStorage.getItem(storageKey) || '';
-			}
-
-			const getAdminKey = () => (keyInput ? keyInput.value.trim() : '');
-
-			const saveAdminKey = () => {
-				localStorage.setItem(storageKey, getAdminKey());
-			};
 
 			const renderQueue = (items) => {
 				if (!queueContainer) return;
@@ -186,11 +342,9 @@ import '../../styles/global.css';
 			const loadQueue = async () => {
 				if (!queueContainer) return;
 				queueContainer.innerHTML = '<p class="text-gray-500">Loading...</p>';
-				const response = await fetch('/api/feedback?status=pending', {
-					headers: { 'x-admin-key': getAdminKey() },
-				});
+				const response = await fetch('/api/feedback?status=pending');
 				if (!response.ok) {
-					queueContainer.innerHTML = '<p class="text-red-500">Unauthorized or unavailable. Set admin key and refresh.</p>';
+					queueContainer.innerHTML = '<p class="text-red-500">Unauthorized or unavailable. Re-authenticate and refresh.</p>';
 					return;
 				}
 				const payload = await response.json();
@@ -200,14 +354,106 @@ import '../../styles/global.css';
 			const moderate = async (id, action) => {
 				await fetch('/api/feedback', {
 					method: 'PATCH',
-					headers: {
-						'content-type': 'application/json',
-						'x-admin-key': getAdminKey(),
-					},
+					headers: { 'content-type': 'application/json' },
 					body: JSON.stringify({ id, action }),
 				});
 				loadQueue();
 				loadAnalytics();
+			};
+
+			const renderPollLists = (diagnostics) => {
+				if (pollTopList) {
+					const topItems = diagnostics?.metrics?.topPolls24h || [];
+					pollTopList.innerHTML = topItems.length
+						? topItems
+							.map((item) => `<div class="rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"><p class="font-semibold">${item.slug} / ${item.pollKey}</p><p class="text-xs text-gray-500">${item.votes} votes in last 24h</p></div>`)
+							.join('')
+						: '<p class="text-sm text-gray-500">No poll activity in the last 24 hours.</p>';
+				}
+
+				if (pollRecentList) {
+					const recentItems = diagnostics?.metrics?.recentVotes || [];
+					pollRecentList.innerHTML = recentItems.length
+						? recentItems
+							.map((item) => `<div class="rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"><p class="font-semibold">${item.slug} / ${item.pollKey}</p><p class="text-xs text-gray-500">Option ${item.optionIndex} / ${new Date(item.createdAt).toLocaleString()}</p></div>`)
+							.join('')
+						: '<p class="text-sm text-gray-500">No recent poll votes found.</p>';
+				}
+
+				if (recentErrorsList) {
+					const allErrorItems = diagnostics?.metrics?.recentErrors || [];
+					const errorItems = activeErrorFilter === 'all'
+						? allErrorItems
+						: allErrorItems.filter((entry) => String(entry.area || '') === activeErrorFilter);
+					recentErrorsList.innerHTML = errorItems.length
+						? errorItems
+							.map((entry) => {
+								const help = getErrorHelp(entry.code);
+								return `<div class="rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"><p class="font-semibold">${help.label}</p><p class="text-xs text-gray-500">${entry.area} / ${entry.code}</p><p class="text-xs text-gray-500">${entry.path || 'unknown path'} / ${new Date(entry.createdAt).toLocaleString()}</p>${entry.detail ? `<p class="mt-1 text-xs text-gray-500">${entry.detail}</p>` : ''}<p class="mt-1 text-xs text-gray-500">Fix: ${help.fix}</p></div>`;
+							})
+							.join('')
+						: `<p class="text-sm text-gray-500">No recent ${activeErrorFilter === 'all' ? '' : `${activeErrorFilter} `}errors logged.</p>`;
+				}
+
+				renderErrorFilterState();
+			};
+
+			const classifyErrorRate = (value) => {
+				const count = Number(value || 0);
+				if (count <= 1) return { label: 'Low', className: 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300' };
+				if (count <= 5) return { label: 'Moderate', className: 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300' };
+				return { label: 'High', className: 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300' };
+			};
+
+			const renderErrorBadge = (element, count) => {
+				if (!(element instanceof HTMLElement)) return;
+				const status = classifyErrorRate(count);
+				element.textContent = status.label;
+				element.className = `rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase ${status.className}`;
+			};
+
+			const loadPollDiagnostics = async () => {
+				if (pollDiagnosticsStatus) pollDiagnosticsStatus.textContent = 'Refreshing poll diagnostics...';
+
+				try {
+					const [healthResponse, diagnosticsResponse] = await Promise.all([
+						fetch('/api/admin/cms-health'),
+						fetch('/api/admin/polls-diagnostics'),
+					]);
+
+					const health = healthResponse.ok ? await healthResponse.json() : null;
+					const diagnostics = diagnosticsResponse.ok ? await diagnosticsResponse.json() : null;
+
+					if (pollVotesTotal) pollVotesTotal.textContent = String(diagnostics?.metrics?.totalVotes ?? 0);
+					if (pollVotesLast24h) pollVotesLast24h.textContent = String(diagnostics?.metrics?.votesLast24h ?? 0);
+					if (pollActivePolls) pollActivePolls.textContent = String(diagnostics?.metrics?.activePolls ?? 0);
+					if (pollActiveArticles) pollActiveArticles.textContent = String(diagnostics?.metrics?.activeArticles ?? 0);
+					const totalErrors = Number(diagnostics?.metrics?.totalErrors24h ?? 0);
+					const pollErrors = Number(diagnostics?.metrics?.pollErrors24h ?? 0);
+					const newsletterErrors = Number(diagnostics?.metrics?.newsletterErrors24h ?? 0);
+					if (errorsTotal24h) errorsTotal24h.textContent = String(totalErrors);
+					if (errorsPoll24h) errorsPoll24h.textContent = String(pollErrors);
+					if (errorsNewsletter24h) errorsNewsletter24h.textContent = String(newsletterErrors);
+					renderErrorBadge(errorsTotalBadge, totalErrors);
+					renderErrorBadge(errorsPollBadge, pollErrors);
+					renderErrorBadge(errorsNewsletterBadge, newsletterErrors);
+
+					renderPollLists(diagnostics);
+
+					const pollWriteCheck = (health?.checks || []).find((check) => check.key === 'poll-write');
+					const pollTableCheck = (health?.checks || []).find((check) => check.key === 'poll-table');
+
+					if (pollDiagnosticsStatus) {
+						const statusBits = [
+							diagnostics?.detail || 'Poll diagnostics loaded.',
+							pollTableCheck ? `Schema: ${pollTableCheck.ok ? 'OK' : 'Fail'}` : '',
+							pollWriteCheck ? `Write probe: ${pollWriteCheck.ok ? 'OK' : 'Fail'}` : '',
+						].filter(Boolean);
+						pollDiagnosticsStatus.textContent = statusBits.join(' / ');
+					}
+				} catch {
+					if (pollDiagnosticsStatus) pollDiagnosticsStatus.textContent = 'Unable to load poll diagnostics right now.';
+				}
 			};
 
 			const loadAnalytics = async () => {
@@ -226,11 +472,11 @@ import '../../styles/global.css';
 
 				if (dailyViews) {
 					const max = Math.max(1, ...(payload.dailyViews || []).map((entry) => Number(entry.views || 0)));
-					dailyViews.innerHTML = (payload.dailyViews || [])
+						dailyViews.innerHTML = (payload.dailyViews || [])
 						.map((entry) => {
 							const value = Number(entry.views || 0);
 							const width = Math.max(2, Math.round((value / max) * 100));
-							return `<div class="grid grid-cols-[80px_1fr_40px] items-center gap-2 text-xs"><span class="text-gray-500">${entry.date.slice(5)}</span><div class="h-2 rounded bg-gray-200 dark:bg-gray-800"><div class="h-full rounded bg-brandBlue" style="width:${width}%"></div></div><span class="text-right">${value}</span></div>`;
+								return `<div class="grid grid-cols-[56px_minmax(0,1fr)_36px] items-center gap-2 text-xs sm:grid-cols-[80px_minmax(0,1fr)_40px]"><span class="text-gray-500">${entry.date.slice(5)}</span><div class="h-2 rounded bg-gray-200 dark:bg-gray-800"><div class="h-full rounded bg-brandBlue" style="width:${width}%"></div></div><span class="text-right">${value}</span></div>`;
 						})
 						.join('');
 				}
@@ -289,7 +535,7 @@ import '../../styles/global.css';
 
 				newsletterList.innerHTML = filteredSubscribers
 					.map(
-						(item) => `<div class="grid grid-cols-[minmax(0,1fr)_180px] gap-3 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700"><span class="truncate">${item.email}</span><span class="text-right text-xs text-gray-500">${formatDateTime(item.createdAt)}</span></div>`,
+						(item) => `<div class="grid grid-cols-1 gap-1 rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-700 sm:grid-cols-[minmax(0,1fr)_180px] sm:gap-3"><span class="truncate">${item.email}</span><span class="text-xs text-gray-500 sm:text-right">${formatDateTime(item.createdAt)}</span></div>`,
 					)
 					.join('');
 
@@ -311,9 +557,7 @@ import '../../styles/global.css';
 				if (newsletterList) newsletterList.innerHTML = '<p class="text-gray-500">Loading...</p>';
 				if (newsletterStatus) newsletterStatus.textContent = '';
 				try {
-					const response = await fetch('/api/newsletter', {
-						headers: { 'x-admin-key': getAdminKey() },
-					});
+					const response = await fetch('/api/newsletter');
 					if (!response.ok) {
 						if (newsletterList) newsletterList.innerHTML = '<p class="text-red-500">Unable to load newsletter data.</p>';
 						return;
@@ -325,10 +569,10 @@ import '../../styles/global.css';
 
 					if (!latestSubscribers.length) {
 						if (newsletterList) {
-							newsletterList.innerHTML = '<p class="text-gray-500">No subscribers yet, or admin key is missing/invalid for subscriber list access.</p>';
+							newsletterList.innerHTML = '<p class="text-gray-500">No subscribers yet, or this session is not authorized to view the subscriber list.</p>';
 						}
 						if (newsletterStatus && payload.adminAccess === false) {
-							newsletterStatus.textContent = 'Subscriber list requires a valid admin key.';
+							newsletterStatus.textContent = 'Subscriber list requires a valid admin session.';
 						}
 						if (exportNewsletterCsv instanceof HTMLButtonElement) exportNewsletterCsv.disabled = true;
 						if (copyNewsletterEmails instanceof HTMLButtonElement) copyNewsletterEmails.disabled = true;
@@ -351,9 +595,6 @@ import '../../styles/global.css';
 				try {
 					const response = await fetch('/api/newsletter/dispatch', {
 						method: 'POST',
-						headers: {
-							'x-admin-key': getAdminKey(),
-						},
 					});
 
 					const payload = await response.json();
@@ -380,16 +621,24 @@ import '../../styles/global.css';
 				}
 			};
 
-			saveButton?.addEventListener('click', () => {
-				saveAdminKey();
-				loadQueue();
-				loadNewsletter();
-			});
-
 			refreshButton?.addEventListener('click', () => {
 				loadQueue();
 				loadAnalytics();
 				loadNewsletter();
+				loadPollDiagnostics();
+			});
+
+			refreshPollDiagnostics?.addEventListener('click', () => {
+				loadPollDiagnostics();
+			});
+
+			recentErrorFilters?.addEventListener('click', (event) => {
+				const target = event.target;
+				if (!(target instanceof HTMLElement)) return;
+				const filter = target.dataset.errorFilter;
+				if (!filter) return;
+				activeErrorFilter = filter;
+				loadPollDiagnostics();
 			});
 
 			refreshNewsletter?.addEventListener('click', () => {
@@ -434,6 +683,9 @@ import '../../styles/global.css';
 			loadQueue();
 			loadAnalytics();
 			loadNewsletter();
+			renderErrorCodeGuide();
+			renderErrorFilterState();
+			loadPollDiagnostics();
 		</script>
 	</body>
 </html>

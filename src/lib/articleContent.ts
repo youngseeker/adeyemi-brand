@@ -115,7 +115,7 @@ const renderFootnotesSection = (footnotes: FootnoteDefinition[]) => {
 			const note = escapeHtml(footnote.note);
 			const noteId = `${footnote.key}-note`;
 			const refId = `${footnote.key}-ref`;
-			return `<li id="${noteId}" class="article-footnotes__item"><span class="article-footnotes__marker">${marker}.</span><span class="article-footnotes__text">${note}</span><a href="#${refId}" class="article-footnotes__backlink" aria-label="Back to reference ${marker}">↩</a></li>`;
+			return `<li id="${noteId}" class="article-footnotes__item"><a href="#${refId}" class="article-footnotes__marker article-footnotes__backlink" aria-label="Back to reference ${marker}"><sup>${marker}</sup></a><span class="article-footnotes__text">${note}</span></li>`;
 		})
 		.join('');
 
@@ -159,21 +159,18 @@ const createConfig = () => {
 					const note = getStringAttribute(node.attributes.note).trim();
 					const key = `footnote-${footnoteIndex}`;
 
-					return new Markdoc.Tag('p', {
+					return new Markdoc.Tag('sup', {
 						id: `${key}-ref`,
-						class: 'article-footnote-anchor',
+						class: 'article-footnote-ref',
 						'data-footnote-key': key,
 						'data-footnote-marker': marker,
 						'data-footnote-note': note,
 					}, [
-						new Markdoc.Tag('span', { class: 'article-footnote-anchor-text' }, ['Referenced note ']),
-						new Markdoc.Tag('sup', { class: 'article-footnote-ref' }, [
-							new Markdoc.Tag('a', {
-								href: `#${key}-note`,
-								class: 'article-footnote-link',
-								'aria-label': `Footnote ${marker}`,
-							}, [marker]),
-						]),
+						new Markdoc.Tag('a', {
+							href: `#${key}-note`,
+							class: 'article-footnote-link',
+							'aria-label': `Footnote ${marker}`,
+						}, [marker]),
 					]);
 				},
 			},
@@ -510,7 +507,7 @@ const collectRenderData = (node: RenderableNode, output: RenderedArticleContent)
 		output.polls.push({ key, index: output.polls.length + 1, question, options, note });
 	}
 
-	if (tagName === 'p' && typeof node.attributes?.['data-footnote-key'] === 'string') {
+	if (typeof node.attributes?.['data-footnote-key'] === 'string') {
 		output.footnotes.push({
 			key: String(node.attributes['data-footnote-key']),
 			index: output.footnotes.length + 1,

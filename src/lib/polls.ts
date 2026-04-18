@@ -2,6 +2,8 @@ import { and, eq, sql } from 'drizzle-orm';
 import { createHash } from 'node:crypto';
 import { db } from '../db';
 import { pollVotes } from '../db/schema';
+import { logAppError } from './errorTelemetry';
+import { runtimeStore } from './runtimeStore';
 
 export type PollResult = {
 	pollKey: string;
@@ -25,6 +27,35 @@ const ensurePollVotesTable = async () => {
 		CREATE UNIQUE INDEX IF NOT EXISTS poll_votes_slug_poll_ip_unique
 		ON poll_votes (slug, poll_key, ip_hash)
 	`);
+};
+
+const getRuntimePollRows = (slug: string) => runtimeStore.pollVotes.filter((row) => row.slug === slug);
+
+const getRuntimePollResults = (slug: string, ipHash?: string) => {
+	const rows = getRuntimePollRows(slug);
+	const grouped = new Map<string, { counts: number[]; total: number; myVoteIndex: number | null }>();
+
+	for (const row of rows) {
+		if (!grouped.has(row.pollKey)) {
+			grouped.set(row.pollKey, { counts: [], total: 0, myVoteIndex: null });
+		}
+		const current = grouped.get(row.pollKey)!;
+		current.counts[row.optionIndex] = (current.counts[row.optionIndex] || 0) + 1;
+		current.total += 1;
+		if (ipHash && row.ipHash === ipHash) {
+			current.myVoteIndex = row.optionIndex;
+		}
+	}
+
+	return {
+		enabled: true as const,
+		results: Array.from(grouped.entries()).map(([pollKey, result]) => ({
+			pollKey,
+			counts: result.counts,
+			total: result.total,
+			myVoteIndex: result.myVoteIndex,
+		})),
+	};
 };
 
 export const getIpHash = (input: Request | Headers): string => {
@@ -51,6 +82,12 @@ const getPollRows = async (slug: string) => {
 			.from(pollVotes)
 			.where(eq(pollVotes.slug, slug));
 	} catch {
+		void logAppError({
+			area: 'polls',
+			code: 'poll_query_failed',
+			detail: 'Unable to fetch poll rows from storage.',
+			path: '/lib/polls#getPollRows',
+		});
 		return null;
 	}
 };
@@ -62,17 +99,25 @@ export const getPollResults = async (slug: string, ipHash?: string) => {
 			await ensurePollVotesTable();
 			rows = await getPollRows(slug);
 		} catch {
-			return { enabled: false as const, results: [] as PollResult[] };
+			void logAppError({
+				area: 'polls',
+				code: 'poll_bootstrap_failed',
+				detail: 'Unable to create or initialize poll_votes table.',
+				path: '/lib/polls#getPollResults',
+			});
+			return getRuntimePollResults(slug, ipHash);
 		}
 	}
 
 	if (!rows) {
-		return { enabled: false as const, results: [] as PollResult[] };
+		return getRuntimePollResults(slug, ipHash);
 	}
 
+	const runtimeRows = getRuntimePollRows(slug);
+	const combinedRows = runtimeRows.length > 0 ? [...rows, ...runtimeRows] : rows;
 	const grouped = new Map<string, { counts: number[]; total: number; myVoteIndex: number | null }>();
 
-	for (const row of rows) {
+	for (const row of combinedRows) {
 		if (!grouped.has(row.pollKey)) {
 			grouped.set(row.pollKey, { counts: [], total: 0, myVoteIndex: null });
 		}
@@ -121,6 +166,31 @@ export const savePollVote = async ({
 
 		return await getPollResults(slug, ipHash);
 	} catch {
-		return null;
+		const existingIndex = runtimeStore.pollVotes.findIndex(
+			(row) => row.slug === slug && row.pollKey === pollKey && row.ipHash === ipHash,
+		);
+		if (existingIndex >= 0) {
+			runtimeStore.pollVotes[existingIndex] = {
+				...runtimeStore.pollVotes[existingIndex],
+				optionIndex,
+				createdAt: new Date().toISOString(),
+			};
+		} else {
+			runtimeStore.pollVotes.push({
+				slug,
+				pollKey,
+				optionIndex,
+				ipHash,
+				createdAt: new Date().toISOString(),
+			});
+		}
+
+		void logAppError({
+			area: 'polls',
+			code: 'poll_vote_save_failed',
+			detail: `Failed to save vote for ${slug}/${pollKey}.`,
+			path: '/lib/polls#savePollVote',
+		});
+		return getRuntimePollResults(slug, ipHash);
 	}
 };
