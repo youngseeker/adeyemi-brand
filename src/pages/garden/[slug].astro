@@ -246,7 +246,7 @@ const relatedPosts = relatedCandidates
 				</div>
 			</section>
 
-			<div class="mt-12">
+			<div class="article-reading-surface mt-12 rounded-3xl border border-gray-200/80 bg-white/90 p-5 shadow-[0_16px_50px_-42px_rgba(15,23,42,0.6)] backdrop-blur-sm sm:p-8 dark:border-gray-800 dark:bg-[#070707]/85 dark:shadow-[0_18px_55px_-40px_rgba(2,6,23,0.95)]">
 				{articleBody?.html ? (
 					<div class="article-content space-y-4 text-base leading-7 text-gray-700 sm:space-y-5 sm:text-lg sm:leading-relaxed dark:text-gray-200" set:html={articleBody.html} />
 				) : (
@@ -268,6 +268,28 @@ const relatedPosts = relatedCandidates
 				const pollDefinitions = pollDefinitionsElement ? JSON.parse(pollDefinitionsElement.textContent || '[]') : [];
 				const initialPollResults = pollResultsElement ? JSON.parse(pollResultsElement.textContent || '{"enabled":false,"results":[]}') : { enabled: false, results: [] };
 				const pollResultMap = new Map((initialPollResults.results || []).map((result) => [result.pollKey, result]));
+				const safeParseJson = async (response) => {
+					try {
+						return await response.json();
+					} catch {
+						return {};
+					}
+				};
+
+				const refreshPollResults = async () => {
+					if (!pollArticleSlug) return;
+					const response = await fetch(`/api/polls?slug=${encodeURIComponent(pollArticleSlug)}`);
+					if (!response.ok) return;
+					const payload = await safeParseJson(response);
+					if (!payload?.ok || !Array.isArray(payload.results)) return;
+					payload.results.forEach((entry) => {
+						if (entry?.pollKey) pollResultMap.set(entry.pollKey, entry);
+					});
+					document.querySelectorAll('[data-poll-key]').forEach((pollElement) => {
+						const pollKey = pollElement.dataset.pollKey || '';
+						renderPollResults(pollElement, pollResultMap.get(pollKey));
+					});
+				};
 
 				const formatPercent = (value) => `${Math.round(value * 100)}%`;
 				const renderPollResults = (pollElement, result) => {
@@ -301,15 +323,30 @@ const relatedPosts = relatedCandidates
 					}
 				};
 
+				if (!pollArticleSlug) {
+					document.querySelectorAll('[data-poll-status]').forEach((status) => {
+						status.textContent = 'Polling is unavailable because this article is missing a slug identifier.';
+					});
+				}
+
 				document.querySelectorAll('[data-poll-key]').forEach((pollElement) => {
 					const pollKey = pollElement.dataset.pollKey || '';
 					renderPollResults(pollElement, pollResultMap.get(pollKey));
+					const definition = pollDefinitions.find((entry) => entry.key === pollKey);
 
 					pollElement.querySelectorAll('[data-poll-vote]').forEach((button) => {
 						button.addEventListener('click', async () => {
 							if (button.disabled) return;
-							const optionIndex = Number(button.dataset.pollOptionIndex || '0');
+							const optionIndex = Number(button.dataset.pollOptionIndex || '-1');
 							const status = pollElement.querySelector('[data-poll-status]');
+							if (!pollArticleSlug || !pollKey || !Number.isInteger(optionIndex) || optionIndex < 0) {
+								if (status) status.textContent = 'This poll is misconfigured. Refresh and try again.';
+								return;
+							}
+							if (definition && optionIndex >= definition.options.length) {
+								if (status) status.textContent = 'This poll option is invalid. Reload the page to sync options.';
+								return;
+							}
 							if (status) status.textContent = 'Submitting your vote...';
 							const pollButtons = pollElement.querySelectorAll('[data-poll-vote]');
 							pollButtons.forEach((node) => {
@@ -323,7 +360,7 @@ const relatedPosts = relatedCandidates
 									body: JSON.stringify({ slug: pollArticleSlug, pollKey, optionIndex }),
 								});
 
-								const data = await response.json();
+								const data = await safeParseJson(response);
 								if (!response.ok || !data?.ok) {
 									throw new Error(data?.error || 'Vote failed');
 								}
@@ -333,8 +370,10 @@ const relatedPosts = relatedCandidates
 								renderPollResults(pollElement, pollResultMap.get(pollKey));
 							} catch (error) {
 								if (status) {
-									status.textContent = 'Your vote was not submitted. Please retry in a moment.';
+									const reason = error instanceof Error ? error.message : 'Please retry in a moment.';
+									status.textContent = `Your vote was not submitted. ${reason}`;
 								}
+								await refreshPollResults();
 							} finally {
 								pollButtons.forEach((node) => {
 									if (node instanceof HTMLButtonElement) node.disabled = false;
@@ -342,6 +381,10 @@ const relatedPosts = relatedCandidates
 							}
 						});
 					});
+				});
+
+				refreshPollResults().catch(() => {
+					// Keep the server-rendered poll state if refresh fails.
 				});
 			</script>
 

@@ -106,22 +106,6 @@ const createMathHtml = (latex: string, displayMode: boolean) => {
 	}
 };
 
-const renderFootnotesSection = (footnotes: FootnoteDefinition[]) => {
-	if (footnotes.length === 0) return '';
-
-	const items = footnotes
-		.map((footnote) => {
-			const marker = escapeHtml(footnote.marker || String(footnote.index));
-			const note = escapeHtml(footnote.note);
-			const noteId = `${footnote.key}-note`;
-			const refId = `${footnote.key}-ref`;
-			return `<li id="${noteId}" class="article-footnotes__item"><a href="#${refId}" class="article-footnotes__marker article-footnotes__backlink" aria-label="Back to reference ${marker}"><sup>${marker}</sup></a><span class="article-footnotes__text">${note}</span></li>`;
-		})
-		.join('');
-
-	return `<section class="article-footnotes mt-12 border-t border-gray-200 pt-8 dark:border-gray-800"><h3 class="text-2xl font-bold tracking-tight">Notes</h3><ol class="article-footnotes__list mt-4">${items}</ol></section>`;
-};
-
 const createConfig = () => {
 	let pollIndex = 0;
 	let footnoteIndex = 0;
@@ -159,18 +143,19 @@ const createConfig = () => {
 					const note = getStringAttribute(node.attributes.note).trim();
 					const key = `footnote-${footnoteIndex}`;
 
-					return new Markdoc.Tag('sup', {
-						id: `${key}-ref`,
-						class: 'article-footnote-ref',
+					return new Markdoc.Tag('span', {
+						class: 'article-footnote-inline',
 						'data-footnote-key': key,
 						'data-footnote-marker': marker,
 						'data-footnote-note': note,
 					}, [
-						new Markdoc.Tag('a', {
-							href: `#${key}-note`,
-							class: 'article-footnote-link',
+						new Markdoc.Tag('sup', {
+							class: 'article-footnote-ref',
 							'aria-label': `Footnote ${marker}`,
 						}, [marker]),
+						note
+							? new Markdoc.Tag('span', { class: 'article-footnote-inline__text' }, [` ${note}`])
+							: '',
 					]);
 				},
 			},
@@ -227,7 +212,7 @@ const createConfig = () => {
 					);
 
 					return new Markdoc.Tag('section', {
-						class: 'my-8 rounded-2xl border border-gray-200 p-4 dark:border-gray-800',
+						class: 'article-poll my-8 rounded-2xl border border-gray-200 p-4 dark:border-gray-800',
 						'data-poll-key': key,
 						'data-poll-question': question,
 						'data-poll-options': JSON.stringify(options),
@@ -533,6 +518,6 @@ export const renderArticleContent = (body: string): RenderedArticleContent => {
 	};
 
 	for (const node of nodes) collectRenderData(node, output);
-	output.html = `${nodes.map(renderNode).join('')}${renderFootnotesSection(output.footnotes)}`;
+	output.html = nodes.map(renderNode).join('');
 	return output;
 };
