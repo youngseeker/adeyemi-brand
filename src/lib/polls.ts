@@ -51,7 +51,7 @@ const getRuntimePollResults = (slug: string, ipHash?: string) => {
 		enabled: true as const,
 		results: Array.from(grouped.entries()).map(([pollKey, result]) => ({
 			pollKey,
-			counts: result.counts,
+			counts: Array.from({ length: result.counts.length }, (_, index) => result.counts[index] || 0),
 			total: result.total,
 			myVoteIndex: result.myVoteIndex,
 		})),
@@ -133,7 +133,7 @@ export const getPollResults = async (slug: string, ipHash?: string) => {
 		enabled: true as const,
 		results: Array.from(grouped.entries()).map(([pollKey, result]) => ({
 			pollKey,
-			counts: result.counts,
+			counts: Array.from({ length: result.counts.length }, (_, index) => result.counts[index] || 0),
 			total: result.total,
 			myVoteIndex: result.myVoteIndex,
 		})),

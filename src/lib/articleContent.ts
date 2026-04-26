@@ -176,14 +176,14 @@ const createConfig = () => {
 							'button',
 							{
 								type: 'button',
-								class: 'flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 px-4 py-3 text-left text-sm text-gray-700 transition hover:border-brandBlue hover:bg-brandBlue/5 dark:border-gray-800 dark:text-gray-200',
+								class: 'group flex w-full items-center justify-between gap-3 border border-[#d8d1bd] bg-white px-4 py-3 text-left text-sm text-[#222] transition hover:border-[#111] hover:bg-[#f7f3e8] disabled:cursor-wait disabled:opacity-70 dark:border-gray-700 dark:bg-[#101010] dark:text-gray-100 dark:hover:border-gray-300 dark:hover:bg-gray-900',
 								'data-poll-vote': '',
 								'data-poll-option-index': String(optionIndex),
 								'data-poll-option-label': option,
 							},
 							[
-								new Markdoc.Tag('span', { class: 'font-medium' }, [option]),
-								new Markdoc.Tag('span', { class: 'text-[10px] font-bold tracking-widest text-gray-400 uppercase' }, ['Vote']),
+								new Markdoc.Tag('span', { class: 'font-semibold' }, [option]),
+								new Markdoc.Tag('span', { class: 'text-[10px] font-bold tracking-widest text-[#8a8068] uppercase group-aria-pressed:text-brandBlue' }, ['Vote']),
 							],
 						),
 					);
@@ -200,9 +200,9 @@ const createConfig = () => {
 									new Markdoc.Tag('span', {}, [option]),
 									new Markdoc.Tag('span', { 'data-poll-result-label': '' }, ['0%']),
 								]),
-								new Markdoc.Tag('div', { class: 'h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-900' }, [
+								new Markdoc.Tag('div', { class: 'h-2 overflow-hidden bg-[#eee7d3] dark:bg-gray-900' }, [
 									new Markdoc.Tag('div', {
-										class: 'h-full rounded-full bg-brandBlue transition-[width] duration-300',
+										class: 'h-full bg-brandBlue transition-[width] duration-300',
 										style: 'width: 0%',
 										'data-poll-result-bar': '',
 									}),
@@ -212,13 +212,13 @@ const createConfig = () => {
 					);
 
 					return new Markdoc.Tag('section', {
-						class: 'article-poll my-8 rounded-2xl border border-gray-200 p-4 dark:border-gray-800',
+						class: 'article-poll my-10 border border-[#d8d1bd] bg-[#fbf8ef] p-5 dark:border-gray-800 dark:bg-[#0d0d0d]',
 						'data-poll-key': key,
 						'data-poll-question': question,
 						'data-poll-options': JSON.stringify(options),
 						'data-poll-note': note,
 					}, [
-						question ? new Markdoc.Tag('h3', { class: 'text-lg font-bold text-gray-900 dark:text-white' }, [question]) : '',
+						question ? new Markdoc.Tag('h3', { class: 'text-xl font-bold leading-snug text-gray-900 dark:text-white' }, [question]) : '',
 						new Markdoc.Tag('div', { class: 'mt-4 space-y-2', 'data-poll-options-list': '' }, optionButtons),
 						new Markdoc.Tag('div', { class: 'mt-4 space-y-2', 'data-poll-results': '' }, resultRows),
 						note ? new Markdoc.Tag('p', { class: 'mt-3 text-sm text-gray-500 dark:text-gray-400' }, [note]) : '',
@@ -345,13 +345,16 @@ const createConfig = () => {
 					const buttonUrl = getStringAttribute(node.attributes.buttonUrl);
 					const formId = `article-newsletter-${slugify(heading || 'newsletter')}-${Math.random().toString(36).slice(2, 8)}`;
 
-					return new Markdoc.Tag('section', { class: 'my-8 rounded-2xl border border-brandBlue/30 bg-brandBlue/5 p-5 dark:bg-brandBlue/10' }, [
-						new Markdoc.Tag('h3', { class: 'text-lg font-bold text-gray-900 dark:text-white' }, [heading]),
-						description ? new Markdoc.Tag('p', { class: 'mt-2 text-sm text-gray-600 dark:text-gray-300' }, [description]) : '',
+					return new Markdoc.Tag('section', { class: 'article-newsletter my-12 grid gap-5 border-y border-[#d8d1bd] bg-[#fbf8ef] px-5 py-7 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center dark:border-gray-800 dark:bg-[#0d0d0d]' }, [
+						new Markdoc.Tag('div', {}, [
+							new Markdoc.Tag('p', { class: 'text-[11px] font-bold tracking-[0.22em] text-[#8a8068] uppercase dark:text-gray-400' }, ['Newsletter']),
+							new Markdoc.Tag('h3', { class: 'mt-2 text-2xl font-bold leading-tight text-gray-900 dark:text-white' }, [heading]),
+							description ? new Markdoc.Tag('p', { class: 'mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300' }, [description]) : new Markdoc.Tag('p', { class: 'mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300' }, ['Get new essays and publishing notes by email.']),
+						]),
 						buttonUrl
 							? new Markdoc.Tag('a', { href: buttonUrl, class: 'ui-btn ui-btn-primary mt-4' }, [buttonLabel])
 							: new Markdoc.Tag('form', {
-								class: 'mt-4 flex flex-col gap-2 sm:flex-row sm:items-center',
+								class: 'flex flex-col gap-2',
 								'data-inline-newsletter-form': '',
 								'aria-label': 'Inline newsletter signup',
 								id: formId,
@@ -360,15 +363,15 @@ const createConfig = () => {
 									type: 'email',
 									required: true,
 									placeholder: 'you@example.com',
-									class: 'w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700',
+									class: 'w-full border border-[#d8d1bd] bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-black',
 									'data-newsletter-email': '',
 								}),
 								new Markdoc.Tag('button', {
 									type: 'submit',
-									class: 'ui-btn ui-btn-primary rounded-xl',
+									class: 'ui-btn ui-btn-primary w-full rounded-none',
 								}, [buttonLabel]),
 								new Markdoc.Tag('p', {
-									class: 'text-sm text-gray-600 dark:text-gray-300 sm:ml-3',
+									class: 'min-h-5 text-sm text-gray-600 dark:text-gray-300',
 									'data-newsletter-status': '',
 								}),
 							]),

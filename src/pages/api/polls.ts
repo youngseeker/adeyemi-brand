@@ -56,6 +56,7 @@ export const GET: APIRoute = async ({ request, url, cookies }) => {
 
 	return new Response(
 		JSON.stringify({
+			ok: true,
 			slug,
 			pollsEnabled: results.enabled,
 			results: results.results,
