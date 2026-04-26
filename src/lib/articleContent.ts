@@ -149,13 +149,13 @@ const createConfig = () => {
 						'data-footnote-marker': marker,
 						'data-footnote-note': note,
 					}, [
-						new Markdoc.Tag('sup', {
-							class: 'article-footnote-ref',
-							'aria-label': `Footnote ${marker}`,
-						}, [marker]),
-						note
-							? new Markdoc.Tag('span', { class: 'article-footnote-inline__text' }, [` ${note}`])
-							: '',
+						new Markdoc.Tag('sup', { class: 'article-footnote-ref' }, [
+							new Markdoc.Tag('a', {
+								href: `#${key}`,
+								class: 'text-brandBlue no-underline',
+								'aria-label': `Read footnote ${marker}`,
+							}, [marker]),
+						]),
 					]);
 				},
 			},
@@ -176,14 +176,14 @@ const createConfig = () => {
 							'button',
 							{
 								type: 'button',
-								class: 'group flex w-full items-center justify-between gap-3 border border-[#d8d1bd] bg-white px-4 py-3 text-left text-sm text-[#222] transition hover:border-[#111] hover:bg-[#f7f3e8] disabled:cursor-wait disabled:opacity-70 dark:border-gray-700 dark:bg-[#101010] dark:text-gray-100 dark:hover:border-gray-300 dark:hover:bg-gray-900',
+								class: 'group flex w-full flex-col items-start gap-2 border border-gray-200 bg-white px-4 py-3 text-left text-sm text-gray-900 transition hover:border-brandBlue hover:bg-brandBlue/5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 disabled:cursor-wait disabled:opacity-70 dark:border-gray-800 dark:bg-[#080808] dark:text-gray-100 dark:hover:border-brandBlue dark:hover:bg-brandBlue/10',
 								'data-poll-vote': '',
 								'data-poll-option-index': String(optionIndex),
 								'data-poll-option-label': option,
 							},
 							[
-								new Markdoc.Tag('span', { class: 'font-semibold' }, [option]),
-								new Markdoc.Tag('span', { class: 'text-[10px] font-bold tracking-widest text-[#8a8068] uppercase group-aria-pressed:text-brandBlue' }, ['Vote']),
+								new Markdoc.Tag('span', { class: 'min-w-0 font-semibold' }, [option]),
+								new Markdoc.Tag('span', { class: 'shrink-0 text-[10px] font-bold tracking-widest text-gray-400 uppercase group-aria-pressed:text-brandBlue' }, ['Vote']),
 							],
 						),
 					);
@@ -196,11 +196,11 @@ const createConfig = () => {
 								'data-poll-option-index': String(optionIndex),
 							},
 							[
-								new Markdoc.Tag('div', { class: 'flex items-center justify-between text-xs text-gray-500 dark:text-gray-400' }, [
-									new Markdoc.Tag('span', {}, [option]),
-									new Markdoc.Tag('span', { 'data-poll-result-label': '' }, ['0%']),
+								new Markdoc.Tag('div', { class: 'flex items-start justify-between gap-3 text-xs text-gray-500 dark:text-gray-400' }, [
+									new Markdoc.Tag('span', { class: 'min-w-0' }, [option]),
+									new Markdoc.Tag('span', { class: 'shrink-0', 'data-poll-result-label': '' }, ['0%']),
 								]),
-								new Markdoc.Tag('div', { class: 'h-2 overflow-hidden bg-[#eee7d3] dark:bg-gray-900' }, [
+								new Markdoc.Tag('div', { class: 'h-2 overflow-hidden bg-gray-100 dark:bg-gray-900' }, [
 									new Markdoc.Tag('div', {
 										class: 'h-full bg-brandBlue transition-[width] duration-300',
 										style: 'width: 0%',
@@ -212,7 +212,7 @@ const createConfig = () => {
 					);
 
 					return new Markdoc.Tag('section', {
-						class: 'article-poll my-10 border border-[#d8d1bd] bg-[#fbf8ef] p-5 dark:border-gray-800 dark:bg-[#0d0d0d]',
+						class: 'article-poll my-8 border border-brandBlue/30 bg-brandBlue/5 p-4 sm:my-10 sm:p-5 dark:border-brandBlue/40 dark:bg-brandBlue/10',
 						'data-poll-key': key,
 						'data-poll-question': question,
 						'data-poll-options': JSON.stringify(options),
@@ -345,9 +345,9 @@ const createConfig = () => {
 					const buttonUrl = getStringAttribute(node.attributes.buttonUrl);
 					const formId = `article-newsletter-${slugify(heading || 'newsletter')}-${Math.random().toString(36).slice(2, 8)}`;
 
-					return new Markdoc.Tag('section', { class: 'article-newsletter my-12 grid gap-5 border-y border-[#d8d1bd] bg-[#fbf8ef] px-5 py-7 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center dark:border-gray-800 dark:bg-[#0d0d0d]' }, [
+					return new Markdoc.Tag('section', { class: 'article-newsletter my-12 grid gap-5 border-y border-brandBlue/30 bg-brandBlue/5 px-5 py-7 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center dark:border-brandBlue/40 dark:bg-brandBlue/10' }, [
 						new Markdoc.Tag('div', {}, [
-							new Markdoc.Tag('p', { class: 'text-[11px] font-bold tracking-[0.22em] text-[#8a8068] uppercase dark:text-gray-400' }, ['Newsletter']),
+							new Markdoc.Tag('p', { class: 'text-[11px] font-bold tracking-[0.22em] text-brandBlue uppercase' }, ['Newsletter']),
 							new Markdoc.Tag('h3', { class: 'mt-2 text-2xl font-bold leading-tight text-gray-900 dark:text-white' }, [heading]),
 							description ? new Markdoc.Tag('p', { class: 'mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300' }, [description]) : new Markdoc.Tag('p', { class: 'mt-3 text-base leading-relaxed text-gray-600 dark:text-gray-300' }, ['Get new essays and publishing notes by email.']),
 						]),
@@ -363,7 +363,7 @@ const createConfig = () => {
 									type: 'email',
 									required: true,
 									placeholder: 'you@example.com',
-									class: 'w-full border border-[#d8d1bd] bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-black',
+									class: 'w-full border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-black',
 									'data-newsletter-email': '',
 								}),
 								new Markdoc.Tag('button', {

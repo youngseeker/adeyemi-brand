@@ -51,12 +51,6 @@ const expectedSession = adminPassword ? hashSecret(adminPassword) : '';
 const sessionCookie = Astro.cookies.get('admin_session')?.value || '';
 const canPreviewUnpublished = previewRequested && Boolean(expectedSession) && sessionCookie === expectedSession;
 
-const giscusRepo = import.meta.env.PUBLIC_GISCUS_REPO || '';
-const giscusRepoId = import.meta.env.PUBLIC_GISCUS_REPO_ID || '';
-const giscusCategory = import.meta.env.PUBLIC_GISCUS_CATEGORY || 'General';
-const giscusCategoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID || '';
-const giscusEnabled = import.meta.env.PUBLIC_GISCUS_ENABLED === 'true';
-const hasGiscusConfig = Boolean(giscusEnabled && giscusRepo && giscusRepoId && giscusCategoryId);
 const canonicalUrl = typeof post?.data.canonicalUrl === 'string' ? post.data.canonicalUrl : '';
 const noIndex = Boolean(post?.data.noIndex);
 const isPublicVisible = post
@@ -77,6 +71,7 @@ const title = derivePostTitle(post?.data.title, slug);
 const articleBody = post ? renderArticleContent(post.body) : null;
 const articleHeadings = articleBody?.headings || [];
 const pollDefinitions = articleBody?.polls || [];
+const footnotes = articleBody?.footnotes || [];
 const pollVisitorCookie = 'poll_visitor_id';
 const existingPollVisitorId = Astro.cookies.get(pollVisitorCookie)?.value;
 const pollVisitorId = existingPollVisitorId && existingPollVisitorId.trim() ? existingPollVisitorId : randomUUID();
@@ -159,33 +154,33 @@ const relatedPosts = relatedCandidates
 			}
 		</script>
 	</head>
-	<body data-slug={slug || ''} data-title={title} class="bg-[#fdfbf4] font-['Space_Grotesk'] text-[#111] dark:bg-[#050505] dark:text-white">
+	<body data-slug={slug || ''} data-title={title} class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
 		<div class="fixed top-0 left-0 z-50 h-1 w-full bg-transparent">
 			<div id="readingProgressBar" class="h-full w-0 bg-brandBlue transition-[width] duration-150"></div>
 		</div>
-		<main class="mx-auto max-w-[1180px] px-5 py-8 sm:px-8 sm:py-12">
+		<main class="mx-auto max-w-[1180px] px-4 py-7 sm:px-8 sm:py-12">
 			{isUnpublishedPreview && (
 				<div class="mb-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
 					Preview mode: this post is not publicly visible yet.
 				</div>
 			)}
-			<div class="grid gap-10 lg:grid-cols-[minmax(0,730px)_300px] lg:justify-center lg:gap-16">
+			<div class="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,740px)_300px] lg:justify-center lg:gap-16">
 				<div>
-			<div class="flex items-center justify-between gap-4 border-b border-[#d8d1bd] pb-5 dark:border-gray-800">
+			<div class="flex items-center justify-between gap-4 border-b border-gray-200 pb-5 dark:border-gray-800">
 				<a href="/garden" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Articles</a>
 				<button
 					id="themeToggle"
 					type="button"
 					aria-label="Toggle theme"
-					class="flex h-10 w-10 items-center justify-center border border-[#d8d1bd] bg-white dark:border-gray-700 dark:bg-black"
+					class="flex h-10 w-10 items-center justify-center border border-gray-200 bg-white dark:border-gray-700 dark:bg-black"
 				>
 					<span class="text-xs font-bold uppercase dark:hidden">L</span>
 					<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
 				</button>
 			</div>
-			<header class="pt-10">
-				<h1 class="max-w-[11ch] text-4xl font-bold leading-[1.03] tracking-tight sm:text-5xl md:text-6xl">{title}</h1>
-				<div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-[#d8d1bd] py-3 text-[11px] font-bold tracking-[0.18em] text-[#77705f] uppercase dark:border-gray-800 dark:text-gray-400">
+			<header class="pt-8 sm:pt-10">
+				<h1 class="max-w-[13ch] text-3xl font-bold leading-[1.08] tracking-tight sm:max-w-[11ch] sm:text-5xl md:text-6xl">{title}</h1>
+				<div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-gray-200 py-3 text-[11px] font-bold tracking-[0.18em] text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
 					{post?.data.author && <span>Written by {post.data.author}</span>}
 					{post?.data.publishedAt && <span>{formatDate(post.data.publishedAt)}</span>}
 					<span>{readingLabel}</span>
@@ -199,13 +194,13 @@ const relatedPosts = relatedCandidates
 						))}
 					</div>
 				)}
-				{post?.data.excerpt && <p class="mt-8 text-xl leading-relaxed text-[#4f4a3f] dark:text-gray-300">{post.data.excerpt}</p>}
+				{post?.data.excerpt && <p class="mt-6 text-lg leading-relaxed text-gray-600 sm:mt-8 sm:text-xl dark:text-gray-300">{post.data.excerpt}</p>}
 			</header>
 			{coverImageSrc && (
-				<figure class="mt-8 overflow-hidden border border-[#d8d1bd] bg-white dark:border-gray-800 dark:bg-black">
+				<figure class="mt-8 overflow-hidden border border-gray-200 bg-white dark:border-gray-800 dark:bg-black">
 					<img src={coverImageSrc} alt={title} class="h-auto w-full object-cover" loading="lazy" />
 						{post?.data.coverImageCredit && (
-							<figcaption class="border-t border-[#d8d1bd] px-4 py-2 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+							<figcaption class="border-t border-gray-200 px-4 py-2 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
 								Image credit: {post.data.coverImageCredit}
 								{post.data.coverImageCreditUrl && (
 									<>
@@ -221,22 +216,37 @@ const relatedPosts = relatedCandidates
 			{articleHeadings.length > 0 && (
 				<nav class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Article sections">
 					{articleHeadings.map((heading) => (
-						<a href={`#${heading.slug}`} class="shrink-0 border border-[#d8d1bd] bg-white px-3 py-1 text-xs text-gray-600 transition hover:border-brandBlue hover:text-brandBlue dark:border-gray-700 dark:bg-black dark:text-gray-300">
+						<a href={`#${heading.slug}`} class="shrink-0 border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 transition hover:border-brandBlue hover:text-brandBlue dark:border-gray-700 dark:bg-black dark:text-gray-300">
 							{heading.text}
 						</a>
 					))}
 				</nav>
 			)}
 
-			<div class="article-reading-surface mt-12">
+			<div class="article-reading-surface mt-10 sm:mt-12">
 				{articleBody?.html ? (
-					<div class="article-content text-base leading-8 text-[#25211b] sm:text-[1.08rem] dark:text-gray-200" set:html={articleBody.html} />
+					<div class="article-content text-base leading-8 text-gray-800 sm:text-[1.08rem] dark:text-gray-200" set:html={articleBody.html} />
 				) : (
 					<p>
 						This entry has been created, but full body content is not yet available in public view.
 					</p>
 				)}
 			</div>
+
+			{footnotes.length > 0 && (
+				<section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800" aria-labelledby="footnotes-heading">
+					<p class="text-[11px] font-bold tracking-[0.22em] text-brandBlue uppercase">Notes</p>
+					<h2 id="footnotes-heading" class="mt-2 text-2xl font-bold">Footnotes</h2>
+					<ol class="mt-5 space-y-4">
+						{footnotes.map((footnote) => (
+							<li id={footnote.key} class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2 border-l border-brandBlue/40 pl-3 text-sm leading-7 text-gray-600 scroll-mt-24 sm:grid-cols-[2rem_minmax(0,1fr)] sm:gap-3 sm:pl-4 dark:text-gray-300">
+								<span class="font-bold text-brandBlue">{footnote.marker || footnote.index}</span>
+								<span>{footnote.note}</span>
+							</li>
+						))}
+					</ol>
+				</section>
+			)}
 
 			{pollDefinitions.length > 0 && (
 				<script type="application/json" id="pollDefinitions">{JSON.stringify(pollDefinitions)}</script>
@@ -250,12 +260,53 @@ const relatedPosts = relatedCandidates
 				const pollDefinitions = pollDefinitionsElement ? JSON.parse(pollDefinitionsElement.textContent || '[]') : [];
 				const initialPollResults = pollResultsElement ? JSON.parse(pollResultsElement.textContent || '{"enabled":false,"results":[]}') : { enabled: false, results: [] };
 				const pollResultMap = new Map((initialPollResults.results || []).map((result) => [result.pollKey, result]));
+				const localPollPrefix = `poll-vote:${pollArticleSlug}:`;
 				const safeParseJson = async (response) => {
 					try {
 						return await response.json();
 					} catch {
 						return {};
 					}
+				};
+
+				const getLocalVote = (pollKey) => {
+					try {
+						const value = window.localStorage.getItem(`${localPollPrefix}${pollKey}`);
+						const parsed = Number(value);
+						return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+					} catch {
+						return null;
+					}
+				};
+
+				const setLocalVote = (pollKey, optionIndex) => {
+					try {
+						window.localStorage.setItem(`${localPollPrefix}${pollKey}`, String(optionIndex));
+					} catch {
+						// localStorage may be unavailable in private or restricted contexts.
+					}
+				};
+
+				const getPollOptionCount = (pollElement) => {
+					const optionCount = pollElement.querySelectorAll('[data-poll-vote]').length;
+					return Math.max(0, optionCount);
+				};
+
+				const createOptimisticResult = (pollElement, pollKey, optionIndex) => {
+					const existing = pollResultMap.get(pollKey);
+					const optionCount = Math.max(getPollOptionCount(pollElement), existing?.counts?.length || 0, optionIndex + 1);
+					const counts = Array.from({ length: optionCount }, (_, index) => Number(existing?.counts?.[index] || 0));
+					const previousVote = typeof existing?.myVoteIndex === 'number' ? existing.myVoteIndex : getLocalVote(pollKey);
+
+					if (typeof previousVote === 'number' && previousVote !== optionIndex && counts[previousVote] > 0) {
+						counts[previousVote] -= 1;
+					}
+					if (typeof previousVote !== 'number' || previousVote !== optionIndex) {
+						counts[optionIndex] = (counts[optionIndex] || 0) + 1;
+					}
+
+					const total = counts.reduce((sum, count) => sum + count, 0);
+					return { pollKey, counts, total: Math.max(total, existing?.total || 1), myVoteIndex: optionIndex };
 				};
 
 				const refreshPollResults = async () => {
@@ -280,7 +331,9 @@ const relatedPosts = relatedCandidates
 					const status = pollElement.querySelector('[data-poll-status]');
 					const total = result?.total || 0;
 					const counts = result?.counts || [];
-					const selectedIndex = typeof result?.myVoteIndex === 'number' ? result.myVoteIndex : null;
+					const pollKey = pollElement.dataset.pollKey || '';
+					const localVote = pollKey ? getLocalVote(pollKey) : null;
+					const selectedIndex = typeof result?.myVoteIndex === 'number' ? result.myVoteIndex : localVote;
 
 					rows.forEach((row, index) => {
 						const count = counts[index] || 0;
@@ -295,7 +348,14 @@ const relatedPosts = relatedCandidates
 
 					buttons.forEach((button) => {
 						button.disabled = false;
-						button.setAttribute('aria-pressed', selectedIndex !== null && Number(button.dataset.pollOptionIndex) === selectedIndex ? 'true' : 'false');
+						const isSelected = selectedIndex !== null && Number(button.dataset.pollOptionIndex) === selectedIndex;
+						button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+						button.classList.toggle('border-brandBlue', isSelected);
+						button.classList.toggle('bg-brandBlue/10', isSelected);
+						button.classList.toggle('text-brandBlue', isSelected);
+						button.dataset.pollSelected = isSelected ? 'true' : 'false';
+						const voteLabel = button.querySelector('span:last-child');
+						if (voteLabel) voteLabel.textContent = isSelected ? 'Selected' : 'Vote';
 					});
 
 					if (status) {
@@ -329,10 +389,20 @@ const relatedPosts = relatedCandidates
 								if (status) status.textContent = 'This poll option is invalid. Reload the page to sync options.';
 								return;
 							}
-							if (status) status.textContent = 'Submitting your vote...';
 							const pollButtons = pollElement.querySelectorAll('[data-poll-vote]');
+							const optimisticResult = createOptimisticResult(pollElement, pollKey, optionIndex);
+							pollResultMap.set(pollKey, optimisticResult);
+							setLocalVote(pollKey, optionIndex);
+							renderPollResults(pollElement, optimisticResult);
+							if (status) status.textContent = 'Vote selected. Saving...';
 							pollButtons.forEach((node) => {
-								if (node instanceof HTMLButtonElement) node.disabled = true;
+								if (node instanceof HTMLButtonElement) {
+									node.disabled = true;
+									if (Number(node.dataset.pollOptionIndex) === optionIndex) {
+										const voteLabel = node.querySelector('span:last-child');
+										if (voteLabel) voteLabel.textContent = 'Saving';
+									}
+								}
 							});
 
 							try {
@@ -370,14 +440,14 @@ const relatedPosts = relatedCandidates
 				});
 			</script>
 
-			<section class="mt-14 border-t border-[#d8d1bd] pt-8 dark:border-gray-800">
-				<p class="text-[11px] font-bold tracking-[0.22em] text-[#8a8068] uppercase dark:text-gray-400">Reader Review</p>
+			<section class="mt-14 border-t border-gray-200 pt-8 dark:border-gray-800">
+				<p class="text-[11px] font-bold tracking-[0.22em] text-brandBlue uppercase">Reader Review</p>
 				<h2 class="mt-2 text-2xl font-bold">Score this essay</h2>
 				<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Reviews enter moderation before public display.</p>
 				<form id="reviewForm" class="mt-5 space-y-3">
 					<div class="grid gap-3 sm:grid-cols-2">
-						<input id="reviewName" type="text" placeholder="Your name" class="border border-[#d8d1bd] bg-white px-4 py-3 text-sm dark:border-gray-700 dark:bg-transparent" />
-						<select id="reviewRating" class="border border-[#d8d1bd] bg-white px-4 py-3 text-sm dark:border-gray-700 dark:bg-transparent" required>
+						<input id="reviewName" type="text" placeholder="Your name" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" />
+						<select id="reviewRating" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" required>
 							<option value="">Rating</option>
 							<option value="5">5 - Excellent</option>
 							<option value="4">4 - Great</option>
@@ -386,24 +456,24 @@ const relatedPosts = relatedCandidates
 							<option value="1">1 - Weak</option>
 						</select>
 					</div>
-					<textarea id="reviewComment" placeholder="What did you think?" required rows="4" class="w-full border border-[#d8d1bd] bg-white px-4 py-3 text-sm dark:border-gray-700 dark:bg-transparent"></textarea>
+					<textarea id="reviewComment" placeholder="What did you think?" required rows="4" class="w-full border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent"></textarea>
 					<button type="submit" class="ui-btn ui-btn-primary rounded-none">Submit Review</button>
 				</form>
 				<p id="reviewStatus" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
 			</section>
 
-			<section class="mt-10 border-t border-[#d8d1bd] pt-8 dark:border-gray-800">
+			<section class="mt-10 border-t border-gray-200 pt-8 dark:border-gray-800">
 				<h2 class="text-2xl font-bold">Approved Reviews</h2>
 				<div id="approvedReviews" class="mt-4 space-y-3"></div>
 			</section>
 
 			{relatedPosts.length > 0 && (
-				<section class="mt-12 border-t border-[#d8d1bd] pt-8 dark:border-gray-800">
+				<section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
 					<h2 class="text-2xl font-bold">Related Articles</h2>
 					<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Continue with connected ideas and references.</p>
 					<div class="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3">
 						{relatedPosts.map((item) => (
-							<a href={`/garden/${item.slug}`} class="border border-[#d8d1bd] bg-white p-4 transition hover:border-brandBlue dark:border-gray-800 dark:bg-black">
+							<a href={`/garden/${item.slug}`} class="border border-gray-200 bg-white p-4 transition hover:border-brandBlue dark:border-gray-800 dark:bg-black">
 								<p class="text-[10px] tracking-widest text-gray-400 uppercase">{item.publishedAt || 'Digital Garden'} / {item.readingLabel}</p>
 								<h3 class="mt-2 text-lg font-bold">{item.title}</h3>
 								<p class="mt-2 line-clamp-3 text-sm text-gray-600 dark:text-gray-300">{item.excerpt}</p>
@@ -412,36 +482,23 @@ const relatedPosts = relatedCandidates
 					</div>
 				</section>
 			)}
-
-			<section class="mt-12 border-t border-[#d8d1bd] pt-8 dark:border-gray-800">
-				<h2 class="text-2xl font-bold">Comments</h2>
-				<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Use the thread below for comments and shared reactions.</p>
-				{hasGiscusConfig ? (
-					<div class="mt-4"></div>
-				) : (
-					<p class="mt-3 text-gray-500 dark:text-gray-300">
-						Comments are currently disabled. Set `PUBLIC_GISCUS_ENABLED=true` after installing Giscus on the repository, then provide
-						`PUBLIC_GISCUS_REPO`, `PUBLIC_GISCUS_REPO_ID`, `PUBLIC_GISCUS_CATEGORY`, and `PUBLIC_GISCUS_CATEGORY_ID`.
-					</p>
-				)}
-			</section>
 				</div>
 				<aside class="hidden lg:sticky lg:top-10 lg:block lg:h-fit">
-					<div class="border-l border-[#d8d1bd] pl-6 dark:border-gray-800">
+					<div class="border-l border-gray-200 pl-6 dark:border-gray-800">
 						<p class="text-[10px] font-bold tracking-[0.25em] text-gray-400 uppercase">About the Author</p>
-						<p class="mt-3 text-sm leading-6 text-[#4f4a3f] dark:text-gray-300">
-							<strong class="text-[#111] dark:text-white">{post?.data.author || 'Adeyemi Adeniji'}</strong> writes about systems, attention, learning, and the practical architecture of better thinking.
+						<p class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-300">
+							<strong class="text-black dark:text-white">{post?.data.author || 'Adeyemi Adeniji'}</strong> writes about systems, attention, learning, and the practical architecture of better thinking.
 						</p>
 						<a href="/about" class="mt-3 inline-block text-sm font-bold text-brandBlue underline underline-offset-4">Learn more</a>
 
-						<div class="mt-8 border-t border-[#d8d1bd] pt-6 dark:border-gray-800">
+						<div class="mt-8 border-t border-gray-200 pt-6 dark:border-gray-800">
 							<p class="text-[10px] font-bold tracking-[0.25em] text-gray-400 uppercase">Reader Signal</p>
 							<button id="likeButton" type="button" class="mt-3 border border-brandBlue px-4 py-2 text-xs font-bold tracking-[0.16em] text-brandBlue uppercase transition hover:bg-brandBlue hover:text-white">Like</button>
 							<p class="mt-2 text-sm"><span id="likeCount" class="font-bold">0</span> likes</p>
 							<p id="reactionStatus" class="mt-2 text-xs text-gray-500 dark:text-gray-300"></p>
 						</div>
 
-						<div class="mt-8 border-t border-[#d8d1bd] pt-6 dark:border-gray-800">
+						<div class="mt-8 border-t border-gray-200 pt-6 dark:border-gray-800">
 						<p class="text-[10px] font-bold tracking-[0.25em] text-gray-400 uppercase">In this article</p>
 						{articleHeadings.length > 0 ? (
 							<nav class="mt-3 space-y-2">
@@ -459,25 +516,6 @@ const relatedPosts = relatedCandidates
 				</aside>
 			</div>
 		</main>
-
-		{hasGiscusConfig && (
-			<script
-				src="https://giscus.app/client.js"
-				data-repo={giscusRepo}
-				data-repo-id={giscusRepoId}
-				data-category={giscusCategory}
-				data-category-id={giscusCategoryId}
-				data-mapping="pathname"
-				data-strict="0"
-				data-reactions-enabled="1"
-				data-emit-metadata="0"
-				data-input-position="top"
-				data-theme="preferred_color_scheme"
-				data-lang="en"
-				crossorigin="anonymous"
-				async
-			></script>
-		)}
 
 		<script is:inline>
 			const pageBody = document.body;
@@ -683,7 +721,7 @@ const relatedPosts = relatedCandidates
 				approvedReviews.innerHTML = items
 					.map(
 						(item) =>
-							`<article class="border border-[#d8d1bd] bg-white p-4 dark:border-gray-700 dark:bg-black"><p class="text-sm font-bold">${escapeHtml(item.name)} / ${'★'.repeat(Number(item.rating || 0))}</p><p class="mt-2">${escapeHtml(item.comment)}</p></article>`,
+							`<article class="border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-black"><p class="text-sm font-bold">${escapeHtml(item.name)} / ${'★'.repeat(Number(item.rating || 0))}</p><p class="mt-2">${escapeHtml(item.comment)}</p></article>`,
 					)
 					.join('');
 			};

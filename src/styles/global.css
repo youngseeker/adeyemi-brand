@@ -144,7 +144,7 @@
 	.article-content p {
 		margin-top: 1em;
 		margin-bottom: 1em;
-		color: #25211b;
+		color: #1f2937;
 	}
 
 	.dark .article-content p {
@@ -237,10 +237,7 @@
 	}
 
 	.article-content .article-footnote-inline__text {
-		margin-left: 0.25rem;
-		font-size: 0.9em;
-		font-style: italic;
-		color: #475569;
+		display: none;
 	}
 
 	.dark .article-content .article-footnote-inline__text {
@@ -265,6 +262,39 @@
 }
 
 @media (max-width: 768px) {
+	.ui-btn {
+		width: 100%;
+		padding-inline: 1rem;
+		letter-spacing: 0.1em;
+	}
+
+	.article-content {
+		max-width: 100%;
+		font-size: 1rem;
+		line-height: 1.78;
+		overflow-wrap: break-word;
+	}
+
+	.article-content h1,
+	.article-content h2,
+	.article-content h3,
+	.article-content h4 {
+		margin-top: 1.9em;
+	}
+
+	.article-content h2 {
+		font-size: 1.45rem;
+	}
+
+	.article-content h3 {
+		font-size: 1.2rem;
+	}
+
+	.article-content .article-poll {
+		margin-left: 0;
+		margin-right: 0;
+	}
+
 	.article-content .article-ordered-list,
 	.article-content .article-unordered-list,
 	.article-content .references-list {

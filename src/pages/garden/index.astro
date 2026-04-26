@@ -93,18 +93,18 @@ const posts = (
 		</script>
 	</head>
 	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
-		<main class="mx-auto max-w-6xl px-6 py-16">
+		<main class="mx-auto max-w-6xl px-6 py-14">
 			<div class="flex flex-wrap items-center justify-between gap-4">
 				<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
 				<div class="flex items-center gap-3">
-					<a href="/keystatic" data-astro-prefetch="false" class="rounded-full bg-brandBlue px-5 py-2 text-xs font-bold tracking-widest text-white uppercase">
+					<a href="/keystatic" data-astro-prefetch="false" class="bg-brandBlue px-5 py-2 text-xs font-bold tracking-widest text-white uppercase">
 						New Entry +
 					</a>
 					<button
 						id="themeToggle"
 						type="button"
 						aria-label="Toggle theme"
-						class="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700"
+						class="flex h-10 w-10 items-center justify-center border border-gray-300 dark:border-gray-700"
 					>
 						<span class="text-xs font-bold uppercase dark:hidden">L</span>
 						<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
@@ -121,7 +121,7 @@ const posts = (
 					id="gardenSearch"
 					type="search"
 					placeholder="Search by title or excerpt"
-					class="w-full max-w-sm rounded-full border border-gray-300 bg-transparent px-5 py-3 text-sm tracking-wide focus:border-brandBlue focus:outline-none dark:border-gray-700"
+					class="w-full max-w-sm border border-gray-300 bg-transparent px-5 py-3 text-sm tracking-wide focus:border-brandBlue focus:outline-none dark:border-gray-700"
 				/>
 			</div>
 
@@ -130,10 +130,10 @@ const posts = (
 					{posts.map((post) => (
 						<a
 							href={`/garden/${post.slug}`}
-							class="garden-card group block rounded-2xl border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800"
+							class="garden-card group block border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800"
 							data-search={`${post.title.toLowerCase()} ${post.excerpt.toLowerCase()} ${post.tags.join(' ').toLowerCase()}`}
 						>
-							<div class="mb-4 aspect-[16/10] overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-900">
+							<div class="mb-4 aspect-[16/10] overflow-hidden border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-900">
 								{post.coverImage ? (
 									<img src={post.coverImage} alt={post.title} class="h-full w-full object-cover" loading="lazy" />
 								) : (
@@ -151,7 +151,7 @@ const posts = (
 								{post.tags && post.tags.length > 0 && (
 									<div class="flex flex-wrap gap-1 justify-end">
 										{post.tags.slice(0, 2).map((tag) => (
-											<span class="rounded-full border border-gray-300 px-2 py-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+											<span class="border border-gray-300 px-2 py-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
 												{tag}
 											</span>
 										))}
@@ -163,7 +163,7 @@ const posts = (
 					))}
 				</div>
 			) : (
-				<div class="mt-12 rounded-2xl border border-dashed border-gray-300 p-10 text-center dark:border-gray-700">
+				<div class="mt-12 border border-dashed border-gray-300 p-10 text-center dark:border-gray-700">
 					<p class="text-lg text-gray-600 dark:text-gray-300">
 						No entries yet. Create your first post in Keystatic and it will appear here.
 					</p>

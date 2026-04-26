@@ -18,46 +18,38 @@ const missingKeystaticEnvVars = [
 ].filter(Boolean);
 const keystaticGithubWriteReady = !isProduction || missingKeystaticEnvVars.length === 0;
 
-const steps = [
-	{
-		title: 'Open The Editor',
-		detail: 'Go to /keystatic, then open Posts and click Create entry.',
-	},
-	{
-		title: 'Fill The Required Fields',
-		detail: 'Add Title, Excerpt, Publish Date, Author, and Tags before writing the full body.',
-	},
-	{
-		title: 'Write In Sections',
-		detail: 'Use clear headings and short paragraphs. Treat each section as a single idea.',
-	},
-	{
-		title: 'Choose Strong Tags',
-		detail: 'Use tags like algorithms, systems-design, pwa, ai-ethics, human-logic.',
-	},
-	{
-		title: 'Save And Verify',
-		detail: 'Save in Keystatic, then open /garden to confirm your article appears correctly.',
-	},
-	{
-		title: 'Preview Drafts Securely',
-		detail: 'While logged in to admin, open /garden/your-slug?preview=1 to preview drafts and scheduled posts before they go live.',
-	},
-	{
-		title: 'Share And Measure',
-		detail: 'Share the article URL and review engagement in /admin/insights.',
-	},
+const workflow = [
+	['Create', 'Open Keystatic, create a post, and set the publishing status before writing deeply.'],
+	['Shape', 'Write the argument in sections: problem, tension, insight, examples, conclusion.'],
+	['Enrich', 'Add cover image, tags, footnotes, poll, newsletter CTA, and references where useful.'],
+	['Preview', 'Open the preview URL and inspect hierarchy, mobile layout, poll, links, and footnotes.'],
+	['Publish', 'Save the entry, verify the garden card, and monitor reviews, likes, and analytics.'],
 ];
 
-const advancedTopics = [
-	'Algorithmic Fairness in Constraint-Based Decision Systems',
-	'Designing Explainable State Machines for Human-Centered Products',
-	'Formal Specification as a Bridge Between Product and Engineering',
-	'Latency, Cognition, and Trust in Progressive Web Applications',
-	'Ethical Failure Modes in Multi-Agent Workflows',
-	'Technical Writing as Infrastructure: Building Reusable Reasoning Layers',
-	'Consistency Models for Reflection-Driven User Interfaces',
-	'Human Logic Compression: From Narrative to Executable Rules',
+const contentBlocks = [
+	{ label: 'Poll', detail: 'Ask one sharp question with 3-5 clear options. Keep the note short.' },
+	{ label: 'Footnote', detail: 'Use for citations or side context. The article renders a clean footnote section.' },
+	{ label: 'Newsletter CTA', detail: 'Place after the strongest insight or near the end, not before trust is earned.' },
+	{ label: 'Image With Credit', detail: 'Use real explanatory visuals or intentional generated assets with credit.' },
+];
+
+const qualityChecks = [
+	'Title says the actual idea, not just the topic.',
+	'Excerpt explains the argument in one sentence.',
+	'Intro creates tension within the first few paragraphs.',
+	'Each H2 moves the argument forward.',
+	'Poll, footnotes, and newsletter form respond before publish.',
+	'Mobile article view has no text overlap or cramped controls.',
+	'Published article appears in /garden and related articles make sense.',
+];
+
+const topicAngles = [
+	'Learning debt in AI-assisted education',
+	'Attention as a systems-design problem',
+	'Human judgment boundaries in automated workflows',
+	'Why technical writing is product infrastructure',
+	'The trade-off between speed, trust, and explainability',
+	'How institutions adapt when information stops being scarce',
 ];
 ---
 
@@ -66,150 +58,150 @@ const advancedTopics = [
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>Publishing Guide | Adeyemi Adeniji</title>
-		<meta name="description" content="Step-by-step guide for publishing articles on your site with advanced CS-focused writing topics." />
+		<title>CMS Publishing Cockpit | Adeyemi Adeniji</title>
+		<meta name="description" content="A focused CMS publishing cockpit for drafting, previewing, publishing, and validating articles." />
 		<link
 			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
 			rel="stylesheet"
 		/>
 		<script is:inline>
 			const theme = (() => {
-				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-					return localStorage.getItem('theme');
-				}
-				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-					return 'dark';
-				}
+				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) return localStorage.getItem('theme');
+				if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
 				return 'light';
 			})();
-
-			if (theme === 'light') {
-				document.documentElement.classList.remove('dark');
-			} else {
-				document.documentElement.classList.add('dark');
-			}
+			document.documentElement.classList.toggle('dark', theme !== 'light');
 		</script>
 	</head>
 	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
-		<main class="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-			<div class="flex items-center justify-between gap-4">
-				<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
-				<div class="flex flex-wrap items-center justify-end gap-2">
-					<a href="/keystatic" data-astro-prefetch="false" class="rounded-full bg-brandBlue px-5 py-2 text-xs font-bold tracking-widest text-white uppercase">Open Keystatic</a>
-					<button id="themeToggle" type="button" aria-label="Toggle theme" class="rounded-full border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Theme</button>
+		<header class="border-b border-gray-200 dark:border-gray-800">
+			<nav class="mx-auto flex max-w-7xl flex-col items-stretch gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+				<a href="/" class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">A.ADENIJI</a>
+				<div class="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+					<a href="/keystatic" data-astro-prefetch="false" class="bg-brandBlue px-4 py-3 text-center text-xs font-bold tracking-widest text-white uppercase sm:px-5 sm:py-2">Open Editor</a>
+					<a href="/garden" class="border border-gray-300 px-4 py-3 text-center text-xs font-bold tracking-widest uppercase transition hover:border-brandBlue hover:text-brandBlue sm:px-5 sm:py-2 dark:border-gray-700">View Garden</a>
+					<button id="themeToggle" type="button" aria-label="Toggle theme" class="border border-gray-300 px-4 py-3 text-xs font-bold tracking-widest uppercase sm:py-2 dark:border-gray-700">Theme</button>
+				</div>
+			</nav>
+		</header>
+
+		<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+			<section class="grid gap-8 border-b border-gray-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end dark:border-gray-800">
+				<div>
+					<p class="text-xs font-bold tracking-[0.3em] text-brandBlue uppercase">CMS Cockpit</p>
+					<h1 class="mt-3 max-w-4xl text-4xl font-bold leading-tight tracking-tight uppercase sm:text-5xl md:text-7xl">Publish with control.</h1>
+					<p class="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300">
+						A focused operating surface for turning drafts into clean article experiences: structure, preview, health, engagement, and launch checks in one place.
+					</p>
+				</div>
+				<section class="border border-gray-200 p-5 dark:border-gray-800" class:list={{ 'border-emerald-300 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/20': keystaticGithubWriteReady, 'border-rose-300 bg-rose-50/70 dark:border-rose-800 dark:bg-rose-950/20': !keystaticGithubWriteReady }}>
+					<p class="text-xs font-bold tracking-[0.22em] text-gray-500 uppercase">Commit Status</p>
+					<p class="mt-2 text-2xl font-bold">{keystaticGithubWriteReady ? 'Ready' : 'Needs Setup'}</p>
+					<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Repo: {keystaticRepo || 'not set'}</p>
+				</section>
+			</section>
+
+			<div class="grid gap-8 py-8 sm:gap-10 sm:py-10 lg:grid-cols-[280px_minmax(0,1fr)]">
+				<aside class="lg:sticky lg:top-8 lg:h-fit">
+					<div class="border-l-2 border-brandBlue pl-5">
+						<p class="text-xs font-bold tracking-[0.22em] text-gray-400 uppercase">Next Action</p>
+						<p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Open the editor, draft, preview, validate interactions, then publish.</p>
+					</div>
+					<div class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:mt-8 lg:grid lg:overflow-visible lg:pb-0">
+						<a href="#workflow" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Workflow</a>
+						<a href="#preview" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Preview</a>
+						<a href="#components" class="shrink-0 text-sm font-bold text-gray-500 transition hover:text-brandBlue">Content Blocks</a>
+						<a href="#health" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Health</a>
+						<a href="#quality" class="shrink-0 text-sm font-bold text-gray-500 transition hover:text-brandBlue">Quality Gate</a>
+					</div>
+				</aside>
+
+				<div class="space-y-12">
+					<section id="workflow">
+						<div class="flex items-end justify-between gap-4 border-b border-gray-200 pb-4 dark:border-gray-800">
+							<div>
+								<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Flow</p>
+								<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Publishing Workflow</h2>
+							</div>
+						</div>
+						<div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+							{workflow.map(([title, detail], index) => (
+								<article class="border border-gray-200 p-4 dark:border-gray-800">
+									<p class="text-xs font-bold tracking-widest text-brandBlue uppercase">0{index + 1}</p>
+									<h3 class="mt-2 text-lg font-bold">{title}</h3>
+									<p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{detail}</p>
+								</article>
+							))}
+						</div>
+					</section>
+
+					<section id="preview" class="grid gap-5 border border-gray-200 p-5 md:grid-cols-[minmax(0,1fr)_220px] md:items-end dark:border-gray-800">
+						<div>
+							<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Preview</p>
+							<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Open a Draft Quickly</h2>
+							<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Paste a slug, title, or garden URL. The tool normalizes it into a secure preview route.</p>
+							<label for="previewSlugInput" class="sr-only">Article slug or title</label>
+							<input id="previewSlugInput" type="text" autocomplete="off" aria-label="Article slug or title" placeholder="e.g. the-outdated-os-trap" class="mt-4 w-full border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
+							<p id="previewStatus" role="status" aria-live="polite" class="mt-3 min-h-5 text-sm text-gray-500 dark:text-gray-300"></p>
+						</div>
+						<button id="openPreviewButton" type="button" aria-describedby="previewStatus" class="w-full bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase md:w-auto">Open Preview</button>
+					</section>
+
+					<section id="components">
+						<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Blocks</p>
+						<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Article Components</h2>
+						<div class="mt-6 grid gap-4 md:grid-cols-2">
+							{contentBlocks.map((block) => (
+								<article class="border border-gray-200 p-5 dark:border-gray-800">
+									<h3 class="text-xl font-bold">{block.label}</h3>
+									<p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{block.detail}</p>
+								</article>
+							))}
+						</div>
+					</section>
+
+					<section id="health" class="border border-gray-200 p-5 dark:border-gray-800">
+						<div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+							<div>
+								<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">System</p>
+								<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">CMS Health</h2>
+								<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Run this before publishing if saves, polls, reviews, or database-backed features feel unreliable.</p>
+							</div>
+							<button id="runCmsHealth" type="button" class="ui-btn ui-btn-neutral w-full md:w-auto">Run Health Check</button>
+						</div>
+						<p id="cmsHealthStatus" role="status" aria-live="polite" class="mt-4 text-sm text-gray-600 dark:text-gray-300"></p>
+						<div id="cmsHealthResults" aria-live="polite" class="mt-4 grid gap-2 md:grid-cols-2"></div>
+					</section>
+
+					<section id="quality" class="grid gap-6 lg:grid-cols-2">
+						<div>
+							<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Gate</p>
+							<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Before Publish</h2>
+							<ul class="mt-5 grid gap-2 text-sm leading-6 text-gray-700 dark:text-gray-300">
+								{qualityChecks.map((item) => <li>• {item}</li>)}
+							</ul>
+						</div>
+						<div>
+							<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Angles</p>
+							<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Topic Bank</h2>
+							<ul class="mt-5 grid gap-2 text-sm leading-6 text-gray-700 dark:text-gray-300">
+								{topicAngles.map((item) => <li>• {item}</li>)}
+							</ul>
+						</div>
+					</section>
+
+					{isProduction && missingKeystaticEnvVars.length > 0 && (
+						<section class="border border-rose-300 bg-rose-50 p-5 dark:border-rose-800 dark:bg-rose-950/20">
+							<h2 class="text-xl font-bold uppercase">Missing Production Variables</h2>
+							<ul class="mt-3 grid gap-1 text-sm text-gray-700 dark:text-gray-300">
+								{missingKeystaticEnvVars.map((item) => <li>• {item}</li>)}
+							</ul>
+						</section>
+					)}
 				</div>
 			</div>
-
-			<h1 class="mt-8 text-4xl font-bold tracking-tight uppercase sm:text-5xl">How To Publish</h1>
-			<p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
-				This page is your workflow. Follow these steps each time you want to publish a new article.
-			</p>
-
-			<section class="mt-12 grid gap-4 md:grid-cols-2">
-				{steps.map((step, index) => (
-					<article class="rounded-2xl border border-gray-200 p-5 dark:border-gray-800">
-						<p class="text-xs font-bold tracking-widest text-brandBlue uppercase">Step {index + 1}</p>
-						<h2 class="mt-2 text-xl font-bold">{step.title}</h2>
-						<p class="mt-2 text-gray-600 dark:text-gray-300">{step.detail}</p>
-					</article>
-				))}
-			</section>
-
-			<section class="mt-12 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
-				<h2 class="text-2xl font-bold uppercase">Advanced Topic Bank</h2>
-				<p class="mt-2 text-gray-600 dark:text-gray-300">
-					Use these as article starting points. Pick one, then write your own argument and examples.
-				</p>
-				<ul class="mt-5 space-y-2 border-l border-brandBlue/30 pl-4">
-					{advancedTopics.map((topic) => (
-						<li class="text-sm text-gray-700 dark:text-gray-200">• {topic}</li>
-					))}
-				</ul>
-			</section>
-
-			<section class="mt-12 rounded-2xl border-2 border-brandBlue p-6">
-				<h2 class="text-xl font-bold uppercase">Quick Posting Checklist</h2>
-				<p class="mt-3 text-sm text-gray-600 dark:text-gray-300">Before you close the editor, confirm:</p>
-				<ul class="mt-4 space-y-2 text-sm">
-					<li>• Title is clear and specific</li>
-					<li>• Excerpt explains the argument in one sentence</li>
-					<li>• Tags are relevant and searchable</li>
-					<li>• Body has heading structure and examples</li>
-					<li>• For drafts/scheduled posts, preview with /garden/your-slug?preview=1 while logged in</li>
-					<li>• For public visibility, ensure status is Published (or scheduled time has passed)</li>
-					<li>• Live site refreshes after a new deployment from your Keystatic commit</li>
-				</ul>
-			</section>
-
-			<section class="mt-8 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
-				<h2 class="text-xl font-bold uppercase">Instant Preview Link</h2>
-				<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-					Paste your article slug (or title) and open secure preview in one click.
-				</p>
-				<div class="mt-4 flex flex-col gap-3 sm:flex-row">
-					<label for="previewSlugInput" class="sr-only">Article slug or title</label>
-					<input
-						id="previewSlugInput"
-						type="text"
-						autocomplete="off"
-						aria-label="Article slug or title"
-						placeholder="e.g. freedom-without-limits"
-						class="w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm dark:border-gray-700"
-					/>
-					<button id="openPreviewButton" type="button" aria-describedby="previewStatus" class="rounded-xl bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase">
-						Open Preview
-					</button>
-				</div>
-				<p id="previewStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
-			</section>
-
-			<section class="mt-8 rounded-2xl border p-6 dark:border-gray-800" class:list={{ 'border-emerald-300 bg-emerald-50/60 dark:border-emerald-800 dark:bg-emerald-950/20': keystaticGithubWriteReady, 'border-rose-300 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/20': !keystaticGithubWriteReady }}>
-				<h2 class="text-xl font-bold uppercase">Keystatic GitHub Commit Health</h2>
-				<p class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-					Status: <strong>{keystaticGithubWriteReady ? 'Ready for GitHub commits' : 'Not ready for GitHub commits'}</strong>
-				</p>
-				<p class="mt-2 text-xs text-gray-600 dark:text-gray-400">
-					Detected repo: {keystaticRepo || 'not set'}
-				</p>
-				{isProduction && missingKeystaticEnvVars.length > 0 && (
-					<div class="mt-4">
-						<p class="text-sm font-bold">Missing/invalid production variables:</p>
-						<ul class="mt-2 space-y-1 text-sm text-gray-700 dark:text-gray-300">
-							{missingKeystaticEnvVars.map((item) => (
-								<li>• {item}</li>
-							))}
-						</ul>
-					</div>
-				)}
-				<p class="mt-4 text-xs text-gray-600 dark:text-gray-400">
-					If commits still fail after env setup, confirm your GitHub OAuth app callback URL is set to
-					<strong> /api/keystatic/github/oauth/callback</strong> on your site domain and that the OAuth app has repo write access.
-				</p>
-				<div class="mt-5 flex flex-wrap items-center gap-3">
-					<button id="runCmsHealth" type="button" class="ui-btn ui-btn-neutral">Run Live CMS Health Check</button>
-					<p id="cmsHealthStatus" role="status" aria-live="polite" class="text-sm text-gray-600 dark:text-gray-300"></p>
-				</div>
-				<div id="cmsHealthResults" aria-live="polite" class="mt-4 space-y-2"></div>
-			</section>
-
-			<section class="mt-8 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
-				<h2 class="text-xl font-bold uppercase">Backend Launch Checklist</h2>
-				<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-					Use this before going live so CMS and engagement features stay reliable.
-				</p>
-				<ul class="mt-4 space-y-2 text-sm text-gray-700 dark:text-gray-200">
-					<li>• Set DATABASE_URL and ADMIN_PAGE_PASSWORD in production.</li>
-					<li>• Set KEYSTATIC_GITHUB_REPO, KEYSTATIC_SECRET, KEYSTATIC_GITHUB_CLIENT_ID, and KEYSTATIC_GITHUB_CLIENT_SECRET.</li>
-					<li>• Configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, and SMTP_FROM_EMAIL for newsletter delivery.</li>
-					<li>• Run database migration before launch: npm run db:migrate.</li>
-					<li>• Validate /admin/insights, /qa, and one live article interaction path after deploy.</li>
-				</ul>
-				<div class="mt-5 flex flex-wrap gap-3">
-					<a href="/admin" class="ui-btn ui-btn-neutral">Open Admin Hub</a>
-					<a href="/qa" class="ui-btn ui-btn-neutral">Open QA Console</a>
-				</div>
-			</section>
 		</main>
+
 		<script is:inline>
 			const themeToggle = document.getElementById('themeToggle');
 			themeToggle?.addEventListener('click', () => {
@@ -225,31 +217,31 @@ const advancedTopics = [
 			const cmsHealthStatus = document.getElementById('cmsHealthStatus');
 			const cmsHealthResults = document.getElementById('cmsHealthResults');
 
+			const escapeHtml = (value) =>
+				String(value || '')
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#39;');
+
 			const normalizeToSlug = (value) => {
 				const trimmed = String(value || '').trim();
 				if (!trimmed) return '';
-
 				if (trimmed.includes('/garden/')) {
 					const match = trimmed.match(/\/garden\/([^?#/]+)/i);
 					if (match?.[1]) return match[1].toLowerCase();
 				}
-
-				return trimmed
-					.toLowerCase()
-					.replace(/[^a-z0-9\s-]/g, '')
-					.replace(/\s+/g, '-')
-					.replace(/-+/g, '-')
-					.replace(/^-|-$/g, '');
+				return trimmed.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
 			};
 
 			const openPreview = () => {
 				const rawValue = slugInput instanceof HTMLInputElement ? slugInput.value : '';
 				const slug = normalizeToSlug(rawValue);
 				if (!slug) {
-					if (previewStatus) previewStatus.textContent = 'Enter a valid slug or title first.';
+					if (previewStatus) previewStatus.textContent = 'Enter a valid slug, title, or article URL first.';
 					return;
 				}
-
 				const previewUrl = `/garden/${slug}?preview=1`;
 				if (previewStatus) previewStatus.textContent = `Opening ${previewUrl}`;
 				window.location.href = previewUrl;
@@ -270,20 +262,14 @@ const advancedTopics = [
 					cmsHealthResults.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No health checks were returned.</p>';
 					return;
 				}
-
 				cmsHealthResults.innerHTML = checks
 					.map((check) => {
 						const ok = Boolean(check?.ok);
-						const label = String(check?.label || 'Check');
-						const detail = String(check?.detail || '');
-						const itemClass = ok
-							? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30'
-							: 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/30';
-						const badgeClass = ok
-							? 'text-emerald-700 dark:text-emerald-300'
-							: 'text-rose-700 dark:text-rose-300';
-
-						return `<article class="rounded-xl border px-3 py-2 ${itemClass}"><p class="text-sm font-bold ${badgeClass}">${ok ? 'PASS' : 'FAIL'} · ${label}</p><p class="mt-1 text-xs text-gray-700 dark:text-gray-300">${detail}</p></article>`;
+						const label = escapeHtml(check?.label || 'Check');
+						const detail = escapeHtml(check?.detail || '');
+						const itemClass = ok ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30' : 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/30';
+						const badgeClass = ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300';
+						return `<article class="border p-3 ${itemClass}"><p class="text-sm font-bold ${badgeClass}">${ok ? 'PASS' : 'FAIL'} · ${label}</p><p class="mt-1 text-xs text-gray-700 dark:text-gray-300">${detail}</p></article>`;
 					})
 					.join('');
 			};
@@ -291,25 +277,15 @@ const advancedTopics = [
 			const runCmsHealthCheck = async () => {
 				if (cmsHealthStatus) cmsHealthStatus.textContent = 'Checking CMS health...';
 				try {
-					const response = await fetch('/api/admin/cms-health', {
-						method: 'GET',
-						headers: { accept: 'application/json' },
-					});
+					const response = await fetch('/api/admin/cms-health', { method: 'GET', headers: { accept: 'application/json' } });
 					const payload = await response.json();
-					if (!response.ok) {
-						throw new Error(payload?.error || 'Unable to run CMS health check.');
-					}
-
+					if (!response.ok) throw new Error(payload?.error || 'Unable to run CMS health check.');
 					renderHealthChecks(payload);
 					if (cmsHealthStatus) {
-						cmsHealthStatus.textContent = payload?.isReady
-							? 'CMS is ready for GitHub commits.'
-							: 'CMS is not fully ready. Resolve the failing checks below.';
+						cmsHealthStatus.textContent = payload?.isReady ? 'CMS is ready for publishing.' : 'CMS needs attention. Resolve the failing checks below.';
 					}
 				} catch (error) {
-					if (cmsHealthStatus) {
-						cmsHealthStatus.textContent = error instanceof Error ? error.message : 'CMS health check failed.';
-					}
+					if (cmsHealthStatus) cmsHealthStatus.textContent = error instanceof Error ? error.message : 'CMS health check failed.';
 				}
 			};
 
