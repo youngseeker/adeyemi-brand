@@ -65,6 +65,7 @@ const advancedTopics = [
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>Publishing Guide | Adeyemi Adeniji</title>
 		<meta name="description" content="Step-by-step guide for publishing articles on your site with advanced CS-focused writing topics." />
 		<link
@@ -90,16 +91,16 @@ const advancedTopics = [
 		</script>
 	</head>
 	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
-		<main class="mx-auto max-w-5xl px-6 py-16">
+		<main class="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
 			<div class="flex items-center justify-between gap-4">
 				<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
-				<div class="flex items-center gap-2">
-					<a href="/keystatic" class="rounded-full bg-brandBlue px-5 py-2 text-xs font-bold tracking-widest text-white uppercase">Open Keystatic</a>
+				<div class="flex flex-wrap items-center justify-end gap-2">
+					<a href="/keystatic" data-astro-prefetch="false" class="rounded-full bg-brandBlue px-5 py-2 text-xs font-bold tracking-widest text-white uppercase">Open Keystatic</a>
 					<button id="themeToggle" type="button" aria-label="Toggle theme" class="rounded-full border border-gray-300 px-4 py-2 text-xs font-bold tracking-widest uppercase dark:border-gray-700">Theme</button>
 				</div>
 			</div>
 
-			<h1 class="mt-8 text-5xl font-bold tracking-tight uppercase">How To Publish</h1>
+			<h1 class="mt-8 text-4xl font-bold tracking-tight uppercase sm:text-5xl">How To Publish</h1>
 			<p class="mt-4 text-lg text-gray-600 dark:text-gray-300">
 				This page is your workflow. Follow these steps each time you want to publish a new article.
 			</p>
@@ -146,17 +147,20 @@ const advancedTopics = [
 					Paste your article slug (or title) and open secure preview in one click.
 				</p>
 				<div class="mt-4 flex flex-col gap-3 sm:flex-row">
+					<label for="previewSlugInput" class="sr-only">Article slug or title</label>
 					<input
 						id="previewSlugInput"
 						type="text"
+						autocomplete="off"
+						aria-label="Article slug or title"
 						placeholder="e.g. freedom-without-limits"
 						class="w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm dark:border-gray-700"
 					/>
-					<button id="openPreviewButton" type="button" class="rounded-xl bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase">
+					<button id="openPreviewButton" type="button" aria-describedby="previewStatus" class="rounded-xl bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase">
 						Open Preview
 					</button>
 				</div>
-				<p id="previewStatus" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
+				<p id="previewStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
 			</section>
 
 			<section class="mt-8 rounded-2xl border p-6 dark:border-gray-800" class:list={{ 'border-emerald-300 bg-emerald-50/60 dark:border-emerald-800 dark:bg-emerald-950/20': keystaticGithubWriteReady, 'border-rose-300 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/20': !keystaticGithubWriteReady }}>
@@ -183,9 +187,27 @@ const advancedTopics = [
 				</p>
 				<div class="mt-5 flex flex-wrap items-center gap-3">
 					<button id="runCmsHealth" type="button" class="ui-btn ui-btn-neutral">Run Live CMS Health Check</button>
-					<p id="cmsHealthStatus" class="text-sm text-gray-600 dark:text-gray-300"></p>
+					<p id="cmsHealthStatus" role="status" aria-live="polite" class="text-sm text-gray-600 dark:text-gray-300"></p>
 				</div>
-				<div id="cmsHealthResults" class="mt-4 space-y-2"></div>
+				<div id="cmsHealthResults" aria-live="polite" class="mt-4 space-y-2"></div>
+			</section>
+
+			<section class="mt-8 rounded-2xl border border-gray-200 p-6 dark:border-gray-800">
+				<h2 class="text-xl font-bold uppercase">Backend Launch Checklist</h2>
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+					Use this before going live so CMS and engagement features stay reliable.
+				</p>
+				<ul class="mt-4 space-y-2 text-sm text-gray-700 dark:text-gray-200">
+					<li>• Set DATABASE_URL and ADMIN_PAGE_PASSWORD in production.</li>
+					<li>• Set KEYSTATIC_GITHUB_REPO, KEYSTATIC_SECRET, KEYSTATIC_GITHUB_CLIENT_ID, and KEYSTATIC_GITHUB_CLIENT_SECRET.</li>
+					<li>• Configure SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, and SMTP_FROM_EMAIL for newsletter delivery.</li>
+					<li>• Run database migration before launch: npm run db:migrate.</li>
+					<li>• Validate /admin/insights, /qa, and one live article interaction path after deploy.</li>
+				</ul>
+				<div class="mt-5 flex flex-wrap gap-3">
+					<a href="/admin" class="ui-btn ui-btn-neutral">Open Admin Hub</a>
+					<a href="/qa" class="ui-btn ui-btn-neutral">Open QA Console</a>
+				</div>
 			</section>
 		</main>
 		<script is:inline>

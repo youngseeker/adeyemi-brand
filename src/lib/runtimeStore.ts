@@ -9,12 +9,14 @@ export type FeedbackItem = {
 	comment: string;
 	status: FeedbackStatus;
 	createdAt: string;
+	ipHash?: string;
 };
 
 type RuntimeStore = {
 	feedback: FeedbackItem[];
 	newsletterSubscribers: Array<{ email: string; createdAt: string }>;
 	pollVotes: Array<{ slug: string; pollKey: string; optionIndex: number; ipHash: string; createdAt: string }>;
+	articleReactions: Array<{ slug: string; ipHash: string; createdAt: string }>;
 	views: Record<string, number>;
 };
 
@@ -27,6 +29,7 @@ if (!globalRuntime[runtimeStoreKey]) {
 		feedback: [],
 		newsletterSubscribers: [],
 		pollVotes: [],
+		articleReactions: [],
 		views: {},
 	};
 }

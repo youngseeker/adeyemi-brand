@@ -3,6 +3,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { createHash } from 'node:crypto';
 import { db } from '../../db';
 import { articleReactions } from '../../db/schema';
+import { runtimeStore } from '../../lib/runtimeStore';
 
 const getIpHash = (request: Request): string => {
 	const forwarded = request.headers.get('x-forwarded-for') || '';
@@ -48,6 +49,31 @@ const getReactionState = async (slug: string, ipHash: string) => {
 	}
 };
 
+const getRuntimeReactionState = (slug: string, ipHash: string) => {
+	const rows = runtimeStore.articleReactions.filter((item) => item.slug === slug);
+	const hasLiked = rows.some((item) => item.ipHash === ipHash);
+	return {
+		likes: rows.length,
+		hasLiked,
+	};
+};
+
+const saveRuntimeReaction = (slug: string, ipHash: string) => {
+	const existing = runtimeStore.articleReactions.find(
+		(item) => item.slug === slug && item.ipHash === ipHash,
+	);
+
+	if (!existing) {
+		runtimeStore.articleReactions.push({
+			slug,
+			ipHash,
+			createdAt: new Date().toISOString(),
+		});
+	}
+
+	return getRuntimeReactionState(slug, ipHash);
+};
+
 export const GET: APIRoute = async ({ request, url }) => {
 	const slug = String(url.searchParams.get('slug') || '').trim();
 	if (!slug) {
@@ -61,16 +87,18 @@ export const GET: APIRoute = async ({ request, url }) => {
 			await ensureReactionsTable();
 			state = await getReactionState(slug, ipHash);
 		} catch {
+			const runtimeState = getRuntimeReactionState(slug, ipHash);
 			return new Response(
-				JSON.stringify({ slug, likes: 0, hasLiked: false, reactionsEnabled: false }),
+				JSON.stringify({ slug, likes: runtimeState.likes, hasLiked: runtimeState.hasLiked, reactionsEnabled: true, storageMode: 'runtime' }),
 				{ status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } },
 			);
 		}
 	}
 
 	if (!state) {
+		const runtimeState = getRuntimeReactionState(slug, ipHash);
 		return new Response(
-			JSON.stringify({ slug, likes: 0, hasLiked: false, reactionsEnabled: false }),
+			JSON.stringify({ slug, likes: runtimeState.likes, hasLiked: runtimeState.hasLiked, reactionsEnabled: true, storageMode: 'runtime' }),
 			{ status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } },
 		);
 	}
@@ -123,9 +151,10 @@ export const POST: APIRoute = async ({ request }) => {
 		}
 		likes = state.likes;
 	} catch {
+		const runtimeState = saveRuntimeReaction(slug, ipHash);
 		return new Response(
-			JSON.stringify({ ok: false, slug, likes: 0, hasLiked: false, reactionsEnabled: false }),
-			{ status: 503, headers: { 'content-type': 'application/json; charset=utf-8' } },
+			JSON.stringify({ ok: true, slug, likes: runtimeState.likes, hasLiked: runtimeState.hasLiked, reactionsEnabled: true, storageMode: 'runtime' }),
+			{ status: 200, headers: { 'content-type': 'application/json; charset=utf-8' } },
 		);
 	}
 

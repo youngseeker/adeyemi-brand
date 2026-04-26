@@ -2,8 +2,9 @@ import type { APIRoute } from 'astro';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '../../db';
 import { reviews } from '../../db/schema';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { isAdminAuthorized } from '../../lib/adminAuth';
+import { runtimeStore } from '../../lib/runtimeStore';
 
 type FeedbackStatus = 'pending' | 'approved' | 'rejected';
 
@@ -81,7 +82,17 @@ export const GET: APIRoute = async ({ request, url }) => {
 			};
 		});
 
-		return new Response(JSON.stringify({ items }), {
+		const runtimeItems = runtimeStore.feedback.filter((item) => {
+			if (item.status !== status) return false;
+			if (!slug) return true;
+			return item.slug === slug;
+		});
+
+		const mergedItems = [...items, ...runtimeItems].sort(
+			(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+		);
+
+		return new Response(JSON.stringify({ items: mergedItems }), {
 			status: 200,
 			headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
 		});
@@ -127,6 +138,15 @@ export const POST: APIRoute = async ({ request }) => {
 		} catch {
 			// If anti-spam check fails, allow the submission to proceed
 			tooRecent = false;
+		}
+
+		if (!tooRecent) {
+			const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+			const runtimeRecentCount = runtimeStore.feedback.filter((entry) => {
+				if (entry.ipHash !== ipHash) return false;
+				return new Date(entry.createdAt).getTime() > tenMinutesAgo;
+			}).length;
+			tooRecent = runtimeRecentCount >= 3;
 		}
 
 		if (tooRecent) {
@@ -176,8 +196,21 @@ export const POST: APIRoute = async ({ request }) => {
 				createdAt: created.createdAt ? new Date(created.createdAt).toISOString() : new Date().toISOString(),
 			};
 		} catch {
-			// If database insert fails, return a pending response (review will be lost but request succeeds)
-			// This prevents page crashes when reviews table is unavailable
+			item = {
+				id: `runtime-${randomUUID()}`,
+				slug,
+				title,
+				name: payload.name,
+				rating: payload.rating,
+				comment: payload.comment,
+				status: 'pending',
+				createdAt: new Date().toISOString(),
+			};
+
+			runtimeStore.feedback.unshift({
+				...item,
+				ipHash,
+			});
 		}
 
 		return new Response(JSON.stringify({ ok: true, item }), {
@@ -203,6 +236,29 @@ export const PATCH: APIRoute = async ({ request }) => {
 		}
 
 		const nextStatus = action === 'approve' ? 'approved' : 'rejected';
+
+		if (id.startsWith('runtime-')) {
+			const runtimeIndex = runtimeStore.feedback.findIndex((entry) => entry.id === id);
+			if (runtimeIndex === -1) {
+				return new Response(JSON.stringify({ error: 'Feedback item not found' }), { status: 404 });
+			}
+
+			runtimeStore.feedback[runtimeIndex] = {
+				...runtimeStore.feedback[runtimeIndex],
+				status: nextStatus,
+			};
+
+			return new Response(JSON.stringify({ ok: true, item: runtimeStore.feedback[runtimeIndex] }), {
+				status: 200,
+				headers: { 'content-type': 'application/json; charset=utf-8' },
+			});
+		}
+
+		const numericId = Number(id);
+		if (!Number.isFinite(numericId)) {
+			return new Response(JSON.stringify({ error: 'Invalid feedback id' }), { status: 400 });
+		}
+
 		let updatedRows: Array<{
 			id: number;
 			slug: string;
@@ -216,7 +272,7 @@ export const PATCH: APIRoute = async ({ request }) => {
 			updatedRows = await db
 				.update(reviews)
 				.set({ status: nextStatus })
-				.where(eq(reviews.id, Number(id)))
+				.where(eq(reviews.id, numericId))
 				.returning();
 		} catch {
 			// If database update fails, return a 500 error

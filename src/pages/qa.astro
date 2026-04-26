@@ -41,6 +41,7 @@ const buildLabel = import.meta.env.PUBLIC_BUILD_LABEL || 'not provided';
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>QA Checklist | Adeyemi Systems Atlas</title>
 		<meta name="description" content="Pre-deploy visual and interaction checklist for Adeyemi Systems Atlas." />
 		<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&display=swap" rel="stylesheet" />
@@ -108,6 +109,33 @@ const buildLabel = import.meta.env.PUBLIC_BUILD_LABEL || 'not provided';
 
 			<section class="mt-6 ui-card p-6">
 				<div class="flex flex-wrap items-center justify-between gap-3">
+					<h2 class="text-lg font-bold uppercase">Performance Smoke Test</h2>
+					<button id="refreshPerf" type="button" class="ui-btn ui-btn-neutral">Refresh Metrics</button>
+				</div>
+				<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Quick browser-side metrics to catch obvious regressions before release.</p>
+				<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+					<div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+						<p class="text-[10px] font-bold tracking-widest text-gray-500 uppercase">DOMContentLoaded</p>
+						<p id="perfDomContentLoaded" class="mt-2 text-sm font-semibold">--</p>
+					</div>
+					<div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+						<p class="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Load Event</p>
+						<p id="perfLoadEvent" class="mt-2 text-sm font-semibold">--</p>
+					</div>
+					<div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+						<p class="text-[10px] font-bold tracking-widest text-gray-500 uppercase">JS Resources</p>
+						<p id="perfJsCount" class="mt-2 text-sm font-semibold">--</p>
+					</div>
+					<div class="rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+						<p class="text-[10px] font-bold tracking-widest text-gray-500 uppercase">Largest JS File</p>
+						<p id="perfLargestJs" class="mt-2 text-sm font-semibold">--</p>
+					</div>
+				</div>
+				<p id="perfStatus" class="mt-4 text-sm text-gray-600 dark:text-gray-300">Collecting metrics...</p>
+			</section>
+
+			<section class="mt-6 ui-card p-6">
+				<div class="flex flex-wrap items-center justify-between gap-3">
 					<h2 class="text-lg font-bold uppercase">Verification Records</h2>
 					<button id="stampVerification" type="button" class="ui-btn ui-btn-primary">Stamp Verification</button>
 				</div>
@@ -126,6 +154,12 @@ const buildLabel = import.meta.env.PUBLIC_BUILD_LABEL || 'not provided';
 			const themeToggle = document.getElementById('themeToggle');
 			const stampButton = document.getElementById('stampVerification');
 			const recordsContainer = document.getElementById('verificationRecords');
+			const refreshPerf = document.getElementById('refreshPerf');
+			const perfDomContentLoaded = document.getElementById('perfDomContentLoaded');
+			const perfLoadEvent = document.getElementById('perfLoadEvent');
+			const perfJsCount = document.getElementById('perfJsCount');
+			const perfLargestJs = document.getElementById('perfLargestJs');
+			const perfStatus = document.getElementById('perfStatus');
 			const deployMeta = {
 				platform: deployPlatform,
 				branch: deployRef,
@@ -162,6 +196,51 @@ const buildLabel = import.meta.env.PUBLIC_BUILD_LABEL || 'not provided';
 				context.textContent = `Viewport ${window.innerWidth}x${window.innerHeight} | UA: ${navigator.userAgent}`;
 			};
 
+			const formatMs = (value) => `${Math.max(0, Math.round(value))} ms`;
+
+			const collectPerformanceMetrics = () => {
+				const navEntries = performance.getEntriesByType('navigation');
+				const nav = navEntries[0];
+				const jsResources = performance
+					.getEntriesByType('resource')
+					.filter((entry) => entry.initiatorType === 'script' || entry.name.includes('/_astro/'));
+
+				if (nav) {
+					if (perfDomContentLoaded) perfDomContentLoaded.textContent = formatMs(nav.domContentLoadedEventEnd);
+					if (perfLoadEvent) perfLoadEvent.textContent = formatMs(nav.loadEventEnd);
+				}
+
+				if (perfJsCount) perfJsCount.textContent = String(jsResources.length);
+
+				if (perfLargestJs) {
+					if (!jsResources.length) {
+						perfLargestJs.textContent = 'No scripts detected';
+					} else {
+						const largest = jsResources.reduce((current, entry) => {
+							const currentSize = Number(current.decodedBodySize || current.transferSize || 0);
+							const nextSize = Number(entry.decodedBodySize || entry.transferSize || 0);
+							return nextSize > currentSize ? entry : current;
+						});
+
+						const sizeKb = Math.round(Number(largest.decodedBodySize || largest.transferSize || 0) / 1024);
+						const fileName = largest.name.split('/').pop() || 'unknown';
+						perfLargestJs.textContent = `${fileName} (${sizeKb} KB)`;
+					}
+				}
+
+				if (perfStatus) {
+					const slowDom = nav && nav.domContentLoadedEventEnd > 3000;
+					const slowLoad = nav && nav.loadEventEnd > 5000;
+					if (slowDom || slowLoad) {
+						perfStatus.textContent = 'Potential regression detected: investigate slow navigation timings.';
+						perfStatus.className = 'mt-4 text-sm text-rose-600 dark:text-rose-300';
+					} else {
+						perfStatus.textContent = 'Performance smoke test looks healthy for this page load.';
+						perfStatus.className = 'mt-4 text-sm text-emerald-700 dark:text-emerald-300';
+					}
+				}
+			};
+
 			const readRecords = () => {
 				try {
 					const raw = localStorage.getItem(RECORDS_KEY);
@@ -196,6 +275,7 @@ const buildLabel = import.meta.env.PUBLIC_BUILD_LABEL || 'not provided';
 			updateProgress();
 			setContext();
 			renderRecords();
+			collectPerformanceMetrics();
 
 			checkboxes.forEach((checkbox) => {
 				checkbox.addEventListener('change', () => {
@@ -230,6 +310,8 @@ const buildLabel = import.meta.env.PUBLIC_BUILD_LABEL || 'not provided';
 				root.classList.toggle('dark');
 				localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
 			});
+
+			refreshPerf?.addEventListener('click', collectPerformanceMetrics);
 
 			window.addEventListener('resize', setContext);
 		</script>

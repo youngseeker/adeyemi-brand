@@ -1,46 +1,66 @@
-# Astro Starter Kit: Basics
+# Adeyemi Brand Platform
 
-```sh
-npm create astro@latest -- --template basics
+Personal brand platform built with Astro, Keystatic CMS, and server APIs for analytics, feedback moderation, newsletter, polls, and reactions.
+
+## Stack
+
+- Astro 5 (server output)
+- Keystatic CMS
+- Tailwind CSS 4
+- Drizzle ORM + PostgreSQL (Neon-friendly)
+- Node mailer integration for newsletter flows
+
+## Core Routes
+
+- `/` Home
+- `/work` Work and experience
+- `/about` About profile
+- `/garden` Article archive
+- `/garden/[slug]` Article detail, polls, reactions, feedback
+- `/publish` Publishing and CMS health check
+- `/admin` Admin hub
+- `/admin/insights` Moderation + diagnostics + analytics
+- `/qa` Pre-deploy manual QA checklist
+
+## Local Development
+
+```bash
+npm install
+npm run dev
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Build check:
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
+```bash
+npm run build
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## Database Commands
 
-## 🧞 Commands
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:push
+```
 
-All commands are run from the root of the project, from a terminal:
+## Production Setup
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+Use [BACKEND_GIT_SETUP.md](BACKEND_GIT_SETUP.md) for:
 
-## 👀 Want to learn more?
+- Required environment variables
+- CMS GitHub write setup
+- SMTP setup
+- Database migration steps
+- Launch verification checklist
+- Recommended Git workflow for weekly delivery
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+## Reliability Model
+
+When DB is not reachable, several APIs can degrade to runtime storage to keep UX usable:
+
+- Polls
+- Newsletter subscriptions
+- Reviews (feedback)
+- Reactions
+
+Runtime fallback is not durable across restarts. Production should always provide a healthy `DATABASE_URL`.
