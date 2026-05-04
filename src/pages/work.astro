@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import Footer from '../components/Footer.astro';
+import ProjectPreview from '../components/ProjectPreview.astro';
 
 interface ExperienceItem {
 	role: string;
@@ -110,6 +112,7 @@ const projects = [
 			'Astro + Keystatic content system with article routing, tag metadata, and CMS-based publishing workflow.',
 		stack: ['Astro', 'Keystatic', 'TypeScript', 'Tailwind'],
 		outcome: 'Created a writable digital garden with structured authoring and faster publishing cycles.',
+		liveUrl: 'https://my-student-os.vercel.app/',
 	},
 	{
 		title: 'Feedback Moderation + Engagement Analytics Engine',
@@ -117,6 +120,7 @@ const projects = [
 			'Built moderation APIs, anti-spam controls, and trend analytics with persistent data handling.',
 		stack: ['Node', 'Drizzle ORM', 'Neon Postgres', 'API Design'],
 		outcome: 'Enabled safe community feedback and measurable content performance insights.',
+		liveUrl: 'https://athalia-website.vercel.app/',
 	},
 	{
 		title: 'Command-Driven UX Layer',
@@ -124,6 +128,7 @@ const projects = [
 			'Implemented command palette interaction model and system status instrumentation to improve navigation and perception of reliability.',
 		stack: ['JavaScript', 'UX Architecture', 'Event Design'],
 		outcome: 'Reduced navigation friction and improved user orientation across key site actions.',
+		liveUrl: 'https://rilayer.com/',
 	},
 ];
 
@@ -165,12 +170,14 @@ const writingCapabilities = [
 		</script>
 	</head>
 	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
-		<nav class="mx-auto flex max-w-[1400px] items-baseline justify-between border-b border-gray-100 p-8 dark:border-gray-900">
+		<nav class="mx-auto flex max-w-350 items-baseline justify-between border-b border-gray-100 p-8 dark:border-gray-900">
 			<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">A.ADENIJI</a>
 			<div class="flex items-center gap-6">
 				<div class="hidden gap-8 text-[10px] font-bold tracking-[0.3em] uppercase md:flex">
 					<a href="/" class="transition hover:text-brandBlue">Home</a>
+					<a href="/work" class="transition hover:text-brandBlue">Work</a>
 					<a href="/garden" class="transition hover:text-brandBlue">Articles</a>
+					<a href="/about" class="transition hover:text-brandBlue">About</a>
 				</div>
 				<button id="mobileMenuToggle" type="button" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase md:hidden dark:border-gray-700">Menu</button>
 				<button
@@ -184,7 +191,7 @@ const writingCapabilities = [
 				</button>
 			</div>
 		</nav>
-		<div id="mobileMenu" class="mx-auto hidden max-w-[1400px] gap-2 border-b border-gray-100 px-8 pb-4 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-900">
+		<div id="mobileMenu" class="mx-auto hidden max-w-350 gap-2 border-b border-gray-100 px-8 pb-4 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-900">
 			<a href="/" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Home</a>
 			<a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
 		</div>
@@ -225,7 +232,7 @@ const writingCapabilities = [
 						<div class="space-y-0 border-l border-gray-200 dark:border-gray-800">
 							{experiences.map((exp) => (
 								<article class="relative pb-10 pl-7">
-									<span class="absolute -left-[5px] top-1 h-2.5 w-2.5 bg-brandBlue"></span>
+												<span class="absolute -left-1.25 top-1 h-2.5 w-2.5 bg-brandBlue"></span>
 									<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 										<div>
 											<h3 class="text-2xl font-bold leading-tight">{exp.role}</h3>
@@ -266,8 +273,38 @@ const writingCapabilities = [
 											<span class="border border-gray-300 px-2 py-1 text-xs text-gray-600 dark:border-gray-700 dark:text-gray-400">{item}</span>
 										))}
 									</div>
+									{project.liveUrl && (
+										<div class="mt-4">
+											<ProjectPreview url={project.liveUrl} />
+										</div>
+									)}
 								</article>
 							))}
+						</div>
+					</section>
+
+					<section id="tech-stack">
+						<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Tech Stack</p>
+						<h2 class="mt-2 text-3xl font-bold tracking-tight uppercase">Tools I Use</h2>
+						<div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+							<div class="space-y-2">
+								<p class="font-semibold">Primary</p>
+								<ul class="mt-2 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+									<li>Node.js (current)</li>
+									<li>TypeScript</li>
+									<li>Astro</li>
+									<li>Tailwind CSS</li>
+								</ul>
+							</div>
+							<div class="space-y-2">
+								<p class="font-semibold">Also familiar with</p>
+								<ul class="mt-2 space-y-1 text-sm text-gray-700 dark:text-gray-300">
+									<li>Next.js</li>
+									<li>Postgres / Neon</li>
+									<li>WordPress (migration & integration)</li>
+									<li>Drizzle ORM</li>
+								</ul>
+							</div>
 						</div>
 					</section>
 
@@ -337,11 +374,7 @@ const writingCapabilities = [
 			</section>
 		</main>
 
-		<footer class="mt-20 border-t border-gray-100 px-6 py-10 text-center dark:border-gray-900">
-			<p class="text-xs text-gray-500 dark:text-gray-400">
-				© 2026 Adeyemi Adeniji. Based in Nigeria. Available for thoughtful collaboration.
-			</p>
-		</footer>
+		<Footer />
 
 		<div class="mobile-contact-chip md:hidden">
 			<a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-primary">Email</a>

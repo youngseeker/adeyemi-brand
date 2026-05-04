@@ -2,6 +2,8 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { getCollection } from 'astro:content';
 import { renderArticleContent } from '../../lib/articleContent';
+import Footer from '../../components/Footer.astro';
+import PollHandler from '../../components/PollHandler.astro';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
 import { getIpHash, getPollResults } from '../../lib/polls';
@@ -68,7 +70,7 @@ if (!canViewPost) {
 }
 
 const title = derivePostTitle(post?.data.title, slug);
-const articleBody = post ? renderArticleContent(post.body) : null;
+const articleBody = post && post.body ? renderArticleContent(post.body) : null;
 const articleHeadings = articleBody?.headings || [];
 const pollDefinitions = articleBody?.polls || [];
 const footnotes = articleBody?.footnotes || [];
@@ -158,7 +160,7 @@ const relatedPosts = relatedCandidates
 		<div class="fixed top-0 left-0 z-50 h-1 w-full bg-transparent">
 			<div id="readingProgressBar" class="h-full w-0 bg-brandBlue transition-[width] duration-150"></div>
 		</div>
-		<main class="mx-auto max-w-[1180px] px-4 py-7 sm:px-8 sm:py-12">
+		<main class="mx-auto max-w-295 px-4 py-7 sm:px-8 sm:py-12">
 			{isUnpublishedPreview && (
 				<div class="mb-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
 					Preview mode: this post is not publicly visible yet.
@@ -166,8 +168,13 @@ const relatedPosts = relatedCandidates
 			)}
 			<div class="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,740px)_300px] lg:justify-center lg:gap-16">
 				<div>
-			<div class="flex items-center justify-between gap-4 border-b border-gray-200 pb-5 dark:border-gray-800">
-				<a href="/garden" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Articles</a>
+			<nav class="mx-auto flex max-w-295 items-center justify-between border-b border-gray-200 pb-5 dark:border-gray-800">
+				<div class="flex items-center gap-4 text-[10px] font-bold tracking-[0.18em] uppercase">
+					<a href="/" class="transition hover:text-brandBlue">Home</a>
+					<a href="/work" class="transition hover:text-brandBlue">Work</a>
+					<a href="/garden" class="transition hover:text-brandBlue">Articles</a>
+					<a href="/about" class="transition hover:text-brandBlue">About</a>
+				</div>
 				<button
 					id="themeToggle"
 					type="button"
@@ -177,7 +184,7 @@ const relatedPosts = relatedCandidates
 					<span class="text-xs font-bold uppercase dark:hidden">L</span>
 					<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
 				</button>
-			</div>
+			</nav>
 			<header class="pt-8 sm:pt-10">
 				<h1 class="max-w-[13ch] text-3xl font-bold leading-[1.08] tracking-tight sm:max-w-[11ch] sm:text-5xl md:text-6xl">{title}</h1>
 				<div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-gray-200 py-3 text-[11px] font-bold tracking-[0.18em] text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
@@ -344,17 +351,19 @@ const relatedPosts = relatedCandidates
 						if (bar) bar.style.width = `${Math.max(0, Math.min(100, percent * 100))}%`;
 						row.classList.toggle('ring-1', selectedIndex === index);
 						row.classList.toggle('ring-brandBlue', selectedIndex === index);
+						row.dataset.pollSelected = selectedIndex === index ? 'true' : 'false';
 					});
 
 					buttons.forEach((button) => {
 						button.disabled = false;
+						button.dataset.pollSaving = 'false';
 						const isSelected = selectedIndex !== null && Number(button.dataset.pollOptionIndex) === selectedIndex;
 						button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
 						button.classList.toggle('border-brandBlue', isSelected);
 						button.classList.toggle('bg-brandBlue/10', isSelected);
 						button.classList.toggle('text-brandBlue', isSelected);
 						button.dataset.pollSelected = isSelected ? 'true' : 'false';
-						const voteLabel = button.querySelector('span:last-child');
+						const voteLabel = button.querySelector('[data-poll-action-label]');
 						if (voteLabel) voteLabel.textContent = isSelected ? 'Selected' : 'Vote';
 					});
 
@@ -371,68 +380,82 @@ const relatedPosts = relatedCandidates
 					});
 				}
 
+				const submitPollVote = async (button) => {
+					if (!(button instanceof HTMLButtonElement) || button.dataset.pollBusy === 'true') return;
+					const pollElement = button.closest('[data-poll-key]');
+					if (!(pollElement instanceof HTMLElement)) return;
+					const pollKey = pollElement.dataset.pollKey || '';
+					const definition = pollDefinitions.find((entry) => entry.key === pollKey);
+					const optionIndex = Number(button.dataset.pollOptionIndex || '-1');
+					const status = pollElement.querySelector('[data-poll-status]');
+
+					if (!pollArticleSlug || !pollKey || !Number.isInteger(optionIndex) || optionIndex < 0) {
+						if (status) status.textContent = 'This poll is misconfigured. Refresh and try again.';
+						return;
+					}
+					if (definition && optionIndex >= definition.options.length) {
+						if (status) status.textContent = 'This poll option is invalid. Reload the page to sync options.';
+						return;
+					}
+
+					const pollButtons = pollElement.querySelectorAll('[data-poll-vote]');
+					const optimisticResult = createOptimisticResult(pollElement, pollKey, optionIndex);
+					pollResultMap.set(pollKey, optimisticResult);
+					setLocalVote(pollKey, optionIndex);
+					renderPollResults(pollElement, optimisticResult);
+					if (status) status.textContent = 'Vote selected. Saving...';
+					pollButtons.forEach((node) => {
+						if (node instanceof HTMLButtonElement) {
+							node.dataset.pollBusy = 'true';
+							node.dataset.pollSaving = Number(node.dataset.pollOptionIndex) === optionIndex ? 'true' : 'false';
+							if (Number(node.dataset.pollOptionIndex) === optionIndex) {
+								const voteLabel = node.querySelector('[data-poll-action-label]');
+								if (voteLabel) voteLabel.textContent = 'Saving';
+							}
+						}
+					});
+
+					try {
+						const response = await fetch('/api/polls', {
+							method: 'POST',
+							headers: { 'content-type': 'application/json' },
+							body: JSON.stringify({ slug: pollArticleSlug, pollKey, optionIndex }),
+						});
+
+						const data = await safeParseJson(response);
+						if (!response.ok || !data?.ok) throw new Error(data?.error || 'Vote failed');
+
+						const updatedResult = (data.results || []).find((entry) => entry.pollKey === pollKey);
+						pollResultMap.set(pollKey, updatedResult || optimisticResult);
+						renderPollResults(pollElement, pollResultMap.get(pollKey));
+					} catch (error) {
+						if (status) {
+							const reason = error instanceof Error ? error.message : 'Please retry in a moment.';
+							status.textContent = `Your vote was not submitted. ${reason}`;
+						}
+						await refreshPollResults();
+					} finally {
+						pollButtons.forEach((node) => {
+							if (node instanceof HTMLButtonElement) {
+								node.dataset.pollBusy = 'false';
+								node.dataset.pollSaving = 'false';
+							}
+						});
+						renderPollResults(pollElement, pollResultMap.get(pollKey));
+					}
+				};
+
 				document.querySelectorAll('[data-poll-key]').forEach((pollElement) => {
 					const pollKey = pollElement.dataset.pollKey || '';
 					renderPollResults(pollElement, pollResultMap.get(pollKey));
-					const definition = pollDefinitions.find((entry) => entry.key === pollKey);
+				});
 
-					pollElement.querySelectorAll('[data-poll-vote]').forEach((button) => {
-						button.addEventListener('click', async () => {
-							if (button.disabled) return;
-							const optionIndex = Number(button.dataset.pollOptionIndex || '-1');
-							const status = pollElement.querySelector('[data-poll-status]');
-							if (!pollArticleSlug || !pollKey || !Number.isInteger(optionIndex) || optionIndex < 0) {
-								if (status) status.textContent = 'This poll is misconfigured. Refresh and try again.';
-								return;
-							}
-							if (definition && optionIndex >= definition.options.length) {
-								if (status) status.textContent = 'This poll option is invalid. Reload the page to sync options.';
-								return;
-							}
-							const pollButtons = pollElement.querySelectorAll('[data-poll-vote]');
-							const optimisticResult = createOptimisticResult(pollElement, pollKey, optionIndex);
-							pollResultMap.set(pollKey, optimisticResult);
-							setLocalVote(pollKey, optionIndex);
-							renderPollResults(pollElement, optimisticResult);
-							if (status) status.textContent = 'Vote selected. Saving...';
-							pollButtons.forEach((node) => {
-								if (node instanceof HTMLButtonElement) {
-									node.disabled = true;
-									if (Number(node.dataset.pollOptionIndex) === optionIndex) {
-										const voteLabel = node.querySelector('span:last-child');
-										if (voteLabel) voteLabel.textContent = 'Saving';
-									}
-								}
-							});
-
-							try {
-								const response = await fetch('/api/polls', {
-									method: 'POST',
-									headers: { 'content-type': 'application/json' },
-									body: JSON.stringify({ slug: pollArticleSlug, pollKey, optionIndex }),
-								});
-
-								const data = await safeParseJson(response);
-								if (!response.ok || !data?.ok) {
-									throw new Error(data?.error || 'Vote failed');
-								}
-
-								const updatedResult = (data.results || []).find((entry) => entry.pollKey === pollKey);
-								pollResultMap.set(pollKey, updatedResult || { pollKey, counts: [], total: 0, myVoteIndex: optionIndex });
-								renderPollResults(pollElement, pollResultMap.get(pollKey));
-							} catch (error) {
-								if (status) {
-									const reason = error instanceof Error ? error.message : 'Please retry in a moment.';
-									status.textContent = `Your vote was not submitted. ${reason}`;
-								}
-								await refreshPollResults();
-							} finally {
-								pollButtons.forEach((node) => {
-									if (node instanceof HTMLButtonElement) node.disabled = false;
-								});
-							}
-						});
-					});
+				document.addEventListener('click', (event) => {
+					const button = event.target instanceof Element ? event.target.closest('[data-poll-vote]') : null;
+					if (button) {
+						event.preventDefault();
+						submitPollVote(button);
+					}
 				});
 
 				refreshPollResults().catch(() => {
@@ -879,5 +902,7 @@ const relatedPosts = relatedCandidates
 					window.katex = window.katex || undefined;
 				}
 			</script>
+		<Footer />
+		<PollHandler />
 	</body>
 </html>

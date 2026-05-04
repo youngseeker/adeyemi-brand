@@ -1,8 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
+import { isAdminAuthorized } from '../../lib/adminAuth';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
 import '../../styles/global.css';
+import Footer from '../../components/Footer.astro';
 
 const rawPosts = await getCollection('posts');
 
@@ -35,6 +37,7 @@ const formatDate = (value: unknown): string => {
 	return '';
 };
 
+const showPreview = isAdminAuthorized(Astro.request) || Boolean(import.meta.env.DEV);
 const posts = (
 	await Promise.all(
 		rawPosts.map(async ({ id, data, body }) => {
@@ -54,7 +57,7 @@ const posts = (
 		}),
 	)
 )
-	.filter((post) =>
+	.filter((post) => showPreview ||
 		isPubliclyVisiblePost({ status: post.status, scheduledFor: post.scheduledFor, publishedAt: post.publishedAt }),
 	)
 	.sort((a, b) => {
@@ -133,7 +136,7 @@ const posts = (
 							class="garden-card group block border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800"
 							data-search={`${post.title.toLowerCase()} ${post.excerpt.toLowerCase()} ${post.tags.join(' ').toLowerCase()}`}
 						>
-							<div class="mb-4 aspect-[16/10] overflow-hidden border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-900">
+							<div class="mb-4 aspect-16/10 overflow-hidden border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-900">
 								{post.coverImage ? (
 									<img src={post.coverImage} alt={post.title} class="h-full w-full object-cover" loading="lazy" />
 								) : (
@@ -170,6 +173,8 @@ const posts = (
 				</div>
 			)}
 		</main>
+
+		<Footer />
 
 		<script is:inline>
 			const themeToggle = document.getElementById('themeToggle');

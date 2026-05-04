@@ -183,7 +183,10 @@ const createConfig = () => {
 							},
 							[
 								new Markdoc.Tag('span', { class: 'min-w-0 font-semibold' }, [option]),
-								new Markdoc.Tag('span', { class: 'shrink-0 text-[10px] font-bold tracking-widest text-gray-400 uppercase group-aria-pressed:text-brandBlue' }, ['Vote']),
+								new Markdoc.Tag('span', {
+									class: 'shrink-0 text-[10px] font-bold tracking-widest text-gray-400 uppercase group-aria-pressed:text-brandBlue',
+									'data-poll-action-label': '',
+								}, ['Vote']),
 							],
 						),
 					);

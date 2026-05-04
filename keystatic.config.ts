@@ -35,87 +35,103 @@ const storage = isProduction && hasGithubRepo
 
 export default config({
 	storage,
+	ui: {
+		// Enable custom CSS for enhanced mobile and desktop UX
+		brand: {
+			name: 'Adeyemi Brand',
+		},
+	},
 	collections: {
 		posts: collection({
-			label: 'Posts',
+			label: '📝 Articles',
 			slugField: 'title',
 			path: 'src/content/posts/*',
 			format: { contentField: 'content' },
+			previewUrl: '/garden/{slug}',
 			schema: {
-				title: fields.slug({ name: { label: 'Title' } }),
+				title: fields.slug({ name: { label: 'Article title' } }),
 				status: fields.select({
-					label: 'Publishing status',
-					defaultValue: 'published',
-					description: 'Set to Draft to unpublish, or Scheduled to auto-publish later.',
+					label: '📌 Status',
+					defaultValue: 'draft',
+					description: 'Draft: hidden | Published: visible | Scheduled: auto-publish at date',
 					options: [
-						{ label: 'Draft', value: 'draft' },
-						{ label: 'Published', value: 'published' },
-						{ label: 'Scheduled', value: 'scheduled' },
+						{ label: '✏️  Draft (hidden)', value: 'draft' },
+						{ label: '✅ Published (live)', value: 'published' },
+						{ label: '⏰ Scheduled (auto-publish)', value: 'scheduled' },
 					],
 				}),
 				scheduledFor: fields.datetime({
-					label: 'Schedule publish time',
-					description: 'Used when status is Scheduled. Time is interpreted in UTC.',
+					label: '⏰ Schedule publish time',
+					description: '(Used only if status is Scheduled) Time in UTC',
 					validation: { isRequired: false },
 				}),
 				featured: fields.checkbox({
-					label: 'Featured article',
+					label: '⭐ Feature on homepage',
 					defaultValue: false,
 				}),
+				publishedAt: fields.date({
+					label: '📅 Publish date',
+					description: 'Shows on article listing and detail page',
+					defaultValue: { kind: 'today' },
+				}),
+				excerpt: fields.text({
+					label: '💬 Short excerpt (60–100 chars)',
+					description: 'Shown in article cards and search results; make it compelling',
+					multiline: false,
+				}),
 				coverImage: fields.image({
-					label: 'Cover image',
+					label: '🖼️  Cover image (recommended)',
+					description: '16:10 aspect ratio works best (e.g., 1600×1000px). Leave blank for text-only article.',
 					directory: 'public/uploads/posts',
 					publicPath: '/uploads/posts/',
 				}),
-				publishedAt: fields.date({
-					label: 'Publish date',
-					defaultValue: { kind: 'today' },
-				}),
-				canonicalUrl: fields.url({
-					label: 'Canonical URL',
-					description: 'Use when this article is mirrored or syndicated elsewhere.',
-					validation: { isRequired: false },
-				}),
-				noIndex: fields.checkbox({
-					label: 'Hide from search engines',
-					defaultValue: false,
-				}),
-				excerpt: fields.text({
-					label: 'Excerpt',
-					multiline: true,
-				}),
-				author: fields.text({
-					label: 'Author',
-					defaultValue: 'Adeyemi Adeniji',
-				}),
 				coverImageCredit: fields.text({
-					label: 'Cover image credit',
-					description: 'Photographer, artist, or source credit for the cover image.',
+					label: '🏷️  Image credit (photographer/source)',
+					description: 'E.g., "Photo by Jane Doe" or "Unsplash"',
 					validation: { isRequired: false },
 				}),
 				coverImageCreditUrl: fields.url({
-					label: 'Cover image credit URL',
-					description: 'Optional source link for the cover image credit.',
+					label: '🔗 Image credit URL',
+					description: 'Link to photographer profile or source',
 					validation: { isRequired: false },
+				}),
+				author: fields.text({
+					label: '✍️  Author name',
+					defaultValue: 'Adeyemi Adeniji',
 				}),
 				tags: fields.array(
 					fields.text({ label: 'Tag' }),
 					{
-						label: 'Tags',
-						itemLabel: (props) => props.value || 'Tag',
+						label: '🏷️  Tags (3-5 recommended)',
+						itemLabel: (props) => props.value || 'New tag',
+						description: 'Topics, tools, concepts covered in this article',
 					}
 				),
+				canonicalUrl: fields.url({
+					label: '🔗 Canonical URL',
+					description: 'Use if this article is published elsewhere first (SEO)',
+					validation: { isRequired: false },
+				}),
+				noIndex: fields.checkbox({
+					label: '🚫 Hide from search engines (noindex)',
+					description: 'Check if this is draft, private, or mirrored content',
+					defaultValue: false,
+				}),
 				content: fields.document({
-					label: 'Content',
+					label: '✍️  Article content',
+					description: 'Use headings (h2, h3), bold, italic, lists, links, images, and component blocks below',
 					formatting: {
 						inlineMarks: {
 							bold: true,
 							italic: true,
 							strikethrough: true,
 							code: true,
+							underline: true,
+							superscript: true,
+							subscript: true,
 						},
 						listTypes: true,
-						headingLevels: true,
+						headingLevels: [2, 3, 4],
 						blockTypes: true,
 						softBreaks: true,
 						alignment: {
@@ -125,101 +141,119 @@ export default config({
 					},
 					dividers: true,
 					links: true,
+					tables: true,
 					componentBlocks: {
 						dividerBlock: component({
-							label: 'Divider',
+							label: '⎯️  Divider (visual separator)',
 							schema: {},
-							preview: () => null,
+							preview: () => '---',
 						}),
 						footnote: component({
-							label: 'Footnote',
+							label: '📌 Footnote / endnote',
 							schema: {
-								marker: fields.text({ label: 'Marker', defaultValue: '1' }),
-								note: fields.text({ label: 'Note', multiline: true }),
+								marker: fields.text({ label: 'Marker (e.g., "1", "a", "*")', defaultValue: '1' }),
+								note: fields.text({ label: 'Footnote text', multiline: true }),
 							},
-							preview: () => null,
+							preview: (props) => `[${props.marker}] ${props.note?.slice(0, 40)}...` || 'Footnote',
 						}),
 						poll: component({
-							label: 'Poll',
+							label: '📊 Poll / survey',
 							schema: {
-								question: fields.text({ label: 'Question' }),
+								question: fields.text({ label: 'Poll question' }),
 								options: fields.array(fields.text({ label: 'Option' }), {
 									label: 'Options',
-									itemLabel: (props) => props.value || 'Option',
+									itemLabel: (props) => props.value || 'New option',
 								}),
-								note: fields.text({ label: 'Note', multiline: true, validation: { isRequired: false } }),
+								note: fields.text({ label: 'Optional poll context/note', multiline: true, validation: { isRequired: false } }),
 							},
-							preview: () => null,
+							preview: (props) => `Poll: ${props.question}` || 'Poll',
 						}),
 						imageFigure: component({
-							label: 'Image with Credit',
+							label: '🖼️  Image with caption & credit',
 							schema: {
 								image: fields.image({
 									label: 'Image',
 									directory: 'public/uploads/posts',
 									publicPath: '/uploads/posts/',
 								}),
-								alt: fields.text({ label: 'Alt text' }),
-								caption: fields.text({ label: 'Caption', multiline: true, validation: { isRequired: false } }),
-								credit: fields.text({ label: 'Credit', validation: { isRequired: false } }),
-								creditUrl: fields.url({ label: 'Credit URL', validation: { isRequired: false } }),
+								alt: fields.text({ label: 'Alt text (accessibility + SEO)' }),
+								caption: fields.text({ label: 'Caption (shown below image)', multiline: true, validation: { isRequired: false } }),
+								credit: fields.text({ label: 'Credit/attribution', validation: { isRequired: false } }),
+								creditUrl: fields.url({ label: 'Credit link', validation: { isRequired: false } }),
 							},
-							preview: () => null,
-						}),
-						audioEmbed: component({
-							label: 'Audio',
-							schema: {
-								title: fields.text({ label: 'Title', validation: { isRequired: false } }),
-								sourceUrl: fields.url({ label: 'Audio URL' }),
-								caption: fields.text({ label: 'Caption', multiline: true, validation: { isRequired: false } }),
-							},
-							preview: () => null,
+							preview: (props) => `Image: ${props.alt?.slice(0, 30)}...` || 'Image',
 						}),
 						videoEmbed: component({
-							label: 'Video',
+							label: '🎬 Video embed (YouTube/Vimeo)',
 							schema: {
-								title: fields.text({ label: 'Title', validation: { isRequired: false } }),
-								sourceUrl: fields.url({ label: 'Video URL' }),
+								title: fields.text({ label: 'Video title', validation: { isRequired: false } }),
+								sourceUrl: fields.url({ label: 'Video URL (YouTube, Vimeo, etc.)' }),
 								caption: fields.text({ label: 'Caption', multiline: true, validation: { isRequired: false } }),
 							},
-							preview: () => null,
+							preview: (props) => `Video: ${props.title || props.sourceUrl?.slice(0, 30)}...` || 'Video',
+						}),
+						audioEmbed: component({
+							label: '🎙️  Audio embed',
+							schema: {
+								title: fields.text({ label: 'Audio title', validation: { isRequired: false } }),
+								sourceUrl: fields.url({ label: 'Audio URL (MP3, Soundcloud, etc.)' }),
+								caption: fields.text({ label: 'Caption', multiline: true, validation: { isRequired: false } }),
+							},
+							preview: (props) => `Audio: ${props.title || props.sourceUrl?.slice(0, 30)}...` || 'Audio',
 						}),
 						formula: component({
-							label: 'Formula',
+							label: '∑ Math formula (LaTeX)',
 							schema: {
-								label: fields.text({ label: 'Label', validation: { isRequired: false } }),
-								latex: fields.text({ label: 'LaTeX', multiline: true }),
-								displayMode: fields.checkbox({ label: 'Display mode', defaultValue: true }),
+								label: fields.text({ label: 'Formula label (optional)', validation: { isRequired: false } }),
+								latex: fields.text({ label: 'LaTeX code', multiline: true }),
+								displayMode: fields.checkbox({ label: 'Display mode (centered, large)', defaultValue: true }),
 							},
-							preview: () => null,
+							preview: (props) => `Formula: ${props.label || props.latex?.slice(0, 30)}...` || 'Formula',
 						}),
 						button: component({
-							label: 'Button',
+							label: '🔘 Button (CTA)',
 							schema: {
-								label: fields.text({ label: 'Button label' }),
+								label: fields.text({ label: 'Button text' }),
 								href: fields.url({ label: 'Button URL' }),
 								variant: fields.select({
-									label: 'Style',
+									label: 'Button style',
 									defaultValue: 'primary',
 									options: [
-										{ label: 'Primary', value: 'primary' },
-										{ label: 'Secondary', value: 'secondary' },
-										{ label: 'Neutral', value: 'neutral' },
+										{ label: '🔵 Primary (blue, prominent)', value: 'primary' },
+										{ label: '⚪ Secondary (outline)', value: 'secondary' },
+										{ label: '⚫ Neutral (minimal)', value: 'neutral' },
 									],
 								}),
-								external: fields.checkbox({ label: 'Open in new tab', defaultValue: true }),
+								external: fields.checkbox({ label: 'Open link in new tab', defaultValue: true }),
 							},
-							preview: () => null,
+							preview: (props) => `Button: ${props.label}` || 'Button',
 						}),
 						newsletterCta: component({
-							label: 'Newsletter Subscribe',
+							label: '📬 Newsletter subscription CTA',
 							schema: {
-								heading: fields.text({ label: 'Heading', defaultValue: 'Subscribe to the newsletter' }),
-								description: fields.text({ label: 'Description', multiline: true }),
+								heading: fields.text({ label: 'CTA heading', defaultValue: 'Subscribe to the newsletter' }),
+								description: fields.text({ label: 'CTA description', multiline: true }),
 								buttonLabel: fields.text({ label: 'Button label', defaultValue: 'Subscribe' }),
-								buttonUrl: fields.url({ label: 'Button URL', validation: { isRequired: false } }),
+								buttonUrl: fields.url({ label: 'Form action URL (optional)', validation: { isRequired: false } }),
 							},
-							preview: () => null,
+							preview: (props) => `CTA: ${props.heading}` || 'Newsletter CTA',
+						}),
+						callout: component({
+							label: '💡 Callout box (highlight/note)',
+							schema: {
+								type: fields.select({
+									label: 'Callout type',
+									defaultValue: 'info',
+									options: [
+										{ label: 'ℹ️  Info', value: 'info' },
+										{ label: '⚠️  Warning', value: 'warning' },
+										{ label: '✅ Success', value: 'success' },
+										{ label: '❌ Error', value: 'error' },
+									],
+								}),
+								text: fields.text({ label: 'Callout text', multiline: true }),
+							},
+							preview: (props) => `${props.type?.toUpperCase()}: ${props.text?.slice(0, 30)}...` || 'Callout',
 						}),
 					},
 					images: {
@@ -232,12 +266,12 @@ export default config({
 	},
 	singletons: {
 		site: singleton({
-			label: 'Site settings',
+			label: '⚙️  Site settings',
 			path: 'src/content/site',
 			format: { data: 'json' },
 			schema: {
-				tagline: fields.text({ label: 'Tagline' }),
-				description: fields.text({ label: 'Description', multiline: true }),
+				tagline: fields.text({ label: 'Site tagline' }),
+				description: fields.text({ label: 'Site description', multiline: true }),
 			},
 		}),
 	},
