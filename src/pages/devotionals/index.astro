@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import '../../styles/global.css'; // Pulls in your dark mode and Space Grotesk fonts
+
+// Fetch all devotionals and sort them by newest first
+const devotionals = await getCollection('devotionals');
+devotionals.sort((a, b) => new Date(b.data.publishedAt || 0).valueOf() - new Date(a.data.publishedAt || 0).valueOf());
+---
+
+<html lang="en">
+    <head>
+        <title>Biblical Devotionals | A.ADENIJI</title>
+    </head>
+    <body class="bg-white text-black dark:bg-[#050505] dark:text-white font-['Space_Grotesk']">
+        <main class="mx-auto max-w-350 px-6 py-20">
+            <div class="mb-10">
+                <a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">&larr; Back Home</a>
+                <h1 class="mt-6 text-4xl font-bold uppercase tracking-tighter md:text-5xl">Biblical Devotionals</h1>
+                <p class="mt-4 text-gray-600 dark:text-gray-300">Daily reflections and scripture studies.</p>
+            </div>
+
+            <div class="grid gap-6 md:grid-cols-2">
+                {devotionals.map(entry => (
+                    <a href={`/devotionals/${entry.id}`} class="block rounded-xl border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800">
+                        <p class="mb-2 text-[10px] tracking-widest text-brandBlue uppercase">{entry.data.scriptureRef || 'Devotional'}</p>
+                        <h2 class="text-xl font-bold">{entry.data.title}</h2>
+                        <p class="mt-2 line-clamp-2 text-sm text-gray-500">{entry.data.excerpt}</p>
+                    </a>
+                ))}
+            </div>
+        </main>
+    </body>
+</html>

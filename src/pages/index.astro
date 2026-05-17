@@ -5,523 +5,531 @@ import { formatReadingMinutes, readingMinutesFromDocument } from '../lib/reading
 import { isPubliclyVisiblePost } from '../lib/postVisibility';
 import '../styles/global.css';
 import Footer from '../components/Footer.astro';
+import SubstackFeed from '../components/SubstackFeed.astro';
 
 const rawPosts = await getCollection('posts');
 const logo = 'A.ADENIJI // SYSTEMS';
 const linktreeUrl = 'https://linktr.ee/_adeyemiadeniji';
 const ecosystemLinks = [
-	{ title: 'Digital Garden (Primary)', description: 'Your canonical article archive, hosted here.', href: '/garden' },
-	{ title: 'Work & Experience', description: 'Projects, systems experience, and execution proofs.', href: '/work' },
-	{ title: 'Linktree Hub', description: 'All external profiles and publication platforms.', href: linktreeUrl },
+    { title: 'Digital Garden (Primary)', description: 'Your canonical article archive, hosted here.', href: '/garden' },
+    { title: 'Work & Experience', description: 'Projects, systems experience, and execution proofs.', href: '/work' },
+    { title: 'Linktree Hub', description: 'All external profiles and publication platforms.', href: linktreeUrl },
 ];
 
 const prettyTitle = (value: string) =>
-	value
-		.split('-')
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-		.join(' ');
+    value
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
 
 const derivePostTitle = (value: unknown, fallbackSlug: string) => {
-	if (typeof value === 'string' && value.trim()) return value.trim();
-	return prettyTitle(fallbackSlug);
+    if (typeof value === 'string' && value.trim()) return value.trim();
+    return prettyTitle(fallbackSlug);
 };
 
 const formatDate = (value: unknown): string => {
-	if (value instanceof Date && !Number.isNaN(value.getTime())) {
-		return value.toISOString().slice(0, 10);
-	}
-	if (typeof value === 'string') return value;
-	return '';
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return value.toISOString().slice(0, 10);
+    }
+    if (typeof value === 'string') return value;
+    return '';
 };
 
 const resolvedPosts = await Promise.all(
-	rawPosts.map(async ({ id, data, body }) => {
-		const readingLabel = formatReadingMinutes(readingMinutesFromDocument(body));
-		return {
-			slug: id,
-			title: derivePostTitle(data.title, id),
-			excerpt: data.excerpt || 'Featured from the Digital Garden.',
-			featured: Boolean(data.featured),
-			status: data.status,
-			scheduledFor: data.scheduledFor,
-			publishedAt: formatDate(data.publishedAt),
-			readingLabel,
-		};
-	}),
+    rawPosts.map(async ({ id, data, body }) => {
+        const readingLabel = formatReadingMinutes(readingMinutesFromDocument(body));
+        return {
+            slug: id,
+            title: derivePostTitle(data.title, id),
+            excerpt: data.excerpt || 'Featured from the Digital Garden.',
+            featured: Boolean(data.featured),
+            status: data.status,
+            scheduledFor: data.scheduledFor,
+            publishedAt: formatDate(data.publishedAt),
+            readingLabel,
+        };
+    }),
 );
 
 const showPreview = isAdminAuthorized(Astro.request) || Boolean(import.meta.env.DEV);
 const visiblePosts = resolvedPosts.filter((post) =>
-	showPreview || isPubliclyVisiblePost({ status: post.status, scheduledFor: post.scheduledFor, publishedAt: post.publishedAt }),
+    showPreview || isPubliclyVisiblePost({ status: post.status, scheduledFor: post.scheduledFor, publishedAt: post.publishedAt }),
 );
 
 const featuredPosts = visiblePosts
-	.filter((post) => post.featured)
-	.sort((a, b) => {
-		if (!a.publishedAt) return 1;
-		if (!b.publishedAt) return -1;
-		return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-	})
-	.slice(0, 3);
+    .filter((post) => post.featured)
+    .sort((a, b) => {
+        if (!a.publishedAt) return 1;
+        if (!b.publishedAt) return -1;
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    })
+    .slice(0, 3);
 
 const posts = visiblePosts
-	.map((post) => ({
-		slug: post.slug,
-		title: post.title,
-		excerpt: post.excerpt || 'Fresh ideas from the Digital Garden.',
-		publishedAt: post.publishedAt,
-		readingLabel: post.readingLabel,
-	}))
-	.sort((a, b) => {
-		if (!a.publishedAt) return 1;
-		if (!b.publishedAt) return -1;
-		return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-	})
-	.slice(0, 6);
+    .map((post) => ({
+        slug: post.slug,
+        title: post.title,
+        excerpt: post.excerpt || 'Fresh ideas from the Digital Garden.',
+        publishedAt: post.publishedAt,
+        readingLabel: post.readingLabel,
+    }))
+    .sort((a, b) => {
+        if (!a.publishedAt) return 1;
+        if (!b.publishedAt) return -1;
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    })
+    .slice(0, 6);
 
 const fallbackCards = [
-	{
-		title: 'Formal Logic for Human-Centered AI Interfaces',
-		excerpt: 'A rigorous approach to mapping reasoning patterns into predictable UX and agent behavior.',
-		label: 'CS Writing Track / Advanced',
-	},
-	{
-		title: 'Distributed State Design for Offline-First PWAs',
-		excerpt: 'Conflict resolution, eventual consistency, and trust-preserving UX in constrained networks.',
-		label: 'Engineering Systems / Advanced',
-	},
-	{
-		title: 'Computational Narratives as Architecture',
-		excerpt: 'How technical writing becomes an operational system for teams and product decisions.',
-		label: 'Technical Writing / Advanced',
-	},
+    {
+        title: 'Formal Logic for Human-Centered AI Interfaces',
+        excerpt: 'A rigorous approach to mapping reasoning patterns into predictable UX and agent behavior.',
+        label: 'CS Writing Track / Advanced',
+    },
+    {
+        title: 'Distributed State Design for Offline-First PWAs',
+        excerpt: 'Conflict resolution, eventual consistency, and trust-preserving UX in constrained networks.',
+        label: 'Engineering Systems / Advanced',
+    },
+    {
+        title: 'Computational Narratives as Architecture',
+        excerpt: 'How technical writing becomes an operational system for teams and product decisions.',
+        label: 'Technical Writing / Advanced',
+    },
 ];
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>A.ADENIJI // ARCHITECTING HUMAN SYSTEMS</title>
-		<meta name="description" content="Computer Science builder and technical writer creating systems that align human logic with software behavior." />
-		<meta name="keywords" content="computer science, software architecture, algorithms, technical writing, human logic" />
-		<meta property="og:title" content="A.ADENIJI // ARCHITECTING HUMAN SYSTEMS" />
-		<meta property="og:description" content="CS-focused portfolio and writing platform for systems thinking, architecture, and human logic." />
-		<meta property="og:type" content="website" />
-		<meta name="twitter:card" content="summary" />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
-			rel="stylesheet"
-		/>
-		<script is:inline>
-			const theme = (() => {
-				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-					return localStorage.getItem('theme');
-				}
-				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-					return 'dark';
-				}
-				return 'light';
-			})();
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>A.ADENIJI // ARCHITECTING HUMAN SYSTEMS</title>
+        <meta name="description" content="Computer Science builder and technical writer creating systems that align human logic with software behavior." />
+        <meta name="keywords" content="computer science, software architecture, algorithms, technical writing, human logic" />
+        <meta property="og:title" content="A.ADENIJI // ARCHITECTING HUMAN SYSTEMS" />
+        <meta property="og:description" content="CS-focused portfolio and writing platform for systems thinking, architecture, and human logic." />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <script is:inline>
+            const theme = (() => {
+                if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                    return localStorage.getItem('theme');
+                }
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    return 'dark';
+                }
+                return 'light';
+            })();
 
-			if (theme === 'light') {
-				document.documentElement.classList.remove('dark');
-			} else {
-				document.documentElement.classList.add('dark');
-			}
-		</script>
-	</head>
-	<body class="bg-white font-['Space_Grotesk'] text-black transition-colors duration-500 selection:bg-brandBlue selection:text-white dark:bg-[#050505] dark:text-white">
-		<a href="#mainContent" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-90 focus:rounded-md focus:bg-brandBlue focus:px-3 focus:py-2 focus:text-xs focus:font-bold focus:text-white">Skip to main content</a>
-		<header class="sticky top-0 z-40 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-[#050505]/90">
-			<nav class="mx-auto flex max-w-350 items-center justify-between px-4 py-4 sm:px-6">
-				<a href="/" class="text-sm font-black tracking-widest uppercase">{logo}</a>
-				<div class="hidden items-center gap-6 text-xs font-bold tracking-[0.2em] uppercase md:flex">
-					<a href="/work" class="transition hover:text-brandBlue">Work</a>
-					<a href="/garden" class="transition hover:text-brandBlue">Articles</a>
-					<a href="#about" class="transition hover:text-brandBlue">About</a>
-				</div>
-				<div class="flex items-center gap-2">
-					<button id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle mobile navigation menu" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase md:hidden dark:border-gray-700">Menu</button>
-					<button id="openPalette" type="button" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase dark:border-gray-700">Ctrl/Cmd + K</button>
-					<button id="themeToggle" type="button" aria-label="Toggle theme" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700">
-						<span class="text-xs font-bold uppercase dark:hidden">L</span>
-						<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
-					</button>
-				</div>
-			</nav>
-			<div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-350 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
-				<a href="/work" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Work</a>
-				<a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
-				<a href="#about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
-			</div>
-		</header>
+            if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        </script>
+    </head>
+    <body class="bg-white font-['Space_Grotesk'] text-black transition-colors duration-500 selection:bg-brandBlue selection:text-white dark:bg-[#050505] dark:text-white">
+        <a href="#mainContent" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-90 focus:rounded-md focus:bg-brandBlue focus:px-3 focus:py-2 focus:text-xs focus:font-bold focus:text-white">Skip to main content</a>
+        <header class="sticky top-0 z-40 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-[#050505]/90">
+            <nav class="mx-auto flex max-w-350 items-center justify-between px-4 py-4 sm:px-6">
+                <a href="/" class="text-sm font-black tracking-widest uppercase">{logo}</a>
+                <div class="hidden items-center gap-6 text-xs font-bold tracking-[0.2em] uppercase md:flex">
+                    <a href="/work" class="transition hover:text-brandBlue">Work</a>
+                    <a href="/garden" class="transition hover:text-brandBlue">Articles</a>
+                    <a href="#about" class="transition hover:text-brandBlue">About</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle mobile navigation menu" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase md:hidden dark:border-gray-700">Menu</button>
+                    <button id="openPalette" type="button" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase dark:border-gray-700">Ctrl/Cmd + K</button>
+                    <button id="themeToggle" type="button" aria-label="Toggle theme" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700">
+                        <span class="text-xs font-bold uppercase dark:hidden">L</span>
+                        <span class="hidden text-xs font-bold uppercase dark:inline">D</span>
+                    </button>
+                </div>
+            </nav>
+            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-350 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
+                <a href="/work" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Work</a>
+                <a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
+                <a href="#about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
+            </div>
+        </header>
 
-		<main id="mainContent">
-		<section class="mx-auto max-w-350 px-4 pt-16 pb-12 sm:px-6 sm:pt-20 sm:pb-14">
-			<div class="grid items-end gap-12 lg:grid-cols-12">
-				<div class="lg:col-span-8">
-					<h2 class="mb-8 text-[12px] font-bold tracking-[0.5em] text-brandBlue uppercase">Computer Science Builder & Technical Writer</h2>
-					<h1 class="mb-10 text-4xl leading-[0.95] font-bold tracking-tighter uppercase sm:text-6xl lg:text-[100px]">
-						Translating
-						<span class="font-['Playfair_Display'] font-normal capitalize italic"> Human Logic </span>
-						into software systems.
-					</h1>
-					<p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Currently building: SCOPE — scope.samsoyombo.com (Node.js)</p>
-				</div>
-				<div class="lg:col-span-4">
-					<p class="border-l border-brandBlue pl-6 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-						I build with algorithms and architectural discipline, then write clearly so systems remain explainable,
-						maintainable, and human-centered.
-					</p>
-				</div>
-			</div>
-		</section>
+        <main id="mainContent">
+        <section class="mx-auto max-w-350 px-4 pt-16 pb-12 sm:px-6 sm:pt-20 sm:pb-14">
+            <div class="grid items-end gap-12 lg:grid-cols-12">
+                <div class="lg:col-span-8">
+                    <h2 class="mb-8 text-[12px] font-bold tracking-[0.5em] text-brandBlue uppercase">Computer Science Builder & Technical Writer</h2>
+                    <h1 class="mb-10 text-4xl leading-[0.95] font-bold tracking-tighter uppercase sm:text-6xl lg:text-[100px]">
+                        Translating
+                        <span class="font-['Playfair_Display'] font-normal capitalize italic"> Human Logic </span>
+                        into software systems.
+                    </h1>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Currently building: SCOPE — scope.samsoyombo.com (Node.js)</p>
+                </div>
+                <div class="lg:col-span-4">
+                    <p class="border-l border-brandBlue pl-6 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                        I build with algorithms and architectural discipline, then write clearly so systems remain explainable,
+                        maintainable, and human-centered.
+                    </p>
+                </div>
+            </div>
+        </section>
 
-			<section class="mx-auto max-w-350 border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
-			<div class="mb-8 flex flex-wrap items-center justify-between gap-3">
-				<h3 class="text-2xl font-bold tracking-tight uppercase">Ecosystem & Presence</h3>
-				<span class="text-xs tracking-widest text-gray-400 uppercase">Linktree-Centered</span>
-			</div>
-				<div class="grid gap-4 md:grid-cols-3">
-				{ecosystemLinks.map((item) => (
-					<a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
-						<p class="text-[10px] tracking-widest text-gray-400 uppercase">Brand Platform</p>
-						<h4 class="mt-2 text-lg font-bold">{item.title}</h4>
-						<p class="mt-2 text-sm text-gray-500 dark:text-gray-300">{item.description}</p>
-					</a>
-				))}
-			</div>
-		</section>
+        <section class="mx-auto max-w-350 border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
+            <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-2xl font-bold tracking-tight uppercase">Ecosystem & Presence</h3>
+                <span class="text-xs tracking-widest text-gray-400 uppercase">Linktree-Centered</span>
+            </div>
+            <div class="grid gap-4 md:grid-cols-3">
+                {ecosystemLinks.map((item) => (
+                    <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
+                        <p class="text-[10px] tracking-widest text-gray-400 uppercase">Brand Platform</p>
+                        <h4 class="mt-2 text-lg font-bold">{item.title}</h4>
+                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">{item.description}</p>
+                    </a>
+                ))}
+            </div>
+        </section>
 
-			{featuredPosts.length > 0 && (
-				<section class="mx-auto max-w-350 border-t border-gray-100 px-6 py-14 dark:border-gray-900">
-					<div class="mb-8 flex items-center justify-between">
-						<h3 class="text-2xl font-bold tracking-tight uppercase">Featured Articles</h3>
-						<span class="text-xs tracking-widest text-gray-400 uppercase">Editor Picks</span>
-					</div>
-					<div class="grid gap-4 md:grid-cols-3">
-						{featuredPosts.map((post) => (
-							<a href={`/garden/${post.slug}`} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
-								<p class="text-[10px] tracking-widest text-gray-400 uppercase">Featured / {post.publishedAt || 'Digital Garden'}</p>
-								<p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
-								<h4 class="mt-2 text-lg font-bold">{post.title}</h4>
-								<p class="mt-2 line-clamp-3 text-sm text-gray-500 dark:text-gray-300">{post.excerpt}</p>
-							</a>
-						))}
-					</div>
-				</section>
-			)}
+        <section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
+            <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-2xl font-bold tracking-tight uppercase">Real Talk Newsletter</h3>
+                <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Substack Sync</span>
+            </div>
+            <SubstackFeed />
+        </section>
+        {featuredPosts.length > 0 && (
+            <section class="mx-auto max-w-350 border-t border-gray-100 px-6 py-14 dark:border-gray-900">
+                <div class="mb-8 flex items-center justify-between">
+                    <h3 class="text-2xl font-bold tracking-tight uppercase">Featured Articles</h3>
+                    <span class="text-xs tracking-widest text-gray-400 uppercase">Editor Picks</span>
+                </div>
+                <div class="grid gap-4 md:grid-cols-3">
+                    {featuredPosts.map((post) => (
+                        <a href={`/garden/${post.slug}`} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
+                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">Featured / {post.publishedAt || 'Digital Garden'}</p>
+                            <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
+                            <h4 class="mt-2 text-lg font-bold">{post.title}</h4>
+                            <p class="mt-2 line-clamp-3 text-sm text-gray-500 dark:text-gray-300">{post.excerpt}</p>
+                        </a>
+                    ))}
+                </div>
+            </section>
+        )}
 
-		<section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
-			<div class="mb-8 flex flex-wrap items-center justify-between gap-3">
-				<h3 class="text-2xl font-bold tracking-tight uppercase">Trending Now</h3>
-				<span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Audience Signal</span>
-			</div>
-			<div id="trendingPosts" role="status" aria-live="polite" class="grid gap-4 md:grid-cols-2">
-				<p class="text-gray-500">Loading trending posts...</p>
-			</div>
-		</section>
+        <section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
+            <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-2xl font-bold tracking-tight uppercase">Trending Now</h3>
+                <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Audience Signal</span>
+            </div>
+            <div id="trendingPosts" role="status" aria-live="polite" class="grid gap-4 md:grid-cols-2">
+                <p class="text-gray-500">Loading trending posts...</p>
+            </div>
+        </section>
 
-		<section id="garden" class="mx-auto max-w-350 border-t border-gray-100 px-6 py-20 dark:border-gray-900">
-			<div class="mb-10 flex items-center justify-between">
-				<h3 class="text-3xl font-bold tracking-tighter uppercase">Digital Garden</h3>
-				<div class="flex items-center gap-3">
-					<a href="/garden" class="ui-btn ui-btn-secondary">Browse Articles</a>
-				</div>
-			</div>
+        <section id="garden" class="mx-auto max-w-350 border-t border-gray-100 px-6 py-20 dark:border-gray-900">
+            <div class="mb-10 flex items-center justify-between">
+                <h3 class="text-3xl font-bold tracking-tighter uppercase">Digital Garden</h3>
+                <div class="flex items-center gap-3">
+                    <a href="/garden" class="ui-btn ui-btn-secondary">Browse Articles</a>
+                </div>
+            </div>
 
-			{posts.length > 0 ? (
-				<div class="grid gap-8 md:grid-cols-3">
-					{posts.map((post) => (
-						<a href={`/garden/${post.slug}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800">
-							<p class="text-[10px] tracking-widest text-gray-400 uppercase">{post.publishedAt ? `Digital Garden / ${post.publishedAt}` : 'Digital Garden'}</p>
-							<p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
-							<h4 class="mt-2 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h4>
-							<p class="mt-3 line-clamp-3 text-gray-500">{post.excerpt}</p>
-						</a>
-					))}
-				</div>
-			) : (
-				<div class="grid gap-8 md:grid-cols-3">
-					{fallbackCards.map((card) => (
-						<div class="ui-card rounded-xl p-5">
-							<p class="text-[10px] tracking-widest text-gray-400 uppercase">{card.label}</p>
-							<h4 class="mt-2 text-2xl font-bold">{card.title}</h4>
-							<p class="mt-3 text-gray-500">{card.excerpt}</p>
-						</div>
-					))}
-				</div>
-			)}
-		</section>
+            {posts.length > 0 ? (
+                <div class="grid gap-8 md:grid-cols-3">
+                    {posts.map((post) => (
+                        <a href={`/garden/${post.slug}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800">
+                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">{post.publishedAt ? `Digital Garden / ${post.publishedAt}` : 'Digital Garden'}</p>
+                            <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
+                            <h4 class="mt-2 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h4>
+                            <p class="mt-3 line-clamp-3 text-gray-500">{post.excerpt}</p>
+                        </a>
+                    ))}
+                </div>
+            ) : (
+                <div class="grid gap-8 md:grid-cols-3">
+                    {fallbackCards.map((card) => (
+                        <div class="ui-card rounded-xl p-5">
+                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">{card.label}</p>
+                            <h4 class="mt-2 text-2xl font-bold">{card.title}</h4>
+                            <p class="mt-3 text-gray-500">{card.excerpt}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </section>
 
-		<section class="border-t border-gray-100 py-20 dark:border-gray-900">
-			<div class="mx-auto grid max-w-350 gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-				<div>
-					<p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Newsletter</p>
-					<h3 class="mt-3 text-3xl font-bold tracking-tight uppercase md:text-4xl">Get New Essays In Your Inbox</h3>
-					<p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">
-						Join the mailing list for new digital garden articles, systems notes, and publishing updates.
-					</p>
-				</div>
-				<form id="newsletterForm" class="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
-					<label for="newsletterEmail" class="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">Email address</label>
-					<input id="newsletterEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-2 w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
-					<button type="submit" class="ui-btn ui-btn-primary mt-3 w-full rounded-xl">Subscribe</button>
-					<p id="newsletterStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
-				</form>
-			</div>
-		</section>
+        <section class="border-t border-gray-100 py-20 dark:border-gray-900">
+            <div class="mx-auto grid max-w-350 gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+                <div>
+                    <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Newsletter</p>
+                    <h3 class="mt-3 text-3xl font-bold tracking-tight uppercase md:text-4xl">Get New Essays In Your Inbox</h3>
+                    <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">
+                        Join the mailing list for new digital garden articles, systems notes, and publishing updates.
+                    </p>
+                </div>
+                <form id="newsletterForm" class="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
+                    <label for="newsletterEmail" class="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">Email address</label>
+                    <input id="newsletterEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-2 w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
+                    <button type="submit" class="ui-btn ui-btn-primary mt-3 w-full rounded-xl">Subscribe</button>
+                    <p id="newsletterStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
+                </form>
+            </div>
+        </section>
 
-		<section id="about" class="border-t border-gray-100 bg-linear-to-br from-white via-[#f7f9ff] to-white py-24 dark:border-gray-900 dark:from-[#060606] dark:via-[#0a0a12] dark:to-[#060606]">
-			<div class="mx-auto grid max-w-350 gap-10 px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-center">
-				<div class="relative">
-					<img src="/adeyemi.jpg" alt="Adeyemi Adeniji portrait" class="h-90 w-full rounded-3xl object-cover shadow-2xl" />
-					<div class="absolute -bottom-4 right-4 rounded-full border border-brandBlue bg-white px-4 py-2 text-[10px] font-bold tracking-widest text-brandBlue uppercase dark:bg-[#050505]">
-						Builder + Writer
-					</div>
-				</div>
-				<div>
-					<p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">About Adeyemi</p>
-					<h3 class="mt-3 text-4xl font-bold tracking-tight uppercase md:text-5xl">Computer Science, Story, and Systems</h3>
-					<p class="mt-5 max-w-3xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-						I build software systems, write deeply researched essays, and design explainable workflows where technical rigor and human clarity move together.
-					</p>
-					<div class="mt-8 grid gap-3 sm:grid-cols-3">
-						<a href="https://linktr.ee/_adeyemiadeniji" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">Linktree</a>
-						<a href="https://www.linkedin.com/in/adeyemi-adeniji-828204253/" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">LinkedIn</a>
-						<a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-neutral rounded-xl">Email</a>
-					</div>
-					<div class="mt-6">
-						<a href="/about" class="ui-btn ui-btn-primary">Open Full About Page</a>
-					</div>
-				</div>
-			</div>
-		</section>
+        <section id="about" class="border-t border-gray-100 bg-linear-to-br from-white via-[#f7f9ff] to-white py-24 dark:border-gray-900 dark:from-[#060606] dark:via-[#0a0a12] dark:to-[#060606]">
+            <div class="mx-auto grid max-w-350 gap-10 px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-center">
+                <div class="relative">
+                    <img src="/adeyemi.jpg" alt="Adeyemi Adeniji portrait" class="h-90 w-full rounded-3xl object-cover shadow-2xl" />
+                    <div class="absolute -bottom-4 right-4 rounded-full border border-brandBlue bg-white px-4 py-2 text-[10px] font-bold tracking-widest text-brandBlue uppercase dark:bg-[#050505]">
+                        Builder + Writer
+                    </div>
+                </div>
+                <div>
+                    <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">About Adeyemi</p>
+                    <h3 class="mt-3 text-4xl font-bold tracking-tight uppercase md:text-5xl">Computer Science, Story, and Systems</h3>
+                    <p class="mt-5 max-w-3xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                        I build software systems, write deeply researched essays, and design explainable workflows where technical rigor and human clarity move together.
+                    </p>
+                    <div class="mt-8 grid gap-3 sm:grid-cols-3">
+                        <a href="https://linktr.ee/_adeyemiadeniji" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">Linktree</a>
+                        <a href="https://www.linkedin.com/in/adeyemi-adeniji-828204253/" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">LinkedIn</a>
+                        <a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-neutral rounded-xl">Email</a>
+                    </div>
+                    <div class="mt-6">
+                        <a href="/about" class="ui-btn ui-btn-primary">Open Full About Page</a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-		<Footer />
-		</main>
+        <Footer />
+        </main>
 
-		<div class="mobile-contact-chip md:hidden">
-			<a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-primary">Email</a>
-			<a href="https://linktr.ee/_adeyemiadeniji" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral">Linktree</a>
-		</div>
+        <div class="mobile-contact-chip md:hidden">
+            <a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-primary">Email</a>
+            <a href="https://linktr.ee/_adeyemiadeniji" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral">Linktree</a>
+        </div>
 
-		<div id="commandPalette" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="commandPaletteTitle" class="fixed inset-0 z-70 hidden items-start justify-center bg-black/70 p-6">
-			<div class="mt-24 w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-800 dark:bg-[#0c0c0c]">
-				<p id="commandPaletteTitle" class="text-xs font-bold tracking-[0.2em] text-gray-500 uppercase">Quick Command Palette</p>
-				<input id="commandInput" type="search" placeholder="Search: work, admin, articles, insights..." class="w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
-				<div id="commandResults" class="mt-3 space-y-2"></div>
-			</div>
-		</div>
+        <div id="commandPalette" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="commandPaletteTitle" class="fixed inset-0 z-70 hidden items-start justify-center bg-black/70 p-6">
+            <div class="mt-24 w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-800 dark:bg-[#0c0c0c]">
+                <p id="commandPaletteTitle" class="text-xs font-bold tracking-[0.2em] text-gray-500 uppercase">Quick Command Palette</p>
+                <input id="commandInput" type="search" placeholder="Search: work, admin, articles, insights..." class="w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
+                <div id="commandResults" class="mt-3 space-y-2"></div>
+            </div>
+        </div>
 
-		<script is:inline>
-			const commands = [
-				{ label: 'Open Work', href: '/work', keywords: 'experience projects skills' },
-				{ label: 'Open Articles', href: '/garden', keywords: 'garden posts writing' },
-				{ label: 'Open About', href: '/about', keywords: 'bio profile mission socials' },
-				{ label: 'Open QA Console', href: '/qa', keywords: 'quality assurance pre deploy checklist' },
-				{ label: 'Open Linktree', href: 'https://linktr.ee/_adeyemiadeniji', keywords: 'social links profiles ecosystem' },
-			];
+        <script is:inline>
+            const commands = [
+                { label: 'Open Work', href: '/work', keywords: 'experience projects skills' },
+                { label: 'Open Articles', href: '/garden', keywords: 'garden posts writing' },
+                { label: 'Open About', href: '/about', keywords: 'bio profile mission socials' },
+                { label: 'Open QA Console', href: '/qa', keywords: 'quality assurance pre deploy checklist' },
+                { label: 'Open Linktree', href: 'https://linktr.ee/_adeyemiadeniji', keywords: 'social links profiles ecosystem' },
+            ];
 
-			const themeToggle = document.getElementById('themeToggle');
-			if (themeToggle) {
-				themeToggle.addEventListener('click', () => {
-					const root = document.documentElement;
-					root.classList.toggle('dark');
-					localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
-				});
-			}
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const root = document.documentElement;
+                    root.classList.toggle('dark');
+                    localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+                });
+            }
 
-			const liveStatus = document.getElementById('liveStatus');
-			const setTime = () => {
-				const now = new Date();
-				const formatter = new Intl.DateTimeFormat('en-GB', {
-					timeZone: 'Africa/Lagos',
-					hour: '2-digit',
-					minute: '2-digit',
-					hour12: false,
-				});
-				if (liveStatus) liveStatus.textContent = `NIGERIA TIME: ${formatter.format(now)} WAT`;
-			};
-			setTime();
-			setInterval(setTime, 30000);
+            const liveStatus = document.getElementById('liveStatus');
+            const setTime = () => {
+                const now = new Date();
+                const formatter = new Intl.DateTimeFormat('en-GB', {
+                    timeZone: 'Africa/Lagos',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                });
+                if (liveStatus) liveStatus.textContent = `NIGERIA TIME: ${formatter.format(now)} WAT`;
+            };
+            setTime();
+            setInterval(setTime, 30000);
 
-			const loadTrendingPosts = async () => {
-				const container = document.getElementById('trendingPosts');
-				if (!container) return;
-				try {
-					const fetchPromise = fetch('/api/trending').then((r) => {
-						if (!r.ok) throw new Error('Failed');
-						return r.json();
-					});
-					const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
-					const payload = await Promise.race([fetchPromise, timeoutPromise]);
-					const trending = payload.trending || [];
-					if (!trending.length) {
-						container.innerHTML = '<p class="text-gray-500">No trending posts yet.</p>';
-						return;
-					}
-					container.innerHTML = trending
-						.map((post) => {
-							const title = String(post.slug || '')
-								.split('-')
-								.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-								.join(' ');
-							return `<a href="/garden/${post.slug}" class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800"><p class="text-[10px] tracking-widest text-gray-400 uppercase">Trending / ${post.views} views</p><h4 class="mt-2 text-lg font-bold">${title}</h4></a>`;
-						})
-						.join('');
-				} catch {
-					container.innerHTML = '<p class="text-gray-500">Unable to load trending posts.</p>';
-				}
-			};
-			loadTrendingPosts();
+            const loadTrendingPosts = async () => {
+                const container = document.getElementById('trendingPosts');
+                if (!container) return;
+                try {
+                    const fetchPromise = fetch('/api/trending').then((r) => {
+                        if (!r.ok) throw new Error('Failed');
+                        return r.json();
+                    });
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000));
+                    const payload = await Promise.race([fetchPromise, timeoutPromise]);
+                    const trending = payload.trending || [];
+                    if (!trending.length) {
+                        container.innerHTML = '<p class="text-gray-500">No trending posts yet.</p>';
+                        return;
+                    }
+                    container.innerHTML = trending
+                        .map((post) => {
+                            const title = String(post.slug || '')
+                                .split('-')
+                                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                                .join(' ');
+                            return `<a href="/garden/${post.slug}" class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800"><p class="text-[10px] tracking-widest text-gray-400 uppercase">Trending / ${post.views} views</p><h4 class="mt-2 text-lg font-bold">${title}</h4></a>`;
+                        })
+                        .join('');
+                } catch {
+                    container.innerHTML = '<p class="text-gray-500">Unable to load trending posts.</p>';
+                }
+            };
+            loadTrendingPosts();
 
-			const newsletterForm = document.getElementById('newsletterForm');
-			const newsletterStatus = document.getElementById('newsletterStatus');
-			const newsletterEmail = document.getElementById('newsletterEmail');
-			const supportEmail = 'danieladeniji001@gmail.com';
-			const parseJsonSafe = async (response) => {
-				try {
-					return await response.json();
-				} catch {
-					return {};
-				}
-			};
+            const newsletterForm = document.getElementById('newsletterForm');
+            const newsletterStatus = document.getElementById('newsletterStatus');
+            const newsletterEmail = document.getElementById('newsletterEmail');
+            const supportEmail = 'danieladeniji001@gmail.com';
+            const parseJsonSafe = async (response) => {
+                try {
+                    return await response.json();
+                } catch {
+                    return {};
+                }
+            };
 
-			newsletterForm?.addEventListener('submit', async (event) => {
-				event.preventDefault();
-				if (!(newsletterEmail instanceof HTMLInputElement)) return;
-				const email = newsletterEmail.value.trim();
-				if (!email) return;
-				const submitButton = newsletterForm.querySelector('button[type="submit"]');
+            newsletterForm?.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!(newsletterEmail instanceof HTMLInputElement)) return;
+                const email = newsletterEmail.value.trim();
+                if (!email) return;
+                const submitButton = newsletterForm.querySelector('button[type="submit"]');
 
-				if (newsletterStatus) newsletterStatus.textContent = 'Submitting...';
-				if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true;
+                if (newsletterStatus) newsletterStatus.textContent = 'Submitting...';
+                if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true;
 
-				try {
-					const response = await fetch('/api/newsletter', {
-						method: 'POST',
-						headers: { 'content-type': 'application/json' },
-						body: JSON.stringify({ email }),
-					});
-					const payload = await parseJsonSafe(response);
-					if (!response.ok) {
-						if (newsletterStatus) {
-							const contact = payload.contactEmail || supportEmail;
-							newsletterStatus.innerHTML = `${payload.error || 'Unable to subscribe right now.'} <a href="mailto:${contact}" class="font-semibold text-brandBlue underline underline-offset-4">Contact support</a>.`;
-						}
-						if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
-						return;
-					}
-					newsletterEmail.value = '';
-					if (newsletterStatus) newsletterStatus.textContent = payload.message || 'Subscription successful.';
-					if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
-				} catch {
-					if (newsletterStatus) {
-						newsletterStatus.innerHTML = `Unable to subscribe right now. <a href="mailto:${supportEmail}" class="font-semibold text-brandBlue underline underline-offset-4">Email us directly</a>.`;
-					}
-					if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
-				}
-			});
+                try {
+                    const response = await fetch('/api/newsletter', {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ email }),
+                    });
+                    const payload = await parseJsonSafe(response);
+                    if (!response.ok) {
+                        if (newsletterStatus) {
+                            const contact = payload.contactEmail || supportEmail;
+                            newsletterStatus.innerHTML = `${payload.error || 'Unable to subscribe right now.'} <a href="mailto:${contact}" class="font-semibold text-brandBlue underline underline-offset-4">Contact support</a>.`;
+                        }
+                        if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
+                        return;
+                    }
+                    newsletterEmail.value = '';
+                    if (newsletterStatus) newsletterStatus.textContent = payload.message || 'Subscription successful.';
+                    if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
+                } catch {
+                    if (newsletterStatus) {
+                        newsletterStatus.innerHTML = `Unable to subscribe right now. <a href="mailto:${supportEmail}" class="font-semibold text-brandBlue underline underline-offset-4">Email us directly</a>.`;
+                    }
+                    if (submitButton instanceof HTMLButtonElement) submitButton.disabled = false;
+                }
+            });
 
-			const palette = document.getElementById('commandPalette');
-			const input = document.getElementById('commandInput');
-			const results = document.getElementById('commandResults');
-			const openButton = document.getElementById('openPalette');
-			const mobileMenuToggle = document.getElementById('mobileMenuToggle');
-			const mobileMenu = document.getElementById('mobileMenu');
+            const palette = document.getElementById('commandPalette');
+            const input = document.getElementById('commandInput');
+            const results = document.getElementById('commandResults');
+            const openButton = document.getElementById('openPalette');
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
 
-			const initRevealAnimations = () => {
-				const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-				if (prefersReducedMotion) return;
-				const revealTargets = Array.from(document.querySelectorAll('main section, .ui-card, footer > div'));
-				revealTargets.forEach((node) => node.classList.add('reveal-up'));
-				const observer = new IntersectionObserver(
-					(entries) => {
-						entries.forEach((entry) => {
-							if (entry.isIntersecting) {
-								entry.target.classList.add('is-visible');
-								observer.unobserve(entry.target);
-							}
-						});
-					},
-					{ threshold: 0.14, rootMargin: '0px 0px -8% 0px' },
-				);
-				revealTargets.forEach((node) => observer.observe(node));
-			};
+            const initRevealAnimations = () => {
+                const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (prefersReducedMotion) return;
+                const revealTargets = Array.from(document.querySelectorAll('main section, .ui-card, footer > div'));
+                revealTargets.forEach((node) => node.classList.add('reveal-up'));
+                const observer = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('is-visible');
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    },
+                    { threshold: 0.14, rootMargin: '0px 0px -8% 0px' },
+                );
+                revealTargets.forEach((node) => observer.observe(node));
+            };
 
-			const renderResults = (query = '') => {
-				if (!results) return;
-				const q = query.trim().toLowerCase();
-				const filtered = commands.filter((command) => `${command.label} ${command.keywords}`.toLowerCase().includes(q));
-				results.innerHTML = filtered
-					.slice(0, 8)
-					.map((command) => `<a class="block rounded-lg border border-gray-200 px-4 py-3 text-sm transition hover:border-brandBlue dark:border-gray-700" href="${command.href}" ${command.href.startsWith('http') ? 'target="_blank" rel="noreferrer"' : ''}>${command.label}</a>`)
-					.join('');
-			};
+            const renderResults = (query = '') => {
+                if (!results) return;
+                const q = query.trim().toLowerCase();
+                const filtered = commands.filter((command) => `${command.label} ${command.keywords}`.toLowerCase().includes(q));
+                results.innerHTML = filtered
+                    .slice(0, 8)
+                    .map((command) => `<a class="block rounded-lg border border-gray-200 px-4 py-3 text-sm transition hover:border-brandBlue dark:border-gray-700" href="${command.href}" ${command.href.startsWith('http') ? 'target="_blank" rel="noreferrer"' : ''}>${command.label}</a>`)
+                    .join('');
+            };
 
-			const openPalette = () => {
-				if (!palette || !input) return;
-				palette.classList.remove('hidden');
-				palette.classList.add('flex');
-				palette.setAttribute('aria-hidden', 'false');
-				renderResults('');
-				input.focus();
-			};
+            const openPalette = () => {
+                if (!palette || !input) return;
+                palette.classList.remove('hidden');
+                palette.classList.add('flex');
+                palette.setAttribute('aria-hidden', 'false');
+                renderResults('');
+                input.focus();
+            };
 
-			const closePalette = () => {
-				if (!palette) return;
-				palette.classList.add('hidden');
-				palette.classList.remove('flex');
-				palette.setAttribute('aria-hidden', 'true');
-				openButton?.focus();
-			};
+            const closePalette = () => {
+                if (!palette) return;
+                palette.classList.add('hidden');
+                palette.classList.remove('flex');
+                palette.setAttribute('aria-hidden', 'true');
+                openButton?.focus();
+            };
 
-			openButton?.addEventListener('click', openPalette);
-			mobileMenuToggle?.addEventListener('click', () => {
-				if (!mobileMenu) return;
-				const isOpen = mobileMenu.classList.contains('grid');
-				mobileMenu.classList.toggle('hidden', isOpen);
-				mobileMenu.classList.toggle('grid', !isOpen);
-				mobileMenu.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
-				if (mobileMenuToggle instanceof HTMLButtonElement) {
-					mobileMenuToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
-				}
-			});
+            openButton?.addEventListener('click', openPalette);
+            mobileMenuToggle?.addEventListener('click', () => {
+                if (!mobileMenu) return;
+                const isOpen = mobileMenu.classList.contains('grid');
+                mobileMenu.classList.toggle('hidden', isOpen);
+                mobileMenu.classList.toggle('grid', !isOpen);
+                mobileMenu.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+                if (mobileMenuToggle instanceof HTMLButtonElement) {
+                    mobileMenuToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+                }
+            });
 
-			document.querySelectorAll('.mobile-nav-link').forEach((link) => {
-				link.addEventListener('click', () => {
-					if (!mobileMenu) return;
-					mobileMenu.classList.add('hidden');
-					mobileMenu.classList.remove('grid');
-					mobileMenu.setAttribute('aria-hidden', 'true');
-					if (mobileMenuToggle instanceof HTMLButtonElement) {
-						mobileMenuToggle.setAttribute('aria-expanded', 'false');
-					}
-				});
-			});
+            document.querySelectorAll('.mobile-nav-link').forEach((link) => {
+                link.addEventListener('click', () => {
+                    if (!mobileMenu) return;
+                    mobileMenu.classList.add('hidden');
+                    mobileMenu.classList.remove('grid');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    if (mobileMenuToggle instanceof HTMLButtonElement) {
+                        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
 
-			document.addEventListener('keydown', (event) => {
-				if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-					event.preventDefault();
-					openPalette();
-				}
-				if (event.key === 'Escape') {
-					closePalette();
-				}
-			});
+            document.addEventListener('keydown', (event) => {
+                if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+                    event.preventDefault();
+                    openPalette();
+                }
+                if (event.key === 'Escape') {
+                    closePalette();
+                }
+            });
 
-			input?.addEventListener('input', () => {
-				renderResults(input.value);
-			});
+            input?.addEventListener('input', () => {
+                renderResults(input.value);
+            });
 
-			palette?.addEventListener('click', (event) => {
-				if (event.target === palette) closePalette();
-			});
+            palette?.addEventListener('click', (event) => {
+                if (event.target === palette) closePalette();
+            });
 
-			initRevealAnimations();
-		</script>
-	</body>
+            initRevealAnimations();
+        </script>
+    </body>
 </html>
