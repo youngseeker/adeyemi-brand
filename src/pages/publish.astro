@@ -1,296 +1,200 @@
 ---
 import '../styles/global.css';
 
-const inferredVercelRepo = import.meta.env.VERCEL_GIT_REPO_OWNER && import.meta.env.VERCEL_GIT_REPO_SLUG
-	? `${import.meta.env.VERCEL_GIT_REPO_OWNER}/${import.meta.env.VERCEL_GIT_REPO_SLUG}`
-	: '';
-const keystaticRepo = import.meta.env.KEYSTATIC_GITHUB_REPO || inferredVercelRepo || 'youngseeker/afraid-antimatter';
-const isProduction = import.meta.env.PROD;
-const hasKeystaticRepo = Boolean(keystaticRepo && keystaticRepo.includes('/'));
-const hasKeystaticSecret = typeof import.meta.env.KEYSTATIC_SECRET === 'string' && import.meta.env.KEYSTATIC_SECRET.length >= 32;
-const hasKeystaticGithubClientId = Boolean(import.meta.env.KEYSTATIC_GITHUB_CLIENT_ID);
-const hasKeystaticGithubClientSecret = Boolean(import.meta.env.KEYSTATIC_GITHUB_CLIENT_SECRET);
-const missingKeystaticEnvVars = [
-	!hasKeystaticRepo ? 'KEYSTATIC_GITHUB_REPO (owner/repo)' : '',
-	!hasKeystaticSecret ? 'KEYSTATIC_SECRET (min 32 chars)' : '',
-	!hasKeystaticGithubClientId ? 'KEYSTATIC_GITHUB_CLIENT_ID' : '',
-	!hasKeystaticGithubClientSecret ? 'KEYSTATIC_GITHUB_CLIENT_SECRET' : '',
-].filter(Boolean);
-const keystaticGithubWriteReady = !isProduction || missingKeystaticEnvVars.length === 0;
-
 const workflow = [
-	['Create', 'Open Keystatic, create a post, and set the publishing status before writing deeply.'],
-	['Shape', 'Write the argument in sections: problem, tension, insight, examples, conclusion.'],
-	['Enrich', 'Add cover image, tags, footnotes, poll, newsletter CTA, and references where useful.'],
-	['Preview', 'Open the preview URL and inspect hierarchy, mobile layout, poll, links, and footnotes.'],
-	['Publish', 'Save the entry, verify the garden card, and monitor reviews, likes, and analytics.'],
+    ['Draft', 'Open VS Code and create a new .mdx file in your content folder.'],
+    ['Shape', 'Write the argument in sections: problem, tension, insight, examples, conclusion.'],
+    ['Enrich', 'Add cover image, tags, footnotes, and references to the frontmatter.'],
+    ['Preview', 'Open the local server preview to verify the hierarchy and mobile layout.'],
+    ['Publish', 'Commit to GitHub to trigger the Vercel production build.'],
 ];
 
 const contentBlocks = [
-	{ label: 'Poll', detail: 'Ask one sharp question with 3-5 clear options. Keep the note short.' },
-	{ label: 'Footnote', detail: 'Use for citations or side context. The article renders a clean footnote section.' },
-	{ label: 'Newsletter CTA', detail: 'Place after the strongest insight or near the end, not before trust is earned.' },
-	{ label: 'Image With Credit', detail: 'Use real explanatory visuals or intentional generated assets with credit.' },
+    { label: 'Footnote', detail: 'Use for citations or side context. The article renders a clean footnote section.' },
+    { label: 'Newsletter CTA', detail: 'Place after the strongest insight or near the end, not before trust is earned.' },
+    { label: 'Image With Credit', detail: 'Use real explanatory visuals or intentional generated assets with credit.' },
 ];
 
 const qualityChecks = [
-	'Title says the actual idea, not just the topic.',
-	'Excerpt explains the argument in one sentence.',
-	'Intro creates tension within the first few paragraphs.',
-	'Each H2 moves the argument forward.',
-	'Poll, footnotes, and newsletter form respond before publish.',
-	'Mobile article view has no text overlap or cramped controls.',
-	'Published article appears in /garden and related articles make sense.',
+    'Title says the actual idea, not just the topic.',
+    'Excerpt explains the argument in one sentence.',
+    'Intro creates tension within the first few paragraphs.',
+    'Each H2 moves the argument forward.',
+    'Mobile article view has no text overlap or cramped controls.',
+    'Published article appears in /garden and related articles make sense.',
 ];
 
 const topicAngles = [
-	'Learning debt in AI-assisted education',
-	'Attention as a systems-design problem',
-	'Human judgment boundaries in automated workflows',
-	'Why technical writing is product infrastructure',
-	'The trade-off between speed, trust, and explainability',
-	'How institutions adapt when information stops being scarce',
+    'Learning debt in AI-assisted education',
+    'Attention as a systems-design problem',
+    'Human judgment boundaries in automated workflows',
+    'Why technical writing is product infrastructure',
+    'The trade-off between speed, trust, and explainability',
+    'How institutions adapt when information stops being scarce',
 ];
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>CMS Publishing Cockpit | Adeyemi Adeniji</title>
-		<meta name="description" content="A focused CMS publishing cockpit for drafting, previewing, publishing, and validating articles." />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
-			rel="stylesheet"
-		/>
-		<script is:inline>
-			const theme = (() => {
-				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) return localStorage.getItem('theme');
-				if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
-				return 'light';
-			})();
-			document.documentElement.classList.toggle('dark', theme !== 'light');
-		</script>
-	</head>
-	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
-		<header class="border-b border-gray-200 dark:border-gray-800">
-			<nav class="mx-auto flex max-w-7xl flex-col items-stretch gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-				<a href="/" class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">A.ADENIJI</a>
-				<div class="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
-					<a href="/keystatic" data-astro-prefetch="false" class="bg-brandBlue px-4 py-3 text-center text-xs font-bold tracking-widest text-white uppercase sm:px-5 sm:py-2">Open Editor</a>
-					<a href="/garden" class="border border-gray-300 px-4 py-3 text-center text-xs font-bold tracking-widest uppercase transition hover:border-brandBlue hover:text-brandBlue sm:px-5 sm:py-2 dark:border-gray-700">View Garden</a>
-					<button id="themeToggle" type="button" aria-label="Toggle theme" class="border border-gray-300 px-4 py-3 text-xs font-bold tracking-widest uppercase sm:py-2 dark:border-gray-700">Theme</button>
-				</div>
-			</nav>
-		</header>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>MDX Publishing Cockpit | Adeyemi Adeniji</title>
+        <meta name="description" content="A focused MDX publishing cockpit for drafting, previewing, publishing, and validating articles." />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <script is:inline>
+            const theme = (() => {
+                if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) return localStorage.getItem('theme');
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+                return 'light';
+            })();
+            document.documentElement.classList.toggle('dark', theme !== 'light');
+        </script>
+    </head>
+    <body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+        <header class="border-b border-gray-200 dark:border-gray-800">
+            <nav class="mx-auto flex max-w-7xl flex-col items-stretch gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <a href="/" class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">A.ADENIJI</a>
+                <div class="grid gap-2 sm:flex sm:flex-wrap sm:items-center sm:justify-end">
+                    <a href="/garden" class="border border-gray-300 px-4 py-3 text-center text-xs font-bold tracking-widest uppercase transition hover:border-brandBlue hover:text-brandBlue sm:px-5 sm:py-2 dark:border-gray-700">View Garden</a>
+                    <button id="themeToggle" type="button" aria-label="Toggle theme" class="border border-gray-300 px-4 py-3 text-xs font-bold tracking-widest uppercase sm:py-2 dark:border-gray-700">Theme</button>
+                </div>
+            </nav>
+        </header>
 
-		<main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-			<section class="grid gap-8 border-b border-gray-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end dark:border-gray-800">
-				<div>
-					<p class="text-xs font-bold tracking-[0.3em] text-brandBlue uppercase">CMS Cockpit</p>
-					<h1 class="mt-3 max-w-4xl text-4xl font-bold leading-tight tracking-tight uppercase sm:text-5xl md:text-7xl">Publish with control.</h1>
-					<p class="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300">
-						A focused operating surface for turning drafts into clean article experiences: structure, preview, health, engagement, and launch checks in one place.
-					</p>
-				</div>
-				<section class="border border-gray-200 p-5 dark:border-gray-800" class:list={{ 'border-emerald-300 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/20': keystaticGithubWriteReady, 'border-rose-300 bg-rose-50/70 dark:border-rose-800 dark:bg-rose-950/20': !keystaticGithubWriteReady }}>
-					<p class="text-xs font-bold tracking-[0.22em] text-gray-500 uppercase">Commit Status</p>
-					<p class="mt-2 text-2xl font-bold">{keystaticGithubWriteReady ? 'Ready' : 'Needs Setup'}</p>
-					<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Repo: {keystaticRepo || 'not set'}</p>
-				</section>
-			</section>
+        <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+            <section class="grid gap-8 border-b border-gray-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end dark:border-gray-800">
+                <div>
+                    <p class="text-xs font-bold tracking-[0.3em] text-brandBlue uppercase">MDX Cockpit</p>
+                    <h1 class="mt-3 max-w-4xl text-4xl font-bold leading-tight tracking-tight uppercase sm:text-5xl md:text-7xl">Publish with control.</h1>
+                    <p class="mt-5 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300">
+                        A focused operating surface for turning local drafts into clean article experiences: structure, preview, health, engagement, and launch checks in one place.
+                    </p>
+                </div>
+            </section>
 
-			<div class="grid gap-8 py-8 sm:gap-10 sm:py-10 lg:grid-cols-[280px_minmax(0,1fr)]">
-				<aside class="lg:sticky lg:top-8 lg:h-fit">
-					<div class="border-l-2 border-brandBlue pl-5">
-						<p class="text-xs font-bold tracking-[0.22em] text-gray-400 uppercase">Next Action</p>
-						<p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Open the editor, draft, preview, validate interactions, then publish.</p>
-					</div>
-					<div class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:mt-8 lg:grid lg:overflow-visible lg:pb-0">
-						<a href="#workflow" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Workflow</a>
-						<a href="#preview" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Preview</a>
-						<a href="#components" class="shrink-0 text-sm font-bold text-gray-500 transition hover:text-brandBlue">Content Blocks</a>
-						<a href="#health" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Health</a>
-						<a href="#quality" class="shrink-0 text-sm font-bold text-gray-500 transition hover:text-brandBlue">Quality Gate</a>
-					</div>
-				</aside>
+            <div class="grid gap-8 py-8 sm:gap-10 sm:py-10 lg:grid-cols-[280px_minmax(0,1fr)]">
+                <aside class="lg:sticky lg:top-8 lg:h-fit">
+                    <div class="border-l-2 border-brandBlue pl-5">
+                        <p class="text-xs font-bold tracking-[0.22em] text-gray-400 uppercase">Next Action</p>
+                        <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">Open VS Code, draft, preview locally, validate interactions, then commit.</p>
+                    </div>
+                    <div class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:mt-8 lg:grid lg:overflow-visible lg:pb-0">
+                        <a href="#workflow" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Workflow</a>
+                        <a href="#preview" class="text-sm font-bold text-gray-500 transition hover:text-brandBlue">Preview</a>
+                        <a href="#components" class="shrink-0 text-sm font-bold text-gray-500 transition hover:text-brandBlue">Content Blocks</a>
+                        <a href="#quality" class="shrink-0 text-sm font-bold text-gray-500 transition hover:text-brandBlue">Quality Gate</a>
+                    </div>
+                </aside>
 
-				<div class="space-y-12">
-					<section id="workflow">
-						<div class="flex items-end justify-between gap-4 border-b border-gray-200 pb-4 dark:border-gray-800">
-							<div>
-								<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Flow</p>
-								<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Publishing Workflow</h2>
-							</div>
-						</div>
-						<div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-							{workflow.map(([title, detail], index) => (
-								<article class="border border-gray-200 p-4 dark:border-gray-800">
-									<p class="text-xs font-bold tracking-widest text-brandBlue uppercase">0{index + 1}</p>
-									<h3 class="mt-2 text-lg font-bold">{title}</h3>
-									<p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{detail}</p>
-								</article>
-							))}
-						</div>
-					</section>
+                <div class="space-y-12">
+                    <section id="workflow">
+                        <div class="flex items-end justify-between gap-4 border-b border-gray-200 pb-4 dark:border-gray-800">
+                            <div>
+                                <p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Flow</p>
+                                <h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Publishing Workflow</h2>
+                            </div>
+                        </div>
+                        <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                            {workflow.map(([title, detail], index) => (
+                                <article class="border border-gray-200 p-4 dark:border-gray-800">
+                                    <p class="text-xs font-bold tracking-widest text-brandBlue uppercase">0{index + 1}</p>
+                                    <h3 class="mt-2 text-lg font-bold">{title}</h3>
+                                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{detail}</p>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
 
-					<section id="preview" class="grid gap-5 border border-gray-200 p-5 md:grid-cols-[minmax(0,1fr)_220px] md:items-end dark:border-gray-800">
-						<div>
-							<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Preview</p>
-							<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Open a Draft Quickly</h2>
-							<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Paste a slug, title, or garden URL. The tool normalizes it into a secure preview route.</p>
-							<label for="previewSlugInput" class="sr-only">Article slug or title</label>
-							<input id="previewSlugInput" type="text" autocomplete="off" aria-label="Article slug or title" placeholder="e.g. the-outdated-os-trap" class="mt-4 w-full border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
-							<p id="previewStatus" role="status" aria-live="polite" class="mt-3 min-h-5 text-sm text-gray-500 dark:text-gray-300"></p>
-						</div>
-						<button id="openPreviewButton" type="button" aria-describedby="previewStatus" class="w-full bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase md:w-auto">Open Preview</button>
-					</section>
+                    <section id="preview" class="grid gap-5 border border-gray-200 p-5 md:grid-cols-[minmax(0,1fr)_220px] md:items-end dark:border-gray-800">
+                        <div>
+                            <p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Preview</p>
+                            <h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Open a Draft Quickly</h2>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Paste a slug, title, or garden URL. The tool normalizes it into a secure preview route.</p>
+                            <label for="previewSlugInput" class="sr-only">Article slug or title</label>
+                            <input id="previewSlugInput" type="text" autocomplete="off" aria-label="Article slug or title" placeholder="e.g. the-outdated-os-trap" class="mt-4 w-full border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
+                            <p id="previewStatus" role="status" aria-live="polite" class="mt-3 min-h-5 text-sm text-gray-500 dark:text-gray-300"></p>
+                        </div>
+                        <button id="openPreviewButton" type="button" aria-describedby="previewStatus" class="w-full bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase md:w-auto">Open Preview</button>
+                    </section>
 
-					<section id="components">
-						<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Blocks</p>
-						<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Article Components</h2>
-						<div class="mt-6 grid gap-4 md:grid-cols-2">
-							{contentBlocks.map((block) => (
-								<article class="border border-gray-200 p-5 dark:border-gray-800">
-									<h3 class="text-xl font-bold">{block.label}</h3>
-									<p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{block.detail}</p>
-								</article>
-							))}
-						</div>
-					</section>
+                    <section id="components">
+                        <p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Blocks</p>
+                        <h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Article Components</h2>
+                        <div class="mt-6 grid gap-4 md:grid-cols-2">
+                            {contentBlocks.map((block) => (
+                                <article class="border border-gray-200 p-5 dark:border-gray-800">
+                                    <h3 class="text-xl font-bold">{block.label}</h3>
+                                    <p class="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{block.detail}</p>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
 
-					<section id="health" class="border border-gray-200 p-5 dark:border-gray-800">
-						<div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-							<div>
-								<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">System</p>
-								<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">CMS Health</h2>
-								<p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Run this before publishing if saves, polls, reviews, or database-backed features feel unreliable.</p>
-							</div>
-							<button id="runCmsHealth" type="button" class="ui-btn ui-btn-neutral w-full md:w-auto">Run Health Check</button>
-						</div>
-						<p id="cmsHealthStatus" role="status" aria-live="polite" class="mt-4 text-sm text-gray-600 dark:text-gray-300"></p>
-						<div id="cmsHealthResults" aria-live="polite" class="mt-4 grid gap-2 md:grid-cols-2"></div>
-					</section>
+                    <section id="quality" class="grid gap-6 lg:grid-cols-2">
+                        <div>
+                            <p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Gate</p>
+                            <h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Before Publish</h2>
+                            <ul class="mt-5 grid gap-2 text-sm leading-6 text-gray-700 dark:text-gray-300">
+                                {qualityChecks.map((item) => <li>â€¢ {item}</li>)}
+                            </ul>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Angles</p>
+                            <h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Topic Bank</h2>
+                            <ul class="mt-5 grid gap-2 text-sm leading-6 text-gray-700 dark:text-gray-300">
+                                {topicAngles.map((item) => <li>â€¢ {item}</li>)}
+                            </ul>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
 
-					<section id="quality" class="grid gap-6 lg:grid-cols-2">
-						<div>
-							<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Gate</p>
-							<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Before Publish</h2>
-							<ul class="mt-5 grid gap-2 text-sm leading-6 text-gray-700 dark:text-gray-300">
-								{qualityChecks.map((item) => <li>• {item}</li>)}
-							</ul>
-						</div>
-						<div>
-							<p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Angles</p>
-							<h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Topic Bank</h2>
-							<ul class="mt-5 grid gap-2 text-sm leading-6 text-gray-700 dark:text-gray-300">
-								{topicAngles.map((item) => <li>• {item}</li>)}
-							</ul>
-						</div>
-					</section>
+        <script is:inline>
+            const themeToggle = document.getElementById('themeToggle');
+            themeToggle?.addEventListener('click', () => {
+                const root = document.documentElement;
+                root.classList.toggle('dark');
+                localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+            });
 
-					{isProduction && missingKeystaticEnvVars.length > 0 && (
-						<section class="border border-rose-300 bg-rose-50 p-5 dark:border-rose-800 dark:bg-rose-950/20">
-							<h2 class="text-xl font-bold uppercase">Missing Production Variables</h2>
-							<ul class="mt-3 grid gap-1 text-sm text-gray-700 dark:text-gray-300">
-								{missingKeystaticEnvVars.map((item) => <li>• {item}</li>)}
-							</ul>
-						</section>
-					)}
-				</div>
-			</div>
-		</main>
+            const slugInput = document.getElementById('previewSlugInput');
+            const openPreviewButton = document.getElementById('openPreviewButton');
+            const previewStatus = document.getElementById('previewStatus');
 
-		<script is:inline>
-			const themeToggle = document.getElementById('themeToggle');
-			themeToggle?.addEventListener('click', () => {
-				const root = document.documentElement;
-				root.classList.toggle('dark');
-				localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
-			});
+            const normalizeToSlug = (value) => {
+                const trimmed = String(value || '').trim();
+                if (!trimmed) return '';
+                if (trimmed.includes('/garden/')) {
+                    const match = trimmed.match(/\/garden\/([^?#/]+)/i);
+                    if (match?.[1]) return match[1].toLowerCase();
+                }
+                return trimmed.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+            };
 
-			const slugInput = document.getElementById('previewSlugInput');
-			const openPreviewButton = document.getElementById('openPreviewButton');
-			const previewStatus = document.getElementById('previewStatus');
-			const runCmsHealthButton = document.getElementById('runCmsHealth');
-			const cmsHealthStatus = document.getElementById('cmsHealthStatus');
-			const cmsHealthResults = document.getElementById('cmsHealthResults');
+            const openPreview = () => {
+                const rawValue = slugInput instanceof HTMLInputElement ? slugInput.value : '';
+                const slug = normalizeToSlug(rawValue);
+                if (!slug) {
+                    if (previewStatus) previewStatus.textContent = 'Enter a valid slug, title, or article URL first.';
+                    return;
+                }
+                const previewUrl = `/garden/${slug}?preview=1`;
+                if (previewStatus) previewStatus.textContent = `Opening ${previewUrl}`;
+                window.location.href = previewUrl;
+            };
 
-			const escapeHtml = (value) =>
-				String(value || '')
-					.replace(/&/g, '&amp;')
-					.replace(/</g, '&lt;')
-					.replace(/>/g, '&gt;')
-					.replace(/"/g, '&quot;')
-					.replace(/'/g, '&#39;');
-
-			const normalizeToSlug = (value) => {
-				const trimmed = String(value || '').trim();
-				if (!trimmed) return '';
-				if (trimmed.includes('/garden/')) {
-					const match = trimmed.match(/\/garden\/([^?#/]+)/i);
-					if (match?.[1]) return match[1].toLowerCase();
-				}
-				return trimmed.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-			};
-
-			const openPreview = () => {
-				const rawValue = slugInput instanceof HTMLInputElement ? slugInput.value : '';
-				const slug = normalizeToSlug(rawValue);
-				if (!slug) {
-					if (previewStatus) previewStatus.textContent = 'Enter a valid slug, title, or article URL first.';
-					return;
-				}
-				const previewUrl = `/garden/${slug}?preview=1`;
-				if (previewStatus) previewStatus.textContent = `Opening ${previewUrl}`;
-				window.location.href = previewUrl;
-			};
-
-			openPreviewButton?.addEventListener('click', openPreview);
-			slugInput?.addEventListener('keydown', (event) => {
-				if (event.key === 'Enter') {
-					event.preventDefault();
-					openPreview();
-				}
-			});
-
-			const renderHealthChecks = (payload) => {
-				if (!cmsHealthResults) return;
-				const checks = Array.isArray(payload?.checks) ? payload.checks : [];
-				if (checks.length === 0) {
-					cmsHealthResults.innerHTML = '<p class="text-sm text-gray-500 dark:text-gray-400">No health checks were returned.</p>';
-					return;
-				}
-				cmsHealthResults.innerHTML = checks
-					.map((check) => {
-						const ok = Boolean(check?.ok);
-						const label = escapeHtml(check?.label || 'Check');
-						const detail = escapeHtml(check?.detail || '');
-						const itemClass = ok ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30' : 'border-rose-200 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/30';
-						const badgeClass = ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300';
-						return `<article class="border p-3 ${itemClass}"><p class="text-sm font-bold ${badgeClass}">${ok ? 'PASS' : 'FAIL'} · ${label}</p><p class="mt-1 text-xs text-gray-700 dark:text-gray-300">${detail}</p></article>`;
-					})
-					.join('');
-			};
-
-			const runCmsHealthCheck = async () => {
-				if (cmsHealthStatus) cmsHealthStatus.textContent = 'Checking CMS health...';
-				try {
-					const response = await fetch('/api/admin/cms-health', { method: 'GET', headers: { accept: 'application/json' } });
-					const payload = await response.json();
-					if (!response.ok) throw new Error(payload?.error || 'Unable to run CMS health check.');
-					renderHealthChecks(payload);
-					if (cmsHealthStatus) {
-						cmsHealthStatus.textContent = payload?.isReady ? 'CMS is ready for publishing.' : 'CMS needs attention. Resolve the failing checks below.';
-					}
-				} catch (error) {
-					if (cmsHealthStatus) cmsHealthStatus.textContent = error instanceof Error ? error.message : 'CMS health check failed.';
-				}
-			};
-
-			runCmsHealthButton?.addEventListener('click', runCmsHealthCheck);
-			runCmsHealthCheck();
-		</script>
-	</body>
+            openPreviewButton?.addEventListener('click', openPreview);
+            slugInput?.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    openPreview();
+                }
+            });
+        </script>
+    </body>
 </html>

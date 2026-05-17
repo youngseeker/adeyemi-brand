@@ -9,196 +9,183 @@ import Footer from '../../components/Footer.astro';
 const rawPosts = await getCollection('posts');
 
 const prettyTitle = (value: string) =>
-	value
-		.split('-')
-		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-		.join(' ');
+    value
+        .split('-')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
 
 const derivePostTitle = (value: unknown, fallbackSlug: string) => {
-	if (typeof value === 'string' && value.trim()) return value.trim();
-	return prettyTitle(fallbackSlug);
-};
-
-const resolveImageSrc = (image: unknown): string | null => {
-	if (!image) return null;
-	if (typeof image === 'string') return image;
-	if (typeof image === 'object' && image !== null && 'src' in image) {
-		const src = (image as { src?: unknown }).src;
-		if (typeof src === 'string') return src;
-	}
-	return null;
+    if (typeof value === 'string' && value.trim()) return value.trim();
+    return prettyTitle(fallbackSlug);
 };
 
 const formatDate = (value: unknown): string => {
-	if (value instanceof Date && !Number.isNaN(value.getTime())) {
-		return value.toISOString().slice(0, 10);
-	}
-	if (typeof value === 'string') return value;
-	return '';
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return value.toISOString().slice(0, 10);
+    }
+    if (typeof value === 'string') return value;
+    return '';
 };
 
 const showPreview = isAdminAuthorized(Astro.request) || Boolean(import.meta.env.DEV);
 const posts = (
-	await Promise.all(
-		rawPosts.map(async ({ id, data, body }) => {
-			const readingMinutes = readingMinutesFromDocument(body);
-			return {
-				slug: id,
-				title: derivePostTitle(data.title, id),
-				excerpt: data.excerpt || 'Fresh ideas from the Digital Garden.',
-				coverImage: resolveImageSrc(data.coverImage),
-				status: data.status,
-				scheduledFor: data.scheduledFor,
-				publishedAt: formatDate(data.publishedAt),
-				author: data.author || 'Adeyemi Adeniji',
-				tags: data.tags || [],
-				readingLabel: formatReadingMinutes(readingMinutes),
-			};
-		}),
-	)
+    await Promise.all(
+        rawPosts.map(async (post) => {
+            const readingMinutes = readingMinutesFromDocument(post.body);
+            return {
+                slug: post.id,
+                title: derivePostTitle(post.data.title, post.id),
+                excerpt: post.data.excerpt || 'Fresh ideas from the Digital Garden.',
+                coverImage: post.data.coverImage || null,
+                status: post.data.status,
+                scheduledFor: post.data.scheduledFor,
+                publishedAt: formatDate(post.data.publishedAt),
+                author: post.data.author || 'Adeyemi Adeniji',
+                tags: post.data.tags || [],
+                readingLabel: formatReadingMinutes(readingMinutes),
+            };
+        }),
+    )
 )
-	.filter((post) => showPreview ||
-		isPubliclyVisiblePost({ status: post.status, scheduledFor: post.scheduledFor, publishedAt: post.publishedAt }),
-	)
-	.sort((a, b) => {
-		if (!a.publishedAt) return 1;
-		if (!b.publishedAt) return -1;
-		return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-	});
+    .filter((post) => showPreview ||
+        isPubliclyVisiblePost({ status: post.status, scheduledFor: post.scheduledFor, publishedAt: post.publishedAt }),
+    )
+    .sort((a, b) => {
+        if (!a.publishedAt) return 1;
+        if (!b.publishedAt) return -1;
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    });
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>Digital Garden | A.ADENIJI</title>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
-			rel="stylesheet"
-		/>
-		<script is:inline>
-			const theme = (() => {
-				if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-					return localStorage.getItem('theme');
-				}
-				if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-					return 'dark';
-				}
-				return 'light';
-			})();
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <title>Digital Garden | A.ADENIJI</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
+            rel="stylesheet"
+        />
+        <script is:inline>
+            const theme = (() => {
+                if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                    return localStorage.getItem('theme');
+                }
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    return 'dark';
+                }
+                return 'light';
+            })();
 
-			if (theme === 'light') {
-				document.documentElement.classList.remove('dark');
-			} else {
-				document.documentElement.classList.add('dark');
-			}
-		</script>
-	</head>
-	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
-		<main class="mx-auto max-w-6xl px-6 py-14">
-			<div class="flex flex-wrap items-center justify-between gap-4">
-				<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
-				<div class="flex items-center gap-3">
-					<a href="/keystatic" data-astro-prefetch="false" class="bg-brandBlue px-5 py-2 text-xs font-bold tracking-widest text-white uppercase">
-						New Entry +
-					</a>
-					<button
-						id="themeToggle"
-						type="button"
-						aria-label="Toggle theme"
-						class="flex h-10 w-10 items-center justify-center border border-gray-300 dark:border-gray-700"
-					>
-						<span class="text-xs font-bold uppercase dark:hidden">L</span>
-						<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
-					</button>
-				</div>
-			</div>
+            if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        </script>
+    </head>
+    <body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+        <main class="mx-auto max-w-6xl px-6 py-14">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
+                <div class="flex items-center gap-3">
+                    <button
+                        id="themeToggle"
+                        type="button"
+                        aria-label="Toggle theme"
+                        class="flex h-10 w-10 items-center justify-center border border-gray-300 dark:border-gray-700"
+                    >
+                        <span class="text-xs font-bold uppercase dark:hidden">L</span>
+                        <span class="hidden text-xs font-bold uppercase dark:inline">D</span>
+                    </button>
+                </div>
+            </div>
 
-			<div class="mt-10 flex flex-wrap items-end justify-between gap-6 border-b border-gray-200 pb-6 dark:border-gray-800">
-				<div>
-					<p class="text-xs font-bold tracking-[0.25em] text-gray-400 uppercase">Archive</p>
-					<h1 class="mt-2 text-4xl font-bold tracking-tight uppercase md:text-6xl">Digital Garden</h1>
-				</div>
-				<input
-					id="gardenSearch"
-					type="search"
-					placeholder="Search by title or excerpt"
-					class="w-full max-w-sm border border-gray-300 bg-transparent px-5 py-3 text-sm tracking-wide focus:border-brandBlue focus:outline-none dark:border-gray-700"
-				/>
-			</div>
+            <div class="mt-10 flex flex-wrap items-end justify-between gap-6 border-b border-gray-200 pb-6 dark:border-gray-800">
+                <div>
+                    <p class="text-xs font-bold tracking-[0.25em] text-gray-400 uppercase">Archive</p>
+                    <h1 class="mt-2 text-4xl font-bold tracking-tight uppercase md:text-6xl">Digital Garden</h1>
+                </div>
+                <input
+                    id="gardenSearch"
+                    type="search"
+                    placeholder="Search by title or excerpt"
+                    class="w-full max-w-sm border border-gray-300 bg-transparent px-5 py-3 text-sm tracking-wide focus:border-brandBlue focus:outline-none dark:border-gray-700"
+                />
+            </div>
 
-			{posts.length > 0 ? (
-				<div id="gardenGrid" class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-					{posts.map((post) => (
-						<a
-							href={`/garden/${post.slug}`}
-							class="garden-card group block border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800"
-							data-search={`${post.title.toLowerCase()} ${post.excerpt.toLowerCase()} ${post.tags.join(' ').toLowerCase()}`}
-						>
-							<div class="mb-4 aspect-16/10 overflow-hidden border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-900">
-								{post.coverImage ? (
-									<img src={post.coverImage} alt={post.title} class="h-full w-full object-cover" loading="lazy" />
-								) : (
-									<div class="flex h-full items-center justify-center text-xs tracking-widest text-gray-400 uppercase">No Cover Image</div>
-								)}
-							</div>
-							<p class="text-[10px] tracking-widest text-gray-400 uppercase">
-								{post.publishedAt ? `Digital Garden / ${post.publishedAt}` : 'Digital Garden'}
-							</p>
-							<p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
-							<h2 class="mt-4 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h2>
-							<p class="mt-3 text-gray-600 dark:text-gray-300">{post.excerpt}</p>
-							<div class="mt-4 flex items-center justify-between">
-								<p class="text-xs text-gray-500 dark:text-gray-500">by {post.author}</p>
-								{post.tags && post.tags.length > 0 && (
-									<div class="flex flex-wrap gap-1 justify-end">
-										{post.tags.slice(0, 2).map((tag) => (
-											<span class="border border-gray-300 px-2 py-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
-												{tag}
-											</span>
-										))}
-										{post.tags.length > 2 && <span class="text-xs text-gray-400">+{post.tags.length - 2}</span>}
-									</div>
-								)}
-							</div>
-						</a>
-					))}
-				</div>
-			) : (
-				<div class="mt-12 border border-dashed border-gray-300 p-10 text-center dark:border-gray-700">
-					<p class="text-lg text-gray-600 dark:text-gray-300">
-						No entries yet. Create your first post in Keystatic and it will appear here.
-					</p>
-				</div>
-			)}
-		</main>
+            {posts.length > 0 ? (
+                <div id="gardenGrid" class="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {posts.map((post) => (
+                        <a
+                            href={`/garden/${post.slug}`}
+                            class="garden-card group block border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800"
+                            data-search={`${post.title.toLowerCase()} ${post.excerpt.toLowerCase()} ${post.tags.join(' ').toLowerCase()}`}
+                        >
+                            <div class="mb-4 aspect-16/10 overflow-hidden border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-900">
+                                {post.coverImage ? (
+                                    <img src={post.coverImage} alt={post.title} class="h-full w-full object-cover" loading="lazy" />
+                                ) : (
+                                    <div class="flex h-full items-center justify-center text-xs tracking-widest text-gray-400 uppercase">No Cover Image</div>
+                                )}
+                            </div>
+                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">
+                                {post.publishedAt ? `Digital Garden / ${post.publishedAt}` : 'Digital Garden'}
+                            </p>
+                            <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
+                            <h2 class="mt-4 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h2>
+                            <p class="mt-3 text-gray-600 dark:text-gray-300">{post.excerpt}</p>
+                            <div class="mt-4 flex items-center justify-between">
+                                <p class="text-xs text-gray-500 dark:text-gray-500">by {post.author}</p>
+                                {post.tags && post.tags.length > 0 && (
+                                    <div class="flex flex-wrap gap-1 justify-end">
+                                        {post.tags.slice(0, 2).map((tag) => (
+                                            <span class="border border-gray-300 px-2 py-1 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+                                                {tag}
+                                            </span>
+                                        ))}
+                                        {post.tags.length > 2 && <span class="text-xs text-gray-400">+{post.tags.length - 2}</span>}
+                                    </div>
+                                )}
+                            </div>
+                        </a>
+                    ))}
+                </div>
+            ) : (
+                <div class="mt-12 border border-dashed border-gray-300 p-10 text-center dark:border-gray-700">
+                    <p class="text-lg text-gray-600 dark:text-gray-300">
+                        No entries yet. Add your first Markdown file in the content folder and it will appear here.
+                    </p>
+                </div>
+            )}
+        </main>
 
-		<Footer />
+        <Footer />
 
-		<script is:inline>
-			const themeToggle = document.getElementById('themeToggle');
-			if (themeToggle) {
-				themeToggle.addEventListener('click', () => {
-					const element = document.documentElement;
-					element.classList.toggle('dark');
-					const isDark = element.classList.contains('dark');
-					localStorage.setItem('theme', isDark ? 'dark' : 'light');
-				});
-			}
+        <script is:inline>
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const element = document.documentElement;
+                    element.classList.toggle('dark');
+                    const isDark = element.classList.contains('dark');
+                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                });
+            }
 
-			const input = document.getElementById('gardenSearch');
-			const cards = Array.from(document.querySelectorAll('.garden-card'));
+            const input = document.getElementById('gardenSearch');
+            const cards = Array.from(document.querySelectorAll('.garden-card'));
 
-			if (input && cards.length > 0) {
-				input.addEventListener('input', () => {
-					const query = input.value.trim().toLowerCase();
-					cards.forEach((card) => {
-						const text = card.getAttribute('data-search') || '';
-						card.classList.toggle('hidden', query.length > 0 && !text.includes(query));
-					});
-				});
-			}
-		</script>
-	</body>
+            if (input && cards.length > 0) {
+                input.addEventListener('input', () => {
+                    const query = input.value.trim().toLowerCase();
+                    cards.forEach((card) => {
+                        const text = card.getAttribute('data-search') || '';
+                        card.classList.toggle('hidden', query.length > 0 && !text.includes(query));
+                    });
+                });
+            }
+        </script>
+    </body>
 </html>
