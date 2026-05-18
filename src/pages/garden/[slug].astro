@@ -2,7 +2,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { getCollection, render } from 'astro:content';
 import Footer from '../../components/Footer.astro';
-import PollHandler from '../../components/PollHandler.astro';
 import { formatReadingMinutes, readingMinutesFromDocument } from '../../lib/readingTime';
 import { isPubliclyVisiblePost } from '../../lib/postVisibility';
 import { getIpHash, getPollResults } from '../../lib/polls';
@@ -40,6 +39,55 @@ const formatDate = (value: unknown): string => {
     return '';
 };
 
+type PollDefinition = {
+    key: string;
+    question: string;
+    options: string[];
+};
+
+const slugifyValue = (value: string) =>
+    value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+
+const parsePollDefinitions = (body: string): PollDefinition[] => {
+    if (!body) return [];
+    const commentPattern = /\{\/\*\s*POLL:\s*([\s\S]*?)\*\/\}/gi;
+    const matches = Array.from(body.matchAll(commentPattern));
+    return matches
+        .map((match, index) => {
+            const raw = (match[1] || '').trim();
+            if (!raw) return null;
+            const lines = raw
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter(Boolean);
+            if (!lines.length) return null;
+
+            const questionLine = lines[0].replace(/^POLL:\s*/i, '').trim();
+            const optionsLine = lines.find((line) => /^options?:/i.test(line));
+            const options = optionsLine
+                ? optionsLine
+                    .replace(/^options?:\s*/i, '')
+                    .split(',')
+                    .map((option) => option.trim())
+                    .filter(Boolean)
+                : [];
+
+            if (!questionLine || options.length < 2) return null;
+            return {
+                key: `poll-${slugifyValue(questionLine).slice(0, 48) || index + 1}`,
+                question: questionLine,
+                options,
+            };
+        })
+        .filter((item): item is PollDefinition => Boolean(item));
+};
+
 const rawPosts = await getCollection('posts');
 const post = slug ? rawPosts.find((entry) => entry.id === slug) ?? null : null;
 const previewRequested = Astro.url.searchParams.get('preview') === '1';
@@ -74,8 +122,7 @@ const title = derivePostTitle(post?.data.title, slug);
 const { Content, headings } = post ? await render(post) : { Content: null, headings: [] };
 
 const articleHeadings = headings || [];
-const pollDefinitions = [];
-const footnotes = [];
+const pollDefinitions = parsePollDefinitions(post?.body || '');
 
 const pollVisitorCookie = 'poll_visitor_id';
 const existingPollVisitorId = Astro.cookies.get(pollVisitorCookie)?.value;
@@ -132,7 +179,7 @@ const relatedPosts = relatedCandidates
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <title>{isUnpublishedPreview ? `[Preview] ${title}` : title} | A.ADENIJI</title>
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
@@ -163,7 +210,7 @@ const relatedPosts = relatedCandidates
         <div class="fixed top-0 left-0 z-50 h-1 w-full bg-transparent">
             <div id="readingProgressBar" class="h-full w-0 bg-brandBlue transition-[width] duration-150"></div>
         </div>
-        <main class="mx-auto max-w-295 px-4 py-7 sm:px-8 sm:py-12">
+        <main class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-12">
             {isUnpublishedPreview && (
                 <div class="mb-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
                     Preview mode: this post is not publicly visible yet.
@@ -171,8 +218,8 @@ const relatedPosts = relatedCandidates
             )}
             <div class="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,740px)_300px] lg:justify-center lg:gap-16">
                 <div>
-            <nav class="mx-auto flex max-w-295 items-center justify-between border-b border-gray-200 pb-5 dark:border-gray-800">
-                <div class="flex items-center gap-4 text-[10px] font-bold tracking-[0.18em] uppercase">
+            <nav class="mx-auto flex max-w-6xl items-center justify-between border-b border-gray-200 pb-5 dark:border-gray-800">
+                <div class="hidden items-center gap-4 text-[10px] font-bold tracking-[0.18em] uppercase md:flex">
                     <a href="/" class="transition hover:text-brandBlue">Home</a>
                     <a href="/work" class="transition hover:text-brandBlue">Work</a>
                     <a href="/garden" class="transition hover:text-brandBlue">Articles</a>
@@ -191,18 +238,19 @@ const relatedPosts = relatedCandidates
                     </button>
                 </div>
             </nav>
-            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-295 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
+            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-6xl gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
                 <a href="/work" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Work</a>
                 <a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
                 <a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>
                 <a href="/about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
             </div>
             <header class="pt-8 sm:pt-10">
-                <h1 class="max-w-[13ch] text-3xl font-bold leading-[1.08] tracking-tight sm:max-w-[11ch] sm:text-5xl md:text-6xl">{title}</h1>
+                <h1 class="max-w-none text-3xl font-bold leading-[1.08] tracking-tight sm:max-w-[11ch] sm:text-5xl md:text-6xl">{title}</h1>
                 <div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-gray-200 py-3 text-[11px] font-bold tracking-[0.18em] text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
                     {post?.data.author && <span>Written by {post.data.author}</span>}
                     {post?.data.publishedAt && <span>{formatDate(post.data.publishedAt)}</span>}
                     <span>{readingLabel}</span>
+                    <span id="articleViewsLabel">Views loading...</span>
                 </div>
                 {post?.data.tags && post.data.tags.length > 0 && (
                     <div class="mt-4 flex flex-wrap gap-2">
@@ -233,9 +281,9 @@ const relatedPosts = relatedCandidates
             )}
 
             {articleHeadings.length > 0 && (
-                <nav class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Article sections">
+                <nav class="mt-6 flex flex-wrap gap-2 pb-1 lg:hidden" aria-label="Article sections">
                     {articleHeadings.map((heading) => (
-                        <a href={`#${heading.slug}`} class="shrink-0 border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 transition hover:border-brandBlue hover:text-brandBlue dark:border-gray-700 dark:bg-black dark:text-gray-300">
+                        <a href={`#${heading.slug}`} class="max-w-full border border-gray-200 bg-white px-3 py-1 text-xs leading-5 text-gray-600 transition hover:border-brandBlue hover:text-brandBlue dark:border-gray-700 dark:bg-black dark:text-gray-300">
                             {heading.text}
                         </a>
                     ))}
@@ -244,7 +292,7 @@ const relatedPosts = relatedCandidates
 
             <div class="article-reading-surface mt-10 sm:mt-12">
                 {Content ? (
-                    <div class="article-content text-base leading-8 text-gray-800 sm:text-[1.08rem] dark:text-gray-200">
+                    <div class="article-content text-[1.08rem] leading-[1.95] text-gray-800 dark:text-gray-200 sm:text-[1.12rem]">
                         <Content />
                     </div>
                 ) : (
@@ -255,6 +303,47 @@ const relatedPosts = relatedCandidates
             </div>
 
             {pollDefinitions.length > 0 && (
+                <section class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
+                    <p class="text-[11px] font-bold tracking-[0.22em] text-brandBlue uppercase">Quick Poll</p>
+                    <div class="mt-4 space-y-5">
+                        {pollDefinitions.map((poll) => (
+                            <article class="article-poll border border-gray-200 p-4 dark:border-gray-700" data-poll-key={poll.key}>
+                                <h3 class="text-lg font-bold">{poll.question}</h3>
+                                <div class="mt-3 grid gap-2" data-poll-options-list>
+                                    {poll.options.map((option, optionIndex) => (
+                                        <button
+                                            type="button"
+                                            class="flex w-full items-center justify-between border border-gray-300 px-3 py-2 text-left text-sm transition hover:border-brandBlue dark:border-gray-700"
+                                            data-poll-vote
+                                            data-poll-option-index={optionIndex}
+                                            aria-pressed="false"
+                                        >
+                                            <span>{option}</span>
+                                            <span data-poll-action-label class="text-xs font-semibold text-gray-500">Vote</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div class="mt-4 space-y-2" data-poll-results>
+                                    {poll.options.map((option) => (
+                                        <div data-poll-result-row class="space-y-1">
+                                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                                <span>{option}</span>
+                                                <span data-poll-result-label>0% - 0</span>
+                                            </div>
+                                            <div class="h-1.5 w-full bg-gray-200 dark:bg-gray-800">
+                                                <div data-poll-result-bar class="h-full w-0 bg-brandBlue"></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p data-poll-status class="mt-3 text-sm text-gray-500 dark:text-gray-300">Cast a vote to see results.</p>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {pollDefinitions.length > 0 && (
                 <script type="application/json" id="pollDefinitions">{JSON.stringify(pollDefinitions)}</script>
             )}
             <script type="application/json" id="pollResults">{JSON.stringify(pollState)}</script>
@@ -263,8 +352,17 @@ const relatedPosts = relatedCandidates
                 const pollArticleSlug = document.body.dataset.slug || '';
                 const pollDefinitionsElement = document.getElementById('pollDefinitions');
                 const pollResultsElement = document.getElementById('pollResults');
-                const pollDefinitions = pollDefinitionsElement ? JSON.parse(pollDefinitionsElement.textContent || '[]') : [];
-                const initialPollResults = pollResultsElement ? JSON.parse(pollResultsElement.textContent || '{"enabled":false,"results":[]}') : { enabled: false, results: [] };
+                const parseScriptJson = (element, fallback) => {
+                    if (!element) return fallback;
+                    try {
+                        const raw = element.textContent || '';
+                        return raw.trim() ? JSON.parse(raw) : fallback;
+                    } catch {
+                        return fallback;
+                    }
+                };
+                const pollDefinitions = parseScriptJson(pollDefinitionsElement, []);
+                const initialPollResults = parseScriptJson(pollResultsElement, { enabled: false, results: [] });
                 const pollResultMap = new Map((initialPollResults.results || []).map((result) => [result.pollKey, result]));
                 const localPollPrefix = `poll-vote:${pollArticleSlug}:`;
                 const safeParseJson = async (response) => {
@@ -346,7 +444,7 @@ const relatedPosts = relatedCandidates
                         const percent = total > 0 ? count / total : 0;
                         const label = row.querySelector('[data-poll-result-label]');
                         const bar = row.querySelector('[data-poll-result-bar]');
-                        if (label) label.textContent = `${formatPercent(percent)} Â· ${count}`;
+                        if (label) label.textContent = `${formatPercent(percent)} - ${count}`;
                         if (bar) bar.style.width = `${Math.max(0, Math.min(100, percent * 100))}%`;
                         row.classList.toggle('ring-1', selectedIndex === index);
                         row.classList.toggle('ring-brandBlue', selectedIndex === index);
@@ -462,19 +560,19 @@ const relatedPosts = relatedCandidates
                 });
             </script>
 
-            <section class="mt-14 border-t border-gray-200 pt-8 dark:border-gray-800">
+            <section class="mt-14 border-t border-gray-200 pt-8 dark:border-gray-800" id="comments">
                 <p class="text-[11px] font-bold tracking-[0.22em] text-brandBlue uppercase">Reader Review</p>
                 <h2 class="mt-2 text-2xl font-bold">Score this essay</h2>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Reviews enter moderation before public display.</p>
-                <form id="reviewForm" class="mt-5 space-y-3">
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Reviews publish immediately and support threaded replies.</p>
+                <form id="reviewForm" class="mt-5 space-y-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black">
                     <div class="grid gap-3 sm:grid-cols-2">
                             <div>
                                 <label for="reviewName" class="sr-only">Your name</label>
-                                <input id="reviewName" type="text" placeholder="Your name" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" />
+                                <input id="reviewName" type="text" placeholder="Your name" class="w-full border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" />
                             </div>
                             <div>
                                 <label for="reviewRating" class="sr-only">Rating</label>
-                                <select id="reviewRating" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" required>
+                                <select id="reviewRating" class="w-full border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" required>
                             <option value="">Rating</option>
                             <option value="5">5 - Excellent</option>
                             <option value="4">4 - Great</option>
@@ -567,6 +665,7 @@ const relatedPosts = relatedCandidates
             const likeButton = document.getElementById('likeButton');
             const likeCount = document.getElementById('likeCount');
             const reactionStatus = document.getElementById('reactionStatus');
+            const articleViewsLabel = document.getElementById('articleViewsLabel');
 
             const slugifyHeading = (value) =>
                 String(value || '')
@@ -664,6 +763,40 @@ const relatedPosts = relatedCandidates
                 });
             };
 
+            const normalizeFootnotePlacement = () => {
+                const isStandaloneRefParagraph = (paragraph) => {
+                    if (!(paragraph instanceof HTMLParagraphElement)) return false;
+                    const hasReference = paragraph.querySelector('.article-footnote-inline, .article-footnote-ref, sup, a[href^="#fn"]');
+                    if (!hasReference) return false;
+                    const cleanedText = (paragraph.textContent || '').replace(/\s+/g, ' ').trim();
+                    return cleanedText.length <= 4;
+                };
+
+                document.querySelectorAll('.article-content p').forEach((paragraph) => {
+                    if (!isStandaloneRefParagraph(paragraph)) return;
+                    const previous = paragraph.previousElementSibling;
+                    if (!(previous instanceof HTMLParagraphElement)) return;
+
+                    const referenceNode = paragraph.querySelector('.article-footnote-inline, .article-footnote-ref, sup, a[href^="#fn"]');
+                    if (!referenceNode) return;
+
+                    const trailingNode = previous.lastChild;
+                    if (trailingNode && trailingNode.nodeType === Node.TEXT_NODE) {
+                        trailingNode.textContent = (trailingNode.textContent || '').replace(/\s+$/g, '');
+                    }
+
+                    previous.appendChild(referenceNode);
+                    paragraph.remove();
+                });
+
+                document.querySelectorAll('.article-content .article-footnote-inline').forEach((node) => {
+                    const previous = node.previousSibling;
+                    if (previous && previous.nodeType === Node.TEXT_NODE) {
+                        previous.textContent = (previous.textContent || '').replace(/\s+$/g, '');
+                    }
+                });
+            };
+
             const updateReadingProgress = () => {
                 const bar = document.getElementById('readingProgressBar');
                 if (!bar) return;
@@ -746,12 +879,85 @@ const relatedPosts = relatedCandidates
                     approvedReviews.innerHTML = '<p class="text-gray-500">No approved reviews yet.</p>';
                     return;
                 }
-                approvedReviews.innerHTML = items
-                    .map(
-                        (item) =>
-                            `<article class="border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-black"><p class="text-sm font-bold">${escapeHtml(item.name)} / ${'â˜…'.repeat(Number(item.rating || 0))}</p><p class="mt-2">${escapeHtml(item.comment)}</p></article>`,
-                    )
-                    .join('');
+
+                // Build a parent -> children map so we can render threaded replies
+                const byId = new Map();
+                items.forEach((it) => byId.set(String(it.id), { ...it, children: [] }));
+                const roots = [];
+                items.forEach((it) => {
+                    const id = String(it.id);
+                    const parent = it.parentId ? String(it.parentId) : null;
+                    if (parent && byId.has(parent)) {
+                        byId.get(parent).children.push(byId.get(id));
+                    } else {
+                        roots.push(byId.get(id));
+                    }
+                });
+
+                const renderItem = (item, depth = 0) => {
+                    const indent = depth * 12;
+                    const header = `<p class="text-sm font-bold">${escapeHtml(item.name)} / ${'★'.repeat(Number(item.rating || 0))}</p>`;
+                    const body = `<p class="mt-2">${escapeHtml(item.comment)}</p>`;
+                    const replyBtn = `<button data-review-id="${escapeHtml(item.id)}" class="reply-btn mt-3 text-xs font-semibold text-brandBlue">Reply</button>`;
+                    const reactionsHtml = `<div class="mt-3 flex items-center gap-2 comment-reactions" data-comment-id="${escapeHtml(item.id)}"><button data-reaction="like" class="reaction-btn rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold dark:border-gray-700">Like</button><span class="reaction-count text-xs text-gray-500" data-reaction-type="like">${(item.reactions && item.reactions.like) || 0}</span></div>`;
+                    const childHtml = (item.children || []).map((c) => renderItem(c, depth + 1)).join('');
+                    // include a hidden inline reply form container
+                    const replyForm = `<form class="inline-reply-form mt-3 hidden grid gap-2 sm:grid-cols-[1fr_2fr_auto]" data-parent-id="${escapeHtml(item.id)}"><input name="replyName" placeholder="Your name" class="border px-3 py-2 text-sm dark:border-gray-700 dark:bg-transparent" /><input name="replyComment" placeholder="Reply" class="border px-3 py-2 text-sm dark:border-gray-700 dark:bg-transparent" /><button class="ui-btn ui-btn-primary text-xs">Send</button></form>`;
+                    return `<article style="margin-left:${indent}px" class="border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-black">${header}${body}${reactionsHtml}${replyBtn}${replyForm}${childHtml}</article>`;
+                };
+
+                approvedReviews.innerHTML = roots.map((r) => renderItem(r)).join('');
+
+                // Attach reply handlers and reaction handlers
+                approvedReviews.querySelectorAll('.reply-btn').forEach((btn) => {
+                    btn.addEventListener('click', (e) => {
+                        const id = btn.getAttribute('data-review-id');
+                        const form = approvedReviews.querySelector(`.inline-reply-form[data-parent-id="${id}"]`);
+                        if (!form) return;
+                        form.classList.toggle('hidden');
+                    });
+                });
+
+                approvedReviews.querySelectorAll('.inline-reply-form').forEach((form) => {
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const parentId = form.getAttribute('data-parent-id');
+                        const name = (form.querySelector('input[name="replyName"]') || { value: 'Anonymous' }).value || 'Anonymous';
+                        const comment = (form.querySelector('input[name="replyComment"]') || { value: '' }).value || '';
+                        if (!comment) return alert('Please enter a reply');
+                        try {
+                            const resp = await fetch('/api/feedback', {
+                                method: 'POST',
+                                headers: { 'content-type': 'application/json' },
+                                body: JSON.stringify({ slug: articleSlug, title: articleTitle, name, rating: 1, comment, parentId }),
+                            });
+                            if (!resp.ok) throw new Error('Reply failed');
+                            await loadApprovedReviews();
+                        } catch (err) {
+                            alert('Unable to post reply. Please try again later.');
+                        }
+                    });
+                });
+
+                // Reaction handlers
+                approvedReviews.querySelectorAll('.reaction-btn').forEach((btn) => {
+                    btn.addEventListener('click', async (e) => {
+                        const commentId = btn.closest('.comment-reactions')?.getAttribute('data-comment-id');
+                        const type = btn.getAttribute('data-reaction') || 'like';
+                        if (!commentId) return;
+                        try {
+                            const resp = await fetch('/api/comment-reactions', {
+                                method: 'POST',
+                                headers: { 'content-type': 'application/json' },
+                                body: JSON.stringify({ commentId, type }),
+                            });
+                            if (!resp.ok) throw new Error('Reaction failed');
+                            await loadApprovedReviews();
+                        } catch (err) {
+                            console.error(err);
+                        }
+                    });
+                });
             };
 
             reviewForm?.addEventListener('submit', async (event) => {
@@ -781,19 +987,52 @@ const relatedPosts = relatedCandidates
                     return;
                 }
 
+                let payload = {};
+                try {
+                    payload = await response.json();
+                } catch {
+                    payload = {};
+                }
+
                 if (reviewStatus) {
-                    reviewStatus.textContent = 'Thank you. Your review is submitted for moderation.';
+                    const status = payload?.item?.status;
+                    reviewStatus.textContent = status === 'approved'
+                        ? 'Thanks. Your comment is now live.'
+                        : 'Thanks. Your comment was saved.';
                 }
                 reviewForm.reset();
+                await loadApprovedReviews();
             });
 
             const trackView = async () => {
                 if (!articleSlug) return;
-                await fetch('/api/analytics', {
+                const response = await fetch('/api/analytics', {
                     method: 'POST',
                     headers: { 'content-type': 'application/json' },
                     body: JSON.stringify({ slug: articleSlug }),
                 });
+                try {
+                    const payload = await response.json();
+                    if (articleViewsLabel && typeof payload.views === 'number') {
+                        articleViewsLabel.textContent = `${payload.views} view${payload.views === 1 ? '' : 's'}`;
+                    }
+                } catch {
+                    if (articleViewsLabel) articleViewsLabel.textContent = 'Views unavailable';
+                }
+            };
+
+            const loadViews = async () => {
+                if (!articleSlug || !articleViewsLabel) return;
+                try {
+                    const response = await fetch(`/api/analytics`);
+                    if (!response.ok) throw new Error('unavailable');
+                    const payload = await response.json();
+                    const found = Array.isArray(payload.viewsBySlug) ? payload.viewsBySlug.find((entry) => entry.slug === articleSlug) : null;
+                    const count = Number(found?.views || 0);
+                    articleViewsLabel.textContent = `${count} view${count === 1 ? '' : 's'}`;
+                } catch {
+                    articleViewsLabel.textContent = 'Views unavailable';
+                }
             };
 
             const loadReactions = async () => {
@@ -889,6 +1128,7 @@ const relatedPosts = relatedCandidates
 
             assignHeadingIds();
             styleReferenceLists();
+            normalizeFootnotePlacement();
             bindInlineNewsletterForms();
             initCodeHighlighting();
             initMermaid();
@@ -898,6 +1138,7 @@ const relatedPosts = relatedCandidates
                 updateReadingProgress();
                 cursorHeadings();
             });
+            loadViews();
             trackView();
             loadApprovedReviews();
             loadReactions();
@@ -908,6 +1149,5 @@ const relatedPosts = relatedCandidates
                 }
             </script>
         <Footer />
-        <PollHandler />
     </body>
 </html>

@@ -2,33 +2,52 @@
 const { url } = Astro.props as { url: string };
 const iframeId = `preview-${Math.random().toString(36).slice(2, 9)}`;
 const toggleId = `toggle-${iframeId}`;
+const previewId = `preview-wrap-${iframeId}`;
 ---
 <div class="project-preview">
-  <div class="mb-3 flex items-center justify-between">
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
     <a href={url} target="_blank" rel="noreferrer noopener" class="text-sm font-semibold text-brandBlue">Open live site</a>
-    <button id={toggleId} type="button" class="ui-btn ui-btn-neutral">Toggle iframe preview</button>
+    <button id={toggleId} type="button" class="ui-btn ui-btn-neutral">Show preview</button>
   </div>
 
-  <div class="border border-gray-200 dark:border-gray-800">
-    <iframe id={iframeId} src={url} class="w-full h-120" sandbox="" loading="lazy"></iframe>
+  <div id={previewId} class="border border-gray-200 dark:border-gray-800">
+    <div class="preview-placeholder flex min-h-[18rem] items-center justify-center bg-gray-100 px-6 py-10 text-center text-sm text-gray-500 dark:bg-gray-900 dark:text-gray-300">
+      Preview is optional. Some sites block embedding, so use the live link above if this stays blank.
+    </div>
   </div>
 
   <p class="mt-2 text-xs text-gray-500">If the iframe is blank the target site prevents embedding; click "Open live site" instead.</p>
 </div>
 
-<script define:vars={{ iframeId, toggleId }}>
+<script define:vars={{ iframeId, toggleId, url, previewId }}>
   document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById(toggleId);
-    const iframe = document.getElementById(iframeId);
-    if (!toggleBtn || !iframe) return;
+    const previewWrap = document.getElementById(previewId);
+    if (!toggleBtn || !previewWrap) return;
+    let iframe = document.getElementById(iframeId);
     toggleBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      iframe.classList.toggle('hidden');
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = iframeId;
+        iframe.src = url;
+        iframe.className = 'w-full h-[30rem]';
+        iframe.loading = 'lazy';
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
+        iframe.setAttribute('referrerpolicy', 'no-referrer');
+        previewWrap.innerHTML = '';
+        previewWrap.appendChild(iframe);
+        toggleBtn.textContent = 'Hide preview';
+        return;
+      }
+
+      const hidden = iframe.classList.toggle('hidden');
+      toggleBtn.textContent = hidden ? 'Show preview' : 'Hide preview';
     });
   });
 </script>
 
 <style>
 .project-preview iframe.hidden { display: none; }
-.project-preview iframe { border: 0; }
+.project-preview iframe { border: 0; min-height: 30rem; }
 </style>

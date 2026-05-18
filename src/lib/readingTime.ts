@@ -22,14 +22,14 @@ const nodeToText = (node: unknown): string => {
 export const readingMinutesFromDocument = (document: unknown): number => {
 	if (typeof document === 'string') {
 		const words = document.split(/\s+/).filter(Boolean).length;
-		return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
+		return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
 	}
 
 	if (!Array.isArray(document)) return 1;
 	const text = document.map((node) => nodeToText(node)).join(' ').trim();
 	if (!text) return 1;
 	const words = text.split(/\s+/).filter(Boolean).length;
-	return Math.max(1, Math.ceil(words / WORDS_PER_MINUTE));
+	return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
 };
 
 export const formatReadingMinutes = (minutes: number): string => `${Math.max(1, minutes)} min read`;

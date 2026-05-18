@@ -12,6 +12,8 @@ type StoredReviewPayload = {
 	title?: string;
 	name?: string;
 	rating?: number;
+	parentId?: string;
+	reactions?: Record<string, number>;
 	comment?: string;
 };
 
@@ -35,6 +37,7 @@ const getIpHash = (request: Request): string => {
 };
 
 const isAuthorized = (request: Request) => isAdminAuthorized(request);
+const autoApproveReviews = String(import.meta.env.AUTO_APPROVE_REVIEWS || 'true').toLowerCase() !== 'false';
 
 export const GET: APIRoute = async ({ request, url }) => {
 	try {
@@ -77,6 +80,8 @@ export const GET: APIRoute = async ({ request, url }) => {
 				name: payload.name || 'Anonymous',
 				rating: Number(payload.rating || 0),
 				comment: payload.comment || '',
+				parentId: (payload as any).parentId || null,
+				reactions: (payload as any).reactions || {},
 				status: row.status || 'pending',
 				createdAt: row.createdAt ? new Date(row.createdAt).toISOString() : new Date().toISOString(),
 			};
@@ -111,6 +116,7 @@ export const POST: APIRoute = async ({ request }) => {
 		const title = String(body.title || '').trim();
 		const name = String(body.name || 'Anonymous').trim().slice(0, 60);
 		const comment = String(body.comment || '').trim().slice(0, 1200);
+		const parentId = body.parentId ? String(body.parentId).trim() : undefined;
 		const rating = Number(body.rating || 0);
 
 		if (!slug || !title || !comment || Number.isNaN(rating) || rating < 1 || rating > 5) {
@@ -161,7 +167,11 @@ export const POST: APIRoute = async ({ request }) => {
 			name: name || 'Anonymous',
 			rating,
 			comment,
+			parentId,
+			reactions: {},
 		};
+
+		const nextStatus: FeedbackStatus = autoApproveReviews ? 'approved' : 'pending';
 
 		let item = {
 			id: 'pending',
@@ -170,7 +180,7 @@ export const POST: APIRoute = async ({ request }) => {
 			name: payload.name,
 			rating: payload.rating,
 			comment: payload.comment,
-			status: 'pending',
+			status: nextStatus,
 			createdAt: new Date().toISOString(),
 		};
 
@@ -181,7 +191,7 @@ export const POST: APIRoute = async ({ request }) => {
 					slug,
 					content: JSON.stringify(payload),
 					ipHash,
-					status: 'pending',
+					status: nextStatus,
 				})
 				.returning();
 
@@ -192,7 +202,7 @@ export const POST: APIRoute = async ({ request }) => {
 				name: payload.name,
 				rating: payload.rating,
 				comment: payload.comment,
-				status: created.status || 'pending',
+				status: (created.status as FeedbackStatus) || nextStatus,
 				createdAt: created.createdAt ? new Date(created.createdAt).toISOString() : new Date().toISOString(),
 			};
 		} catch {
@@ -203,13 +213,15 @@ export const POST: APIRoute = async ({ request }) => {
 				name: payload.name,
 				rating: payload.rating,
 				comment: payload.comment,
-				status: 'pending',
+				status: nextStatus,
 				createdAt: new Date().toISOString(),
 			};
 
 			runtimeStore.feedback.unshift({
 				...item,
 				ipHash,
+				parentId: payload.parentId,
+				reactions: payload.reactions || {},
 			});
 		}
 
@@ -231,8 +243,42 @@ export const PATCH: APIRoute = async ({ request }) => {
 		const body = await request.json();
 		const id = String(body.id || '');
 		const action = String(body.action || '');
-		if (!id || !['approve', 'reject'].includes(action)) {
+		if ((!id && action !== 'approve_all') || !['approve', 'reject', 'approve_all'].includes(action)) {
 			return new Response(JSON.stringify({ error: 'Invalid payload' }), { status: 400 });
+		}
+
+		if (action === 'approve_all') {
+			const slug = String(body.slug || '').trim();
+			const runtimeTargets = runtimeStore.feedback.filter((entry) => entry.status === 'pending' && (!slug || entry.slug === slug));
+			runtimeTargets.forEach((entry) => {
+				entry.status = 'approved';
+			});
+
+			let updatedCount = runtimeTargets.length;
+			try {
+				if (slug) {
+					const updated = await db
+						.update(reviews)
+						.set({ status: 'approved' })
+						.where(and(eq(reviews.status, 'pending'), eq(reviews.slug, slug)))
+						.returning({ id: reviews.id });
+					updatedCount += updated.length;
+				} else {
+					const updated = await db
+						.update(reviews)
+						.set({ status: 'approved' })
+						.where(eq(reviews.status, 'pending'))
+						.returning({ id: reviews.id });
+					updatedCount += updated.length;
+				}
+			} catch {
+				// Runtime approvals already applied; DB could be unavailable.
+			}
+
+			return new Response(JSON.stringify({ ok: true, updatedCount }), {
+				status: 200,
+				headers: { 'content-type': 'application/json; charset=utf-8' },
+			});
 		}
 
 		const nextStatus = action === 'approve' ? 'approved' : 'rejected';

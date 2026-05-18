@@ -98,6 +98,23 @@
         background: rgba(10, 10, 10, 0.92);
     }
 
+    .mobile-nav-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    @media (max-width: 640px) {
+        .ui-btn {
+            min-height: 44px;
+            padding-inline: 1rem;
+        }
+
+        .post-card {
+            min-height: 280px;
+        }
+    }
+
     .article-content .article-ordered-list,
     .article-content .article-unordered-list {
         list-style-position: outside;
@@ -120,6 +137,12 @@
         font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+    }
+
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: clip;
     }
 
     .article-content h1, .article-content h2, .article-content h3 {
@@ -178,6 +201,15 @@
     .article-content video,
     .article-content iframe {
         border-radius: 0;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .article-content figure,
+    .article-content figure img,
+    .article-content .article-featured-image,
+    .article-content .article-featured-image img {
+        max-width: 100%;
     }
 
     .article-content pre {
@@ -239,15 +271,18 @@
     }
 
     .article-content .article-footnote-ref {
-        font-size: 0.72em;
+        font-size: 0.76em;
         vertical-align: super;
         line-height: 1;
-        display: inline-block;
-        margin-left: 0.12em;
+        display: inline-flex;
+        align-items: baseline;
+        margin-left: 0;
+        white-space: nowrap;
     }
 
     .article-content .article-footnote-inline {
         display: inline;
+        white-space: nowrap;
     }
 
     .article-content .article-footnote-inline__text {
@@ -256,6 +291,55 @@
 
     .dark .article-content .article-footnote-inline__text {
         color: #94a3b8;
+    }
+
+    @media (max-width: 768px) {
+        .article-content {
+            max-width: 100%;
+            font-size: 1.04rem;
+            line-height: 1.82;
+        }
+
+        .article-content .article-footnote-inline,
+        .article-content .article-footnote-ref {
+            white-space: normal;
+        }
+
+        .article-content .article-footnote-inline {
+            display: inline;
+            overflow-wrap: anywhere;
+        }
+
+        .article-content h2 {
+            font-size: 1.55rem;
+            line-height: 1.28;
+        }
+
+        .article-content h3 {
+            font-size: 1.25rem;
+        }
+
+        .article-content p,
+        .article-content li {
+            font-size: 1.04rem;
+            letter-spacing: 0.001em;
+        }
+
+        .article-content blockquote {
+            padding-left: 1rem;
+            font-size: 1rem;
+        }
+
+        .article-content pre {
+            font-size: 0.86rem;
+            padding: 1rem;
+        }
+
+        .article-content table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
     }
 
     .article-content .article-poll {
