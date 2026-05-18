@@ -19,6 +19,7 @@ const devotionals = defineCollection({
     loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/devotionals' }),
     schema: z.object({
         title: z.string(),
+        featured: z.boolean().optional().default(false),
         scriptureRef: z.string().optional(),
         publishedAt: z.coerce.date().optional(),
         excerpt: z.string().optional(),

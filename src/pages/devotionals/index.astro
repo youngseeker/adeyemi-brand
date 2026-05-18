@@ -5,7 +5,11 @@ import Footer from '../../components/Footer.astro';
 
 // Fetch all devotionals and sort them by newest first
 const devotionals = await getCollection('devotionals');
-devotionals.sort((a, b) => new Date(b.data.publishedAt || 0).valueOf() - new Date(a.data.publishedAt || 0).valueOf());
+devotionals.sort((a, b) => {
+    const featuredDiff = Number(Boolean(b.data.featured)) - Number(Boolean(a.data.featured));
+    if (featuredDiff !== 0) return featuredDiff;
+    return new Date(b.data.publishedAt || 0).valueOf() - new Date(a.data.publishedAt || 0).valueOf();
+});
 ---
 
 <html lang="en">
