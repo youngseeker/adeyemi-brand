@@ -250,6 +250,7 @@ const relatedPosts = relatedCandidates
                     {post?.data.author && <span>Written by {post.data.author}</span>}
                     {post?.data.publishedAt && <span>{formatDate(post.data.publishedAt)}</span>}
                     <span>{readingLabel}</span>
+                    <span id="articleViewsLabel">Views loading...</span>
                 </div>
                 {post?.data.tags && post.data.tags.length > 0 && (
                     <div class="mt-4 flex flex-wrap gap-2">
@@ -559,7 +560,7 @@ const relatedPosts = relatedCandidates
                 });
             </script>
 
-            <section class="mt-14 border-t border-gray-200 pt-8 dark:border-gray-800">
+            <section class="mt-14 border-t border-gray-200 pt-8 dark:border-gray-800" id="comments">
                 <p class="text-[11px] font-bold tracking-[0.22em] text-brandBlue uppercase">Reader Review</p>
                 <h2 class="mt-2 text-2xl font-bold">Score this essay</h2>
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Reviews publish immediately and support threaded replies.</p>
@@ -664,6 +665,7 @@ const relatedPosts = relatedCandidates
             const likeButton = document.getElementById('likeButton');
             const likeCount = document.getElementById('likeCount');
             const reactionStatus = document.getElementById('reactionStatus');
+            const articleViewsLabel = document.getElementById('articleViewsLabel');
 
             const slugifyHeading = (value) =>
                 String(value || '')
@@ -897,10 +899,10 @@ const relatedPosts = relatedCandidates
                     const header = `<p class="text-sm font-bold">${escapeHtml(item.name)} / ${'★'.repeat(Number(item.rating || 0))}</p>`;
                     const body = `<p class="mt-2">${escapeHtml(item.comment)}</p>`;
                     const replyBtn = `<button data-review-id="${escapeHtml(item.id)}" class="reply-btn mt-3 text-xs font-semibold text-brandBlue">Reply</button>`;
-                    const reactionsHtml = `<div class="mt-2 comment-reactions" data-comment-id="${escapeHtml(item.id)}"><button data-reaction="like" class="reaction-btn text-xs px-2 py-1 border rounded-md">Like</button> <span class="reaction-count" data-reaction-type="like">${(item.reactions && item.reactions.like) || 0}</span></div>`;
+                    const reactionsHtml = `<div class="mt-3 flex items-center gap-2 comment-reactions" data-comment-id="${escapeHtml(item.id)}"><button data-reaction="like" class="reaction-btn rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold dark:border-gray-700">Like</button><span class="reaction-count text-xs text-gray-500" data-reaction-type="like">${(item.reactions && item.reactions.like) || 0}</span></div>`;
                     const childHtml = (item.children || []).map((c) => renderItem(c, depth + 1)).join('');
                     // include a hidden inline reply form container
-                    const replyForm = `<form class="inline-reply-form mt-3 hidden" data-parent-id="${escapeHtml(item.id)}"><input name="replyName" placeholder="Your name" class="border px-2 py-1 text-sm mr-2" /><input name="replyComment" placeholder="Reply" class="border px-2 py-1 text-sm mr-2" /><button class="ui-btn ui-btn-primary text-xs">Send</button></form>`;
+                    const replyForm = `<form class="inline-reply-form mt-3 hidden grid gap-2 sm:grid-cols-[1fr_2fr_auto]" data-parent-id="${escapeHtml(item.id)}"><input name="replyName" placeholder="Your name" class="border px-3 py-2 text-sm dark:border-gray-700 dark:bg-transparent" /><input name="replyComment" placeholder="Reply" class="border px-3 py-2 text-sm dark:border-gray-700 dark:bg-transparent" /><button class="ui-btn ui-btn-primary text-xs">Send</button></form>`;
                     return `<article style="margin-left:${indent}px" class="border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-black">${header}${body}${reactionsHtml}${replyBtn}${replyForm}${childHtml}</article>`;
                 };
 
@@ -995,8 +997,8 @@ const relatedPosts = relatedCandidates
                 if (reviewStatus) {
                     const status = payload?.item?.status;
                     reviewStatus.textContent = status === 'approved'
-                        ? 'Thanks. Your review is now live.'
-                        : 'Thanks. Your review was received and is pending moderation.';
+                        ? 'Thanks. Your comment is now live.'
+                        : 'Thanks. Your comment was saved.';
                 }
                 reviewForm.reset();
                 await loadApprovedReviews();
@@ -1004,11 +1006,33 @@ const relatedPosts = relatedCandidates
 
             const trackView = async () => {
                 if (!articleSlug) return;
-                await fetch('/api/analytics', {
+                const response = await fetch('/api/analytics', {
                     method: 'POST',
                     headers: { 'content-type': 'application/json' },
                     body: JSON.stringify({ slug: articleSlug }),
                 });
+                try {
+                    const payload = await response.json();
+                    if (articleViewsLabel && typeof payload.views === 'number') {
+                        articleViewsLabel.textContent = `${payload.views} view${payload.views === 1 ? '' : 's'}`;
+                    }
+                } catch {
+                    if (articleViewsLabel) articleViewsLabel.textContent = 'Views unavailable';
+                }
+            };
+
+            const loadViews = async () => {
+                if (!articleSlug || !articleViewsLabel) return;
+                try {
+                    const response = await fetch(`/api/analytics`);
+                    if (!response.ok) throw new Error('unavailable');
+                    const payload = await response.json();
+                    const found = Array.isArray(payload.viewsBySlug) ? payload.viewsBySlug.find((entry) => entry.slug === articleSlug) : null;
+                    const count = Number(found?.views || 0);
+                    articleViewsLabel.textContent = `${count} view${count === 1 ? '' : 's'}`;
+                } catch {
+                    articleViewsLabel.textContent = 'Views unavailable';
+                }
             };
 
             const loadReactions = async () => {
@@ -1114,6 +1138,7 @@ const relatedPosts = relatedCandidates
                 updateReadingProgress();
                 cursorHeadings();
             });
+            loadViews();
             trackView();
             loadApprovedReviews();
             loadReactions();

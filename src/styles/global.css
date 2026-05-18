@@ -195,6 +195,15 @@
     .article-content video,
     .article-content iframe {
         border-radius: 0;
+        max-width: 100%;
+        height: auto;
+    }
+
+    .article-content figure,
+    .article-content figure img,
+    .article-content .article-featured-image,
+    .article-content .article-featured-image img {
+        max-width: 100%;
     }
 
     .article-content pre {
