@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=Playfair+Display:ital,wght@0,400;1,700&display=swap');
 @import "katex/dist/katex.min.css";
 @import "tailwindcss";
 
@@ -112,6 +113,17 @@
         font-size: 1.08rem;
         line-height: 1.9;
         text-wrap: pretty;
+    }
+
+    /* Base typography: use Inter for UI, Playfair for display headings */
+    html {
+        font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .article-content h1, .article-content h2, .article-content h3 {
+        font-family: 'Playfair Display', serif;
     }
 
     .article-content h1,
@@ -229,7 +241,9 @@
     .article-content .article-footnote-ref {
         font-size: 0.72em;
         vertical-align: super;
-        line-height: 0;
+        line-height: 1;
+        display: inline-block;
+        margin-left: 0.12em;
     }
 
     .article-content .article-footnote-inline {
@@ -376,6 +390,35 @@
 
     .dark .article-content a:hover {
         color: #60a5fa;
+    }
+
+    /* Garden card layout improvements */
+    .garden-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 340px;
+        transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .garden-card:focus-visible,
+    .garden-card:focus {
+        outline: 3px solid rgba(43,89,195,0.12);
+        outline-offset: 4px;
+        border-radius: 8px;
+    }
+
+    .garden-card .excerpt {
+        margin-top: 0.75rem;
+        color: #374151;
+        flex: 1 1 auto;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .garden-card .mb-4 {
+        flex: 0 0 auto;
     }
 
     /* Image/figure improvements */

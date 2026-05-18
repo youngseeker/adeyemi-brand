@@ -32,20 +32,30 @@ const linktreeUrl = 'https://linktr.ee/_adeyemiadeniji';
 			}
 		</script>
 	</head>
-	<body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+	<body class="bg-white text-black dark:bg-[#050505] dark:text-white">
 		<nav class="mx-auto flex max-w-6xl items-center justify-between border-b border-gray-100 px-6 py-6 dark:border-gray-900">
 			<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">A.ADENIJI</a>
 			<div class="hidden items-center gap-6 text-[10px] font-bold tracking-[0.25em] uppercase md:flex">
 				<a href="/" class="transition hover:text-brandBlue">Home</a>
 				<a href="/work" class="transition hover:text-brandBlue">Work</a>
 				<a href="/garden" class="transition hover:text-brandBlue">Articles</a>
+				<a href="/devotionals" class="transition hover:text-brandBlue">Devotionals</a>
 				<a href="/about" class="transition hover:text-brandBlue">About</a>
 			</div>
-			<button id="themeToggle" type="button" aria-label="Toggle theme" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700">
-				<span class="text-xs font-bold uppercase dark:hidden">L</span>
-				<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
-			</button>
+			<div class="flex items-center gap-2">
+				<button id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle mobile navigation menu" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase md:hidden dark:border-gray-700">Menu</button>
+				<button id="themeToggle" type="button" aria-label="Toggle theme" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700">
+					<span class="text-xs font-bold uppercase dark:hidden">L</span>
+					<span class="hidden text-xs font-bold uppercase dark:inline">D</span>
+				</button>
+			</div>
 		</nav>
+		<div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-350 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
+			<a href="/work" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Work</a>
+			<a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
+			<a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>
+			<a href="/about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
+		</div>
 		<main class="mx-auto max-w-6xl px-6 py-14">
 			<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
 			<div class="mt-8 grid gap-10 border-t border-gray-200 pt-10 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start dark:border-gray-800">

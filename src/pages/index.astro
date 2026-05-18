@@ -6,6 +6,7 @@ import { isPubliclyVisiblePost } from '../lib/postVisibility';
 import '../styles/global.css';
 import Footer from '../components/Footer.astro';
 import SubstackFeed from '../components/SubstackFeed.astro';
+import { fetchSubstackFeedItems } from '../lib/substack';
 
 const rawPosts = await getCollection('posts');
 const logo = 'A.ADENIJI // SYSTEMS';
@@ -35,6 +36,11 @@ const formatDate = (value: unknown): string => {
     return '';
 };
 
+const substackFeedUrl = 'https://adeyemiadeniji.substack.com/feed';
+const substackItems = await fetchSubstackFeedItems(substackFeedUrl);
+const substackLinks = new Set(substackItems.map((i) => i.link.replace(/\/$/, '').trim()));
+const substackTitles = new Set(substackItems.map((i) => i.title.toLowerCase().trim()));
+
 const resolvedPosts = await Promise.all(
     rawPosts.map(async ({ id, data, body }) => {
         const readingLabel = formatReadingMinutes(readingMinutesFromDocument(body));
@@ -47,6 +53,7 @@ const resolvedPosts = await Promise.all(
             scheduledFor: data.scheduledFor,
             publishedAt: formatDate(data.publishedAt),
             readingLabel,
+            canonicalUrl: typeof data.canonicalUrl === 'string' ? data.canonicalUrl : '',
         };
     }),
 );
@@ -56,7 +63,18 @@ const visiblePosts = resolvedPosts.filter((post) =>
     showPreview || isPubliclyVisiblePost({ status: post.status, scheduledFor: post.scheduledFor, publishedAt: post.publishedAt }),
 );
 
-const featuredPosts = visiblePosts
+// Remove local posts that are duplicates of recent Substack items (match by canonical URL or title)
+const visiblePostsDeduped = visiblePosts.filter((post) => {
+    const hasCanonical = post.canonicalUrl && post.canonicalUrl.trim();
+    if (hasCanonical) {
+        if (substackLinks.has(post.canonicalUrl.replace(/\/$/, '').trim())) return false;
+    }
+    const titleLower = (post.title || '').toLowerCase().trim();
+    if (titleLower && substackTitles.has(titleLower)) return false;
+    return true;
+});
+
+const featuredPosts = visiblePostsDeduped
     .filter((post) => post.featured)
     .sort((a, b) => {
         if (!a.publishedAt) return 1;
@@ -65,7 +83,7 @@ const featuredPosts = visiblePosts
     })
     .slice(0, 3);
 
-const posts = visiblePosts
+const posts = visiblePostsDeduped
     .map((post) => ({
         slug: post.slug,
         title: post.title,
@@ -133,7 +151,7 @@ const fallbackCards = [
             }
         </script>
     </head>
-    <body class="bg-white font-['Space_Grotesk'] text-black transition-colors duration-500 selection:bg-brandBlue selection:text-white dark:bg-[#050505] dark:text-white">
+    <body class="bg-white text-black transition-colors duration-500 selection:bg-brandBlue selection:text-white dark:bg-[#050505] dark:text-white">
         <a href="#mainContent" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-90 focus:rounded-md focus:bg-brandBlue focus:px-3 focus:py-2 focus:text-xs focus:font-bold focus:text-white">Skip to main content</a>
         <header class="sticky top-0 z-40 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-[#050505]/90">
             <nav class="mx-auto flex max-w-350 items-center justify-between px-4 py-4 sm:px-6">
@@ -141,6 +159,7 @@ const fallbackCards = [
                 <div class="hidden items-center gap-6 text-xs font-bold tracking-[0.2em] uppercase md:flex">
                     <a href="/work" class="transition hover:text-brandBlue">Work</a>
                     <a href="/garden" class="transition hover:text-brandBlue">Articles</a>
+                    <a href="/devotionals" class="transition hover:text-brandBlue">Devotionals</a>
                     <a href="#about" class="transition hover:text-brandBlue">About</a>
                 </div>
                 <div class="flex items-center gap-2">
@@ -155,6 +174,7 @@ const fallbackCards = [
             <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-350 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
                 <a href="/work" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Work</a>
                 <a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
+                <a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>
                 <a href="#about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
             </div>
         </header>
@@ -203,6 +223,7 @@ const fallbackCards = [
             </div>
             <SubstackFeed />
         </section>
+
         {featuredPosts.length > 0 && (
             <section class="mx-auto max-w-350 border-t border-gray-100 px-6 py-14 dark:border-gray-900">
                 <div class="mb-8 flex items-center justify-between">
@@ -243,11 +264,11 @@ const fallbackCards = [
             {posts.length > 0 ? (
                 <div class="grid gap-8 md:grid-cols-3">
                     {posts.map((post) => (
-                        <a href={`/garden/${post.slug}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800">
+                        <a href={`/garden/${post.slug}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800 ui-card post-card" aria-describedby={`excerpt-${post.slug}`}>
                             <p class="text-[10px] tracking-widest text-gray-400 uppercase">{post.publishedAt ? `Digital Garden / ${post.publishedAt}` : 'Digital Garden'}</p>
                             <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
                             <h4 class="mt-2 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h4>
-                            <p class="mt-3 line-clamp-3 text-gray-500">{post.excerpt}</p>
+                            <p id={`excerpt-${post.slug}`} class="mt-3 line-clamp-3 text-gray-500 excerpt">{post.excerpt}</p>
                         </a>
                     ))}
                 </div>
@@ -326,11 +347,12 @@ const fallbackCards = [
 
         <script is:inline>
             const commands = [
-                { label: 'Open Work', href: '/work', keywords: 'experience projects skills' },
-                { label: 'Open Articles', href: '/garden', keywords: 'garden posts writing' },
-                { label: 'Open About', href: '/about', keywords: 'bio profile mission socials' },
-                { label: 'Open QA Console', href: '/qa', keywords: 'quality assurance pre deploy checklist' },
-                { label: 'Open Linktree', href: 'https://linktr.ee/_adeyemiadeniji', keywords: 'social links profiles ecosystem' },
+                { label: 'Open Work', href: '/work', keywords: 'experience projects skills execution' },
+                { label: 'Open Articles', href: '/garden', keywords: 'garden posts writing essays analytics' },
+                { label: 'Open Devotionals', href: '/devotionals', keywords: 'faith biblical studies reflections daily insights context scripture' },
+                { label: 'Open About', href: '/about', keywords: 'bio profile mission socials profile' },
+                { label: 'Open QA Console', href: '/qa', keywords: 'quality assurance pre deploy checklist checks console' },
+                { label: 'Open Linktree', href: 'https://linktr.ee/_adeyemiadeniji', keywords: 'social links profiles ecosystem hub presence' },
             ];
 
             const themeToggle = document.getElementById('themeToggle');

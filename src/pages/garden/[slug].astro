@@ -159,7 +159,7 @@ const relatedPosts = relatedCandidates
             }
         </script>
     </head>
-    <body data-slug={slug || ''} data-title={title} class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+    <body data-slug={slug || ''} data-title={title} class="bg-white text-black dark:bg-[#050505] dark:text-white">
         <div class="fixed top-0 left-0 z-50 h-1 w-full bg-transparent">
             <div id="readingProgressBar" class="h-full w-0 bg-brandBlue transition-[width] duration-150"></div>
         </div>
@@ -178,16 +178,25 @@ const relatedPosts = relatedCandidates
                     <a href="/garden" class="transition hover:text-brandBlue">Articles</a>
                     <a href="/about" class="transition hover:text-brandBlue">About</a>
                 </div>
-                <button
-                    id="themeToggle"
-                    type="button"
-                    aria-label="Toggle theme"
-                    class="flex h-10 w-10 items-center justify-center border border-gray-200 bg-white dark:border-gray-700 dark:bg-black"
-                >
-                    <span class="text-xs font-bold uppercase dark:hidden">L</span>
-                    <span class="hidden text-xs font-bold uppercase dark:inline">D</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle mobile navigation menu" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase md:hidden dark:border-gray-700">Menu</button>
+                    <button
+                        id="themeToggle"
+                        type="button"
+                        aria-label="Toggle theme"
+                        class="flex h-10 w-10 items-center justify-center border border-gray-200 bg-white dark:border-gray-700 dark:bg-black"
+                    >
+                        <span class="text-xs font-bold uppercase dark:hidden">L</span>
+                        <span class="hidden text-xs font-bold uppercase dark:inline">D</span>
+                    </button>
+                </div>
             </nav>
+            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-295 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
+                <a href="/work" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Work</a>
+                <a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
+                <a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>
+                <a href="/about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
+            </div>
             <header class="pt-8 sm:pt-10">
                 <h1 class="max-w-[13ch] text-3xl font-bold leading-[1.08] tracking-tight sm:max-w-[11ch] sm:text-5xl md:text-6xl">{title}</h1>
                 <div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-gray-200 py-3 text-[11px] font-bold tracking-[0.18em] text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
@@ -459,8 +468,13 @@ const relatedPosts = relatedCandidates
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Reviews enter moderation before public display.</p>
                 <form id="reviewForm" class="mt-5 space-y-3">
                     <div class="grid gap-3 sm:grid-cols-2">
-                        <input id="reviewName" type="text" placeholder="Your name" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" />
-                        <select id="reviewRating" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" required>
+                            <div>
+                                <label for="reviewName" class="sr-only">Your name</label>
+                                <input id="reviewName" type="text" placeholder="Your name" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" />
+                            </div>
+                            <div>
+                                <label for="reviewRating" class="sr-only">Rating</label>
+                                <select id="reviewRating" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" required>
                             <option value="">Rating</option>
                             <option value="5">5 - Excellent</option>
                             <option value="4">4 - Great</option>
@@ -469,6 +483,7 @@ const relatedPosts = relatedCandidates
                             <option value="1">1 - Weak</option>
                         </select>
                     </div>
+                    <label for="reviewComment" class="sr-only">Review comment</label>
                     <textarea id="reviewComment" placeholder="What did you think?" required rows="4" class="w-full border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent"></textarea>
                     <button type="submit" class="ui-btn ui-btn-primary rounded-none">Submit Review</button>
                 </form>

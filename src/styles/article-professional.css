@@ -100,8 +100,8 @@
 	}
 
 	.article-content p {
-		margin: 1.5em 0;
-		text-align: justify;
+		margin: 1.25em 0;
+		text-align: left;
 	}
 
 	.article-content p:first-of-type::first-letter {
@@ -298,6 +298,20 @@
 		color: #60a5fa;
 	}
 
+	.article-content a:focus-visible,
+	.article-content a:focus {
+		outline: 3px solid rgba(59,130,246,0.15);
+		outline-offset: 3px;
+		border-radius: 6px;
+	}
+
+	.article-content button:focus-visible,
+	.article-content button:focus {
+		outline: 3px solid rgba(59,130,246,0.18);
+		outline-offset: 3px;
+		border-radius: 6px;
+	}
+
 	/* ===== IMAGES & FIGURES ===== */
 	.article-content figure {
 		margin: 2rem 0;
@@ -455,7 +469,9 @@
 	.article-footnote-ref {
 		font-size: 0.8em;
 		vertical-align: super;
-		line-height: 0;
+		line-height: 1;
+		display: inline-block;
+		margin-left: 0.12em;
 	}
 
 	.article-footnote-ref a {

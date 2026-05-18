@@ -15,3 +15,43 @@ const year = new Date().getFullYear();
 		</div>
 	</div>
 </footer>
+<script is:inline>
+	// Global small enhancements: mobile menu toggle and palette shortcut
+	(function () {
+		const toggle = document.getElementById('mobileMenuToggle');
+		const menu = document.getElementById('mobileMenu');
+		const openPalette = document.getElementById('openPalette');
+
+		if (toggle && menu) {
+			toggle.addEventListener('click', () => {
+				const expanded = toggle.getAttribute('aria-expanded') === 'true';
+				toggle.setAttribute('aria-expanded', String(!expanded));
+				menu.classList.toggle('hidden');
+				menu.setAttribute('aria-hidden', String(expanded));
+				if (!expanded) {
+					// move focus to first link for keyboard users
+					const first = menu.querySelector('a');
+					if (first) first.focus();
+				}
+			});
+
+			// close menu when nav link clicked
+			menu.querySelectorAll && menu.querySelectorAll('a').forEach((a) => {
+				a.addEventListener('click', () => {
+					menu.classList.add('hidden');
+					toggle.setAttribute('aria-expanded', 'false');
+					menu.setAttribute('aria-hidden', 'true');
+				});
+			});
+		}
+
+		// Command palette hint (Ctrl/Cmd+K)
+		document.addEventListener('keydown', (e) => {
+			const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+			if ((isMac && e.metaKey && e.key === 'k') || (!isMac && e.ctrlKey && e.key === 'k')) {
+				e.preventDefault();
+				if (openPalette) openPalette.click();
+			}
+		});
+	})();
+</script>

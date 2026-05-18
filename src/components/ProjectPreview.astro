@@ -1,11 +1,12 @@
 ---
 const { url } = Astro.props as { url: string };
 const iframeId = `preview-${Math.random().toString(36).slice(2, 9)}`;
+const toggleId = `toggle-${iframeId}`;
 ---
 <div class="project-preview">
   <div class="mb-3 flex items-center justify-between">
-    <a href={url} target="_blank" rel="noreferrer" class="text-sm font-semibold text-brandBlue">Open live site</a>
-    <button id="toggle-{iframeId}" type="button" class="ui-btn ui-btn-neutral">Toggle iframe preview</button>
+    <a href={url} target="_blank" rel="noreferrer noopener" class="text-sm font-semibold text-brandBlue">Open live site</a>
+    <button id={toggleId} type="button" class="ui-btn ui-btn-neutral">Toggle iframe preview</button>
   </div>
 
   <div class="border border-gray-200 dark:border-gray-800">
@@ -15,17 +16,16 @@ const iframeId = `preview-${Math.random().toString(36).slice(2, 9)}`;
   <p class="mt-2 text-xs text-gray-500">If the iframe is blank the target site prevents embedding; click "Open live site" instead.</p>
 </div>
 
-<script>
-  const toggleBtn = document.getElementById(`toggle-${('preview-' + Math.random().toString(36).slice(2, 9))}`);
-  if (toggleBtn) {
-    const iframeId = toggleBtn.id.replace('toggle-', '');
+<script define:vars={{ iframeId, toggleId }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById(toggleId);
     const iframe = document.getElementById(iframeId);
-    if (iframe) {
-      toggleBtn.addEventListener('click', () => {
-        iframe.classList.toggle('hidden');
-      });
-    }
-  }
+    if (!toggleBtn || !iframe) return;
+    toggleBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      iframe.classList.toggle('hidden');
+    });
+  });
 </script>
 
 <style>

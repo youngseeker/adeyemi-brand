@@ -85,7 +85,7 @@ const posts = (
             }
         </script>
     </head>
-    <body class="bg-white font-['Space_Grotesk'] text-black dark:bg-[#050505] dark:text-white">
+    <body class="bg-white text-black dark:bg-[#050505] dark:text-white">
         <main class="mx-auto max-w-6xl px-6 py-14">
             <div class="flex flex-wrap items-center justify-between gap-4">
                 <a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
@@ -120,8 +120,9 @@ const posts = (
                     {posts.map((post) => (
                         <a
                             href={`/garden/${post.slug}`}
-                            class="garden-card group block border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800"
+                            class="garden-card group block border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800 ui-card post-card"
                             data-search={`${post.title.toLowerCase()} ${post.excerpt.toLowerCase()} ${post.tags.join(' ').toLowerCase()}`}
+                            aria-describedby={`excerpt-${post.slug}`}
                         >
                             <div class="mb-4 aspect-16/10 overflow-hidden border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-900">
                                 {post.coverImage ? (
@@ -135,7 +136,7 @@ const posts = (
                             </p>
                             <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
                             <h2 class="mt-4 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h2>
-                            <p class="mt-3 text-gray-600 dark:text-gray-300">{post.excerpt}</p>
+                            <p id={`excerpt-${post.slug}`} class="mt-3 text-gray-600 dark:text-gray-300 excerpt">{post.excerpt}</p>
                             <div class="mt-4 flex items-center justify-between">
                                 <p class="text-xs text-gray-500 dark:text-gray-500">by {post.author}</p>
                                 {post.tags && post.tags.length > 0 && (
