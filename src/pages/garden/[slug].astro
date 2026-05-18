@@ -210,7 +210,7 @@ const relatedPosts = relatedCandidates
         <div class="fixed top-0 left-0 z-50 h-1 w-full bg-transparent">
             <div id="readingProgressBar" class="h-full w-0 bg-brandBlue transition-[width] duration-150"></div>
         </div>
-        <main class="mx-auto max-w-295 px-5 py-10 sm:px-8 sm:py-12">
+        <main class="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-12">
             {isUnpublishedPreview && (
                 <div class="mb-8 border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
                     Preview mode: this post is not publicly visible yet.
@@ -218,7 +218,7 @@ const relatedPosts = relatedCandidates
             )}
             <div class="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,740px)_300px] lg:justify-center lg:gap-16">
                 <div>
-            <nav class="mx-auto flex max-w-295 items-center justify-between border-b border-gray-200 pb-5 dark:border-gray-800">
+            <nav class="mx-auto flex max-w-6xl items-center justify-between border-b border-gray-200 pb-5 dark:border-gray-800">
                 <div class="flex items-center gap-4 text-[10px] font-bold tracking-[0.18em] uppercase">
                     <a href="/" class="transition hover:text-brandBlue">Home</a>
                     <a href="/work" class="transition hover:text-brandBlue">Work</a>
@@ -238,7 +238,7 @@ const relatedPosts = relatedCandidates
                     </button>
                 </div>
             </nav>
-            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-295 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
+            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-6xl gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
                 <a href="/work" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Work</a>
                 <a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
                 <a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>
@@ -291,7 +291,7 @@ const relatedPosts = relatedCandidates
 
             <div class="article-reading-surface mt-10 sm:mt-12">
                 {Content ? (
-                    <div class="article-content text-gray-800 dark:text-gray-200">
+                    <div class="article-content text-[1.08rem] leading-[1.95] text-gray-800 dark:text-gray-200 sm:text-[1.12rem]">
                         <Content />
                     </div>
                 ) : (
@@ -563,15 +563,15 @@ const relatedPosts = relatedCandidates
                 <p class="text-[11px] font-bold tracking-[0.22em] text-brandBlue uppercase">Reader Review</p>
                 <h2 class="mt-2 text-2xl font-bold">Score this essay</h2>
                 <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">Reviews publish immediately and support threaded replies.</p>
-                <form id="reviewForm" class="mt-5 space-y-3">
+                <form id="reviewForm" class="mt-5 space-y-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black">
                     <div class="grid gap-3 sm:grid-cols-2">
                             <div>
                                 <label for="reviewName" class="sr-only">Your name</label>
-                                <input id="reviewName" type="text" placeholder="Your name" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" />
+                                <input id="reviewName" type="text" placeholder="Your name" class="w-full border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" />
                             </div>
                             <div>
                                 <label for="reviewRating" class="sr-only">Rating</label>
-                                <select id="reviewRating" class="border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" required>
+                                <select id="reviewRating" class="w-full border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700 dark:bg-transparent" required>
                             <option value="">Rating</option>
                             <option value="5">5 - Excellent</option>
                             <option value="4">4 - Great</option>

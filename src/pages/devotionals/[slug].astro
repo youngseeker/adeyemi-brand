@@ -25,6 +25,7 @@ const { Content } = await render(entry);
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/aa-logo.svg" />
         <title>{entry.data.title} | Devotionals</title>
         <script is:inline>
             const theme = (() => {
@@ -41,7 +42,7 @@ const { Content } = await render(entry);
     </head>
     <body class="bg-white text-black dark:bg-[#050505] dark:text-white">
         <header class="sticky top-0 z-40 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-[#050505]/90">
-            <nav class="mx-auto flex max-w-350 items-center justify-between px-4 py-4 sm:px-6">
+            <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6">
                 <a href="/" class="text-sm font-black tracking-widest uppercase">A.ADENIJI</a>
                 <div class="hidden items-center gap-6 text-xs font-bold tracking-[0.2em] uppercase md:flex">
                     <a href="/garden" class="transition hover:text-brandBlue">Articles</a>
@@ -56,7 +57,7 @@ const { Content } = await render(entry);
                     </button>
                 </div>
             </nav>
-            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-350 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
+            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-7xl gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
                 <a href="/" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Home</a>
                 <a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
                 <a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>

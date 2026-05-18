@@ -15,30 +15,43 @@ interface ExperienceItem {
 
 const experiences: ExperienceItem[] = [
 	{
-		role: 'Full-Stack Development Contributor',
+		role: 'Technical & Soft Skill Collaborator',
+		org: 'SamSoyombo Career Pathways Ltd',
+		location: 'Remote',
+		period: '2023 - Present',
+		current: true,
+		highlights: [
+			'Supported online initiatives, systems thinking, and structured documentation',
+			'Contributed to internal workflow clarity and practical delivery across projects',
+			'Helped keep project and communication standards readable and maintainable',
+		],
+		tags: ['documentation', 'systems-thinking', 'collaboration', 'operations'],
+	},
+	{
+		role: 'Website Management',
+		org: 'SamSoyombo Career Pathways Ltd',
+		location: 'Remote',
+		period: 'August 2025 - Present',
+		current: true,
+		highlights: [
+			'Revamped the website and reorganized content for clearer user journeys',
+			'Handled WordPress design, hosting, and server-level operations for reliable delivery',
+			'Implemented ongoing content and system updates for platform continuity',
+		],
+		tags: ['wordpress', 'web-hosting', 'server-management', 'website-ops'],
+	},
+	{
+		role: 'Reflective Model Translation Partner',
 		org: 'RILayer | Reflective Intelligence Layer',
 		location: 'Remote',
 		period: 'April 2026 - Present',
 		current: true,
 		highlights: [
-			'Build and maintain reflective intelligence product surfaces for structured decision workflows',
-			'Ship full-stack improvements supporting AI-safe, pressure-aware reasoning environments',
-			'Contribute to information architecture, system clarity, and delivery quality across releases',
+			'Translate human coaching and reflective models into structured representations for digital systems',
+			'Preserve conceptual clarity, ethical intent, and practical boundaries in system design',
+			'Support reflective intelligence infrastructure for decision-making under uncertainty',
 		],
 		tags: ['full-stack', 'systems-design', 'product-engineering', 'ai-governance'],
-	},
-	{
-		role: 'Website Management',
-		org: 'Sam Soyombo Career Pathways Ltd',
-		location: 'Remote',
-		period: 'August 2025 - Present',
-		current: true,
-		highlights: [
-			'Led full website revamp and structural reorganization for clearer user journeys',
-			'Handled WordPress design, hosting, and server-level operations for reliable delivery',
-			'Implemented ongoing content/system updates for platform continuity',
-		],
-		tags: ['wordpress', 'web-hosting', 'server-management', 'website-ops'],
 	},
 ];
 
@@ -69,24 +82,6 @@ const skills = [
 
 const projects = [
 	{
-		title: 'SCOPE (Currently Building)',
-		summary:
-			'Reflective articulation workspace that helps users turn unclear thoughts, pressure, or rough experience into structured understanding.',
-		stack: ['Node.js', 'Full-Stack Development', 'Product Systems'],
-		outcome: 'Designing a structured cognition surface for clarity, articulation, and better decision quality.',
-		liveUrl: 'https://scope.samsoyombo.com/',
-		period: 'Currently building',
-	},
-	{
-		title: 'RILayer | Reflective Intelligence Infrastructure',
-		summary:
-			'Reflective intelligence infrastructure for decision quality, uncertainty handling, and responsible AI use inside organisations.',
-		stack: ['Full-Stack Development', 'Systems Architecture'],
-		outcome: 'Shipped production-facing experiences for reflective control workflows.',
-		liveUrl: 'https://rilayer.com/',
-		period: 'April 2026 - Present',
-	},
-	{
 		title: 'Website Management | SamSoyombo.com',
 		summary:
 			'Complete website restructuring and updates for Sam Soyombo Career Pathways Ltd.',
@@ -94,6 +89,15 @@ const projects = [
 		outcome: 'Improved site structure, maintainability, and content operations.',
 		liveUrl: 'http://samsoyombo.com/',
 		period: 'August 2025 - Present',
+	},
+	{
+		title: 'Universal CGPA Calculator (My Student OS)',
+		summary:
+			'Persistent CGPA/GPA dashboard for students with real-time updates and data retention across sessions.',
+		stack: ['JavaScript', 'Progressive Web Apps'],
+		outcome: 'Enabled NOUN students to track cumulative academic progress beyond single-semester calculators.',
+		liveUrl: 'https://my-student-os.vercel.app/index.html',
+		period: 'December 2025',
 	},
 	{
 		title: 'Athalia Inn Events Website',
@@ -105,13 +109,22 @@ const projects = [
 		period: 'January 2026',
 	},
 	{
-		title: 'Universal CGPA Calculator (My Student OS)',
+		title: 'RILayer | Reflective Intelligence Infrastructure',
 		summary:
-			'Persistent CGPA/GPA dashboard for students with real-time updates and data retention across sessions.',
-		stack: ['JavaScript', 'Progressive Web Apps'],
-		outcome: 'Enabled NOUN students to track cumulative academic progress beyond single-semester calculators.',
-		liveUrl: 'https://my-student-os.vercel.app/index.html',
-		period: 'December 2025',
+			'Reflective intelligence infrastructure for decision quality, uncertainty handling, and responsible AI use inside organisations.',
+		stack: ['Full-Stack Development', 'Systems Architecture'],
+		outcome: 'Shipped production-facing experiences for reflective control workflows.',
+		liveUrl: 'https://rilayer.com/',
+		period: 'April 2026 - Present',
+	},
+	{
+		title: 'SCOPE (Currently Building)',
+		summary:
+			'Reflective articulation workspace that helps users turn unclear thoughts, pressure, or rough experience into structured understanding.',
+		stack: ['Node.js', 'Full-Stack Development', 'Product Systems'],
+		outcome: 'Designing a structured cognition surface for clarity, articulation, and better decision quality.',
+		liveUrl: 'https://scope.samsoyombo.com/',
+		period: 'Currently building',
 	},
 ];
 
@@ -153,7 +166,7 @@ const writingCapabilities = [
 		</script>
 	</head>
 	<body class="bg-white text-black dark:bg-[#050505] dark:text-white">
-		<nav class="mx-auto flex max-w-350 items-baseline justify-between border-b border-gray-100 p-8 dark:border-gray-900">
+		<nav class="mx-auto flex max-w-7xl items-baseline justify-between border-b border-gray-100 p-8 dark:border-gray-900">
 			<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">A.ADENIJI</a>
 			<div class="flex items-center gap-6">
 					<div class="hidden gap-8 text-[10px] font-bold tracking-[0.3em] uppercase md:flex">
@@ -175,13 +188,13 @@ const writingCapabilities = [
 				</button>
 			</div>
 		</nav>
-		<div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-350 gap-2 border-b border-gray-100 px-8 pb-4 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-900">
+		<div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-7xl gap-2 border-b border-gray-100 px-8 pb-4 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-900">
 			<a href="/" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Home</a>
 			<a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
 			<a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>
 		</div>
 
-		<main class="mx-auto max-w-6xl px-6 py-14">
+		<main class="mx-auto max-w-7xl px-6 py-14">
 			<section class="border-b border-gray-200 pb-10 dark:border-gray-800">
 				<p class="text-xs font-bold tracking-[0.28em] text-brandBlue uppercase">Work</p>
 				<h1 class="mt-3 max-w-4xl text-5xl font-bold leading-tight tracking-tight uppercase md:text-7xl">Systems work with clear proof.</h1>
@@ -229,9 +242,9 @@ const writingCapabilities = [
 											{exp.current && <span class="mt-2 inline-block bg-brandBlue px-3 py-1 text-xs font-bold text-white">Current</span>}
 										</div>
 									</div>
-									<ul class="mt-4 grid gap-2 text-sm leading-6 text-gray-700 dark:text-gray-300">
+									<ul class="mt-4 grid list-disc gap-2 pl-5 text-sm leading-6 text-gray-700 dark:text-gray-300">
 										{exp.highlights.map((highlight) => (
-											<li>• {highlight}</li>
+												<li>{highlight}</li>
 										))}
 									</ul>
 									<div class="mt-4 flex flex-wrap gap-2">
@@ -267,6 +280,7 @@ const writingCapabilities = [
 								</article>
 							))}
 						</div>
+						<p class="mt-4 text-sm text-gray-500 dark:text-gray-400">Projects are listed from earlier work to current building efforts.</p>
 					</section>
 
 					<section id="tech-stack">
@@ -310,9 +324,9 @@ const writingCapabilities = [
 							<p class="mt-6 text-gray-600 dark:text-gray-300">
 								My writing explains why systems behave the way they do, not just what they do. This improves trust, onboarding, and design quality.
 							</p>
-							<ul class="mt-5 grid gap-2 text-sm text-gray-700 dark:text-gray-300">
+							<ul class="mt-5 grid list-disc gap-2 pl-5 text-sm text-gray-700 dark:text-gray-300">
 								{writingCapabilities.map((capability) => (
-									<li>• {capability}</li>
+												<li>{capability}</li>
 								))}
 							</ul>
 						</div>
