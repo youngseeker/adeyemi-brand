@@ -1,11 +1,11 @@
 # Adeyemi Brand Platform
 
-Personal brand platform built with Astro, Keystatic CMS, and server APIs for analytics, feedback moderation, newsletter, polls, and reactions.
+Personal brand platform built with Astro Content Collections and server APIs for analytics, feedback moderation, newsletter, polls, and reactions.
 
 ## Stack
 
 - Astro 5 (server output)
-- Keystatic CMS
+- Astro Content Collections (MDX)
 - Tailwind CSS 4
 - Drizzle ORM + PostgreSQL (Neon-friendly)
 - Node mailer integration for newsletter flows
@@ -17,7 +17,7 @@ Personal brand platform built with Astro, Keystatic CMS, and server APIs for ana
 - `/about` About profile
 - `/garden` Article archive
 - `/garden/[slug]` Article detail, polls, reactions, feedback
-- `/publish` Publishing and CMS health check
+- `/publish` Publishing workflow cockpit
 - `/admin` Admin hub
 - `/admin/insights` Moderation + diagnostics + analytics
 - `/qa` Pre-deploy manual QA checklist
@@ -48,7 +48,7 @@ npm run db:push
 Use [BACKEND_GIT_SETUP.md](BACKEND_GIT_SETUP.md) for:
 
 - Required environment variables
-- CMS GitHub write setup
+- environment and deployment setup
 - SMTP setup
 - Database migration steps
 - Launch verification checklist

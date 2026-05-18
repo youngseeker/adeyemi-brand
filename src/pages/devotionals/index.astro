@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
-import '../../styles/global.css'; // Pulls in your dark mode and Space Grotesk fonts
+import '../../styles/global.css';
+import Footer from '../../components/Footer.astro';
 
 // Fetch all devotionals and sort them by newest first
 const devotionals = await getCollection('devotionals');
@@ -9,25 +10,76 @@ devotionals.sort((a, b) => new Date(b.data.publishedAt || 0).valueOf() - new Dat
 
 <html lang="en">
     <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
         <title>Biblical Devotionals | A.ADENIJI</title>
+        <script is:inline>
+            const theme = (() => {
+                if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                    return localStorage.getItem('theme');
+                }
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    return 'dark';
+                }
+                return 'light';
+            })();
+            document.documentElement.classList.toggle('dark', theme !== 'light');
+        </script>
     </head>
     <body class="bg-white text-black dark:bg-[#050505] dark:text-white">
-        <main class="mx-auto max-w-350 px-6 py-20">
-            <div class="mb-10">
-                <a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">&larr; Back Home</a>
-                <h1 class="mt-6 text-4xl font-bold uppercase tracking-tighter md:text-5xl">Biblical Devotionals</h1>
-                <p class="mt-4 text-gray-600 dark:text-gray-300">Daily reflections and scripture studies.</p>
+        <header class="sticky top-0 z-40 border-b border-gray-200/70 bg-white/90 backdrop-blur dark:border-gray-800 dark:bg-[#050505]/90">
+            <nav class="mx-auto flex max-w-350 items-center justify-between px-4 py-4 sm:px-6">
+                <a href="/" class="text-sm font-black tracking-widest uppercase">A.ADENIJI</a>
+                <div class="hidden items-center gap-6 text-xs font-bold tracking-[0.2em] uppercase md:flex">
+                    <a href="/" class="transition hover:text-brandBlue">Home</a>
+                    <a href="/garden" class="transition hover:text-brandBlue">Articles</a>
+                    <a href="/devotionals" class="transition hover:text-brandBlue">Devotionals</a>
+                    <a href="/about" class="transition hover:text-brandBlue">About</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle mobile navigation menu" class="rounded-lg border border-gray-300 px-3 py-2 text-[11px] font-bold tracking-widest uppercase md:hidden dark:border-gray-700">Menu</button>
+                    <button id="themeToggle" type="button" aria-label="Toggle theme" class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700">
+                        <span class="text-xs font-bold uppercase dark:hidden">L</span>
+                        <span class="hidden text-xs font-bold uppercase dark:inline">D</span>
+                    </button>
+                </div>
+            </nav>
+            <div id="mobileMenu" aria-hidden="true" class="mx-auto hidden max-w-350 gap-2 border-t border-gray-200 px-6 py-3 text-xs font-bold tracking-[0.2em] uppercase md:hidden dark:border-gray-800">
+                <a href="/" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Home</a>
+                <a href="/garden" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Articles</a>
+                <a href="/devotionals" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">Devotionals</a>
+                <a href="/about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
+            </div>
+        </header>
+
+        <main class="mx-auto max-w-350 px-4 py-12 sm:px-6 sm:py-16">
+            <div class="mb-10 border-b border-gray-200 pb-6 dark:border-gray-800">
+                <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Faith & Practice</p>
+                <h1 class="mt-4 text-4xl font-bold uppercase tracking-tighter md:text-5xl">Biblical Devotionals</h1>
+                <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">Scripture-centered reflections designed for practical living, thoughtful faith, and daily formation.</p>
             </div>
 
-            <div class="grid gap-6 md:grid-cols-2">
-                {devotionals.map(entry => (
-                    <a href={`/devotionals/${entry.id}`} class="block rounded-xl border border-gray-200 p-6 transition hover:border-brandBlue dark:border-gray-800">
-                        <p class="mb-2 text-[10px] tracking-widest text-brandBlue uppercase">{entry.data.scriptureRef || 'Devotional'}</p>
-                        <h2 class="text-xl font-bold">{entry.data.title}</h2>
-                        <p class="mt-2 line-clamp-2 text-sm text-gray-500">{entry.data.excerpt}</p>
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {devotionals.map((entry) => (
+                    <a href={`/devotionals/${entry.id}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800 ui-card post-card">
+                        <p class="text-[10px] tracking-widest text-brandBlue uppercase">{entry.data.scriptureRef || 'Devotional'}</p>
+                        <h2 class="mt-3 text-xl font-bold transition group-hover:text-brandBlue">{entry.data.title}</h2>
+                        <p class="mt-3 line-clamp-3 text-sm text-gray-600 dark:text-gray-300 excerpt">{entry.data.excerpt || 'Read this devotional reflection.'}</p>
+                        <p class="mt-4 text-xs font-bold tracking-widest text-gray-500 uppercase">Read reflection</p>
                     </a>
                 ))}
             </div>
         </main>
+
+        <Footer />
+
+        <script is:inline>
+            const themeToggle = document.getElementById('themeToggle');
+            themeToggle?.addEventListener('click', () => {
+                const root = document.documentElement;
+                root.classList.toggle('dark');
+                localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+            });
+        </script>
     </body>
 </html>

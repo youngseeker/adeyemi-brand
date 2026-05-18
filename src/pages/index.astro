@@ -216,14 +216,6 @@ const fallbackCards = [
             </div>
         </section>
 
-        <section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
-            <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
-                <h3 class="text-2xl font-bold tracking-tight uppercase">Real Talk Newsletter</h3>
-                <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Substack Sync</span>
-            </div>
-            <SubstackFeed />
-        </section>
-
         {featuredPosts.length > 0 && (
             <section class="mx-auto max-w-350 border-t border-gray-100 px-6 py-14 dark:border-gray-900">
                 <div class="mb-8 flex items-center justify-between">
@@ -285,24 +277,6 @@ const fallbackCards = [
             )}
         </section>
 
-        <section class="border-t border-gray-100 py-20 dark:border-gray-900">
-            <div class="mx-auto grid max-w-350 gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-                <div>
-                    <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Newsletter</p>
-                    <h3 class="mt-3 text-3xl font-bold tracking-tight uppercase md:text-4xl">Get New Essays In Your Inbox</h3>
-                    <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">
-                        Join the mailing list for new digital garden articles, systems notes, and publishing updates.
-                    </p>
-                </div>
-                <form id="newsletterForm" class="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
-                    <label for="newsletterEmail" class="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">Email address</label>
-                    <input id="newsletterEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-2 w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
-                    <button type="submit" class="ui-btn ui-btn-primary mt-3 w-full rounded-xl">Subscribe</button>
-                    <p id="newsletterStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
-                </form>
-            </div>
-        </section>
-
         <section id="about" class="border-t border-gray-100 bg-linear-to-br from-white via-[#f7f9ff] to-white py-24 dark:border-gray-900 dark:from-[#060606] dark:via-[#0a0a12] dark:to-[#060606]">
             <div class="mx-auto grid max-w-350 gap-10 px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-center">
                 <div class="relative">
@@ -326,6 +300,32 @@ const fallbackCards = [
                         <a href="/about" class="ui-btn ui-btn-primary">Open Full About Page</a>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
+            <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-2xl font-bold tracking-tight uppercase">Real Talk Newsletter</h3>
+                <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Substack Sync</span>
+            </div>
+            <SubstackFeed />
+        </section>
+
+        <section class="border-t border-gray-100 py-20 dark:border-gray-900">
+            <div class="mx-auto grid max-w-350 gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+                <div>
+                    <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Newsletter</p>
+                    <h3 class="mt-3 text-3xl font-bold tracking-tight uppercase md:text-4xl">Get New Essays In Your Inbox</h3>
+                    <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">
+                        Join the mailing list for new digital garden articles, systems notes, and publishing updates.
+                    </p>
+                </div>
+                <form id="newsletterForm" class="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
+                    <label for="newsletterEmail" class="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">Email address</label>
+                    <input id="newsletterEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-2 w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
+                    <button type="submit" class="ui-btn ui-btn-primary mt-3 w-full rounded-xl">Subscribe</button>
+                    <p id="newsletterStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
+                </form>
             </div>
         </section>
 

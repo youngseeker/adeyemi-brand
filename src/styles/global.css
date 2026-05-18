@@ -98,6 +98,23 @@
         background: rgba(10, 10, 10, 0.92);
     }
 
+    .mobile-nav-link {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    @media (max-width: 640px) {
+        .ui-btn {
+            min-height: 44px;
+            padding-inline: 1rem;
+        }
+
+        .post-card {
+            min-height: 280px;
+        }
+    }
+
     .article-content .article-ordered-list,
     .article-content .article-unordered-list {
         list-style-position: outside;
@@ -242,12 +259,13 @@
         font-size: 0.72em;
         vertical-align: super;
         line-height: 1;
-        display: inline-block;
-        margin-left: 0.12em;
+        display: inline;
+        margin-left: 0;
     }
 
     .article-content .article-footnote-inline {
         display: inline;
+        white-space: nowrap;
     }
 
     .article-content .article-footnote-inline__text {
@@ -256,6 +274,34 @@
 
     .dark .article-content .article-footnote-inline__text {
         color: #94a3b8;
+    }
+
+    @media (max-width: 768px) {
+        .article-content {
+            max-width: 100%;
+            font-size: 1.14rem;
+            line-height: 1.95;
+        }
+
+        .article-content h2 {
+            font-size: 1.55rem;
+            line-height: 1.3;
+        }
+
+        .article-content h3 {
+            font-size: 1.3rem;
+        }
+
+        .article-content p,
+        .article-content li {
+            font-size: 1.12rem;
+            letter-spacing: 0.002em;
+        }
+
+        .article-content pre {
+            font-size: 0.88rem;
+            padding: 1rem;
+        }
     }
 
     .article-content .article-poll {

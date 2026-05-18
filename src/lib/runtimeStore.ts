@@ -10,6 +10,8 @@ export type FeedbackItem = {
 	status: FeedbackStatus;
 	createdAt: string;
 	ipHash?: string;
+	parentId?: string;
+	reactions?: Record<string, number>;
 };
 
 type RuntimeStore = {
