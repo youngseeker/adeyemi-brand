@@ -179,7 +179,7 @@ const relatedPosts = relatedCandidates
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <title>{isUnpublishedPreview ? `[Preview] ${title}` : title} | A.ADENIJI</title>
         {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
@@ -219,7 +219,7 @@ const relatedPosts = relatedCandidates
             <div class="grid min-w-0 gap-8 lg:grid-cols-[minmax(0,740px)_300px] lg:justify-center lg:gap-16">
                 <div>
             <nav class="mx-auto flex max-w-6xl items-center justify-between border-b border-gray-200 pb-5 dark:border-gray-800">
-                <div class="flex items-center gap-4 text-[10px] font-bold tracking-[0.18em] uppercase">
+                <div class="hidden items-center gap-4 text-[10px] font-bold tracking-[0.18em] uppercase md:flex">
                     <a href="/" class="transition hover:text-brandBlue">Home</a>
                     <a href="/work" class="transition hover:text-brandBlue">Work</a>
                     <a href="/garden" class="transition hover:text-brandBlue">Articles</a>
@@ -245,7 +245,7 @@ const relatedPosts = relatedCandidates
                 <a href="/about" class="mobile-nav-link rounded-md px-2 py-2 transition hover:bg-gray-100 dark:hover:bg-gray-900">About</a>
             </div>
             <header class="pt-8 sm:pt-10">
-                <h1 class="max-w-[13ch] text-3xl font-bold leading-[1.08] tracking-tight sm:max-w-[11ch] sm:text-5xl md:text-6xl">{title}</h1>
+                <h1 class="max-w-none text-3xl font-bold leading-[1.08] tracking-tight sm:max-w-[11ch] sm:text-5xl md:text-6xl">{title}</h1>
                 <div class="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 border-y border-gray-200 py-3 text-[11px] font-bold tracking-[0.18em] text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400">
                     {post?.data.author && <span>Written by {post.data.author}</span>}
                     {post?.data.publishedAt && <span>{formatDate(post.data.publishedAt)}</span>}
@@ -281,9 +281,9 @@ const relatedPosts = relatedCandidates
             )}
 
             {articleHeadings.length > 0 && (
-                <nav class="mt-6 flex gap-2 overflow-x-auto pb-1 lg:hidden" aria-label="Article sections">
+                <nav class="mt-6 flex flex-wrap gap-2 pb-1 lg:hidden" aria-label="Article sections">
                     {articleHeadings.map((heading) => (
-                        <a href={`#${heading.slug}`} class="shrink-0 border border-gray-200 bg-white px-3 py-1 text-xs text-gray-600 transition hover:border-brandBlue hover:text-brandBlue dark:border-gray-700 dark:bg-black dark:text-gray-300">
+                        <a href={`#${heading.slug}`} class="max-w-full border border-gray-200 bg-white px-3 py-1 text-xs leading-5 text-gray-600 transition hover:border-brandBlue hover:text-brandBlue dark:border-gray-700 dark:bg-black dark:text-gray-300">
                             {heading.text}
                         </a>
                     ))}

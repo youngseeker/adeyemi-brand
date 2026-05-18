@@ -139,6 +139,12 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
+    html,
+    body {
+        max-width: 100%;
+        overflow-x: clip;
+    }
+
     .article-content h1, .article-content h2, .article-content h3 {
         font-family: 'Playfair Display', serif;
     }
@@ -290,32 +296,42 @@
     @media (max-width: 768px) {
         .article-content {
             max-width: 100%;
-            font-size: 1.22rem;
-            line-height: 2.05;
+            font-size: 1.04rem;
+            line-height: 1.82;
+        }
+
+        .article-content .article-footnote-inline,
+        .article-content .article-footnote-ref {
+            white-space: normal;
+        }
+
+        .article-content .article-footnote-inline {
+            display: inline;
+            overflow-wrap: anywhere;
         }
 
         .article-content h2 {
-            font-size: 1.85rem;
-            line-height: 1.3;
+            font-size: 1.55rem;
+            line-height: 1.28;
         }
 
         .article-content h3 {
-            font-size: 1.55rem;
+            font-size: 1.25rem;
         }
 
         .article-content p,
         .article-content li {
-            font-size: 1.22rem;
+            font-size: 1.04rem;
             letter-spacing: 0.001em;
         }
 
         .article-content blockquote {
             padding-left: 1rem;
-            font-size: 1.18rem;
+            font-size: 1rem;
         }
 
         .article-content pre {
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             padding: 1rem;
         }
 
