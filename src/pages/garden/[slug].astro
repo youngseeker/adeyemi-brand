@@ -897,29 +897,62 @@ const relatedPosts = relatedCandidates
                     const header = `<p class="text-sm font-bold">${escapeHtml(item.name)} / ${'★'.repeat(Number(item.rating || 0))}</p>`;
                     const body = `<p class="mt-2">${escapeHtml(item.comment)}</p>`;
                     const replyBtn = `<button data-review-id="${escapeHtml(item.id)}" class="reply-btn mt-3 text-xs font-semibold text-brandBlue">Reply</button>`;
+                    const reactionsHtml = `<div class="mt-2 comment-reactions" data-comment-id="${escapeHtml(item.id)}"><button data-reaction="like" class="reaction-btn text-xs px-2 py-1 border rounded-md">Like</button> <span class="reaction-count" data-reaction-type="like">${(item.reactions && item.reactions.like) || 0}</span></div>`;
                     const childHtml = (item.children || []).map((c) => renderItem(c, depth + 1)).join('');
-                    return `<article style="margin-left:${indent}px" class="border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-black">${header}${body}${replyBtn}${childHtml}</article>`;
+                    // include a hidden inline reply form container
+                    const replyForm = `<form class="inline-reply-form mt-3 hidden" data-parent-id="${escapeHtml(item.id)}"><input name="replyName" placeholder="Your name" class="border px-2 py-1 text-sm mr-2" /><input name="replyComment" placeholder="Reply" class="border px-2 py-1 text-sm mr-2" /><button class="ui-btn ui-btn-primary text-xs">Send</button></form>`;
+                    return `<article style="margin-left:${indent}px" class="border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-black">${header}${body}${reactionsHtml}${replyBtn}${replyForm}${childHtml}</article>`;
                 };
 
                 approvedReviews.innerHTML = roots.map((r) => renderItem(r)).join('');
 
-                // Attach reply handlers
+                // Attach reply handlers and reaction handlers
                 approvedReviews.querySelectorAll('.reply-btn').forEach((btn) => {
-                    btn.addEventListener('click', async (e) => {
+                    btn.addEventListener('click', (e) => {
                         const id = btn.getAttribute('data-review-id');
-                        const name = prompt('Your name (optional)') || 'Anonymous';
-                        const comment = prompt('Your reply');
-                        if (!comment) return;
+                        const form = approvedReviews.querySelector(`.inline-reply-form[data-parent-id="${id}"]`);
+                        if (!form) return;
+                        form.classList.toggle('hidden');
+                    });
+                });
+
+                approvedReviews.querySelectorAll('.inline-reply-form').forEach((form) => {
+                    form.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const parentId = form.getAttribute('data-parent-id');
+                        const name = (form.querySelector('input[name="replyName"]') || { value: 'Anonymous' }).value || 'Anonymous';
+                        const comment = (form.querySelector('input[name="replyComment"]') || { value: '' }).value || '';
+                        if (!comment) return alert('Please enter a reply');
                         try {
                             const resp = await fetch('/api/feedback', {
                                 method: 'POST',
                                 headers: { 'content-type': 'application/json' },
-                                body: JSON.stringify({ slug: articleSlug, title: articleTitle, name, rating: 1, comment, parentId: id }),
+                                body: JSON.stringify({ slug: articleSlug, title: articleTitle, name, rating: 1, comment, parentId }),
                             });
                             if (!resp.ok) throw new Error('Reply failed');
                             await loadApprovedReviews();
                         } catch (err) {
                             alert('Unable to post reply. Please try again later.');
+                        }
+                    });
+                });
+
+                // Reaction handlers
+                approvedReviews.querySelectorAll('.reaction-btn').forEach((btn) => {
+                    btn.addEventListener('click', async (e) => {
+                        const commentId = btn.closest('.comment-reactions')?.getAttribute('data-comment-id');
+                        const type = btn.getAttribute('data-reaction') || 'like';
+                        if (!commentId) return;
+                        try {
+                            const resp = await fetch('/api/comment-reactions', {
+                                method: 'POST',
+                                headers: { 'content-type': 'application/json' },
+                                body: JSON.stringify({ commentId, type }),
+                            });
+                            if (!resp.ok) throw new Error('Reaction failed');
+                            await loadApprovedReviews();
+                        } catch (err) {
+                            console.error(err);
                         }
                     });
                 });
