@@ -9,6 +9,7 @@ export default defineConfig({
   security: {
     allowedDomains: [
       { protocol: 'https', hostname: 'adeyemiadeniji.vercel.app' },
+      { protocol: 'https', hostname: 'adeyemi-brand.vercel.app' },
     ],
   },
   output: 'server',
