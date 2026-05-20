@@ -163,161 +163,161 @@ const fallbackCards = [
         </header>
 
         <main id="mainContent">
-        <section class="mx-auto max-w-7xl px-4 pt-16 pb-12 sm:px-6 sm:pt-20 sm:pb-14">
-            <div class="grid items-end gap-12 lg:grid-cols-12">
-                <div class="lg:col-span-8">
-                    <h2 class="mb-8 text-[12px] font-bold tracking-[0.5em] text-brandBlue uppercase">Computer Science Builder & Technical Writer</h2>
-                    <h1 class="mb-10 text-4xl leading-[0.95] font-bold tracking-tighter uppercase sm:text-6xl lg:text-[100px]">
-                        Translating
-                        <span class="font-['Playfair_Display'] font-normal capitalize italic"> Human Logic </span>
-                        into software systems.
-                    </h1>
-                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Currently building: SCOPE — scope.samsoyombo.com (Node.js)</p>
+            <section class="mx-auto max-w-7xl px-4 pt-16 pb-12 sm:px-6 sm:pt-20 sm:pb-14">
+                <div class="grid items-end gap-12 lg:grid-cols-12">
+                    <div class="lg:col-span-8">
+                        <h2 class="mb-8 text-[12px] font-bold tracking-[0.5em] text-brandBlue uppercase">Computer Science Builder & Technical Writer</h2>
+                        <h1 class="mb-10 text-4xl leading-[0.95] font-bold tracking-tighter uppercase sm:text-6xl lg:text-[100px]">
+                            Translating
+                            <span class="font-['Playfair_Display'] font-normal capitalize italic"> Human Logic </span>
+                            into software systems.
+                        </h1>
+                        <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">Currently building: SCOPE — scope.samsoyombo.com (Node.js)</p>
+                    </div>
+                    <div class="lg:col-span-4">
+                        <p class="border-l border-brandBlue pl-6 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                            I build with algorithms and architectural discipline, then write clearly so systems remain explainable,
+                            maintainable, and human-centered.
+                        </p>
+                    </div>
                 </div>
-                <div class="lg:col-span-4">
-                    <p class="border-l border-brandBlue pl-6 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-                        I build with algorithms and architectural discipline, then write clearly so systems remain explainable,
-                        maintainable, and human-centered.
-                    </p>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="mx-auto max-w-7xl border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
-            <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
-                <h3 class="text-2xl font-bold tracking-tight uppercase">Ecosystem & Presence</h3>
-                <span class="text-xs tracking-widest text-gray-400 uppercase">Linktree-Centered</span>
-            </div>
-            <div class="grid gap-4 md:grid-cols-3">
-                {ecosystemLinks.map((item) => (
-                    <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
-                        <p class="text-[10px] tracking-widest text-gray-400 uppercase">Brand Platform</p>
-                        <h4 class="mt-2 text-lg font-bold">{item.title}</h4>
-                        <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">{item.description}</p>
-                    </a>
-                ))}
-            </div>
-        </section>
-
-        {featuredPosts.length > 0 && (
-            <section class="mx-auto max-w-7xl border-t border-gray-100 px-6 py-14 dark:border-gray-900">
-                <div class="mb-8 flex items-center justify-between">
-                    <h3 class="text-2xl font-bold tracking-tight uppercase">Featured Articles</h3>
-                    <span class="text-xs tracking-widest text-gray-400 uppercase">Editor Picks</span>
+            <section class="mx-auto max-w-7xl border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
+                <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+                    <h3 class="text-2xl font-bold tracking-tight uppercase">Ecosystem & Presence</h3>
+                    <span class="text-xs tracking-widest text-gray-400 uppercase">Linktree-Centered</span>
                 </div>
                 <div class="grid gap-4 md:grid-cols-3">
-                    {featuredPosts.map((post) => (
-                        <a href={`/garden/${post.slug}`} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
-                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">Featured / {post.publishedAt || 'Digital Garden'}</p>
-                            <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
-                            <h4 class="mt-2 text-lg font-bold">{post.title}</h4>
-                            <p class="mt-2 line-clamp-3 text-sm text-gray-500 dark:text-gray-300">{post.excerpt}</p>
+                    {ecosystemLinks.map((item) => (
+                        <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noreferrer' : undefined} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
+                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">Brand Platform</p>
+                            <h4 class="mt-2 text-lg font-bold">{item.title}</h4>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-300">{item.description}</p>
                         </a>
                     ))}
                 </div>
             </section>
-        )}
 
-        <section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
-            <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
-                <h3 class="text-2xl font-bold tracking-tight uppercase">Trending Now</h3>
-                <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Audience Signal</span>
-            </div>
-            <div id="trendingPosts" role="status" aria-live="polite" class="grid gap-4 md:grid-cols-2">
-                <p class="text-gray-500">Loading trending posts...</p>
-            </div>
-        </section>
-
-        <section id="garden" class="mx-auto max-w-7xl border-t border-gray-100 px-6 py-20 dark:border-gray-900">
-            <div class="mb-10 flex items-center justify-between">
-                <h3 class="text-3xl font-bold tracking-tighter uppercase">Digital Garden</h3>
-                <div class="flex items-center gap-3">
-                    <a href="/garden" class="ui-btn ui-btn-secondary">Browse Articles</a>
-                </div>
-            </div>
-
-            {posts.length > 0 ? (
-                <div class="grid gap-8 md:grid-cols-3">
-                    {posts.map((post) => (
-                        <a href={`/garden/${post.slug}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800 ui-card post-card" aria-describedby={`excerpt-${post.slug}`}>
-                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">{post.publishedAt ? `Digital Garden / ${post.publishedAt}` : 'Digital Garden'}</p>
-                            <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
-                            <h4 class="mt-2 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h4>
-                            <p id={`excerpt-${post.slug}`} class="mt-3 line-clamp-3 text-gray-500 excerpt">{post.excerpt}</p>
-                        </a>
-                    ))}
-                </div>
-            ) : (
-                <div class="grid gap-8 md:grid-cols-3">
-                    {fallbackCards.map((card) => (
-                        <div class="ui-card rounded-xl p-5">
-                            <p class="text-[10px] tracking-widest text-gray-400 uppercase">{card.label}</p>
-                            <h4 class="mt-2 text-2xl font-bold">{card.title}</h4>
-                            <p class="mt-3 text-gray-500">{card.excerpt}</p>
-                        </div>
-                    ))}
-                </div>
+            {featuredPosts.length > 0 && (
+                <section class="mx-auto max-w-7xl border-t border-gray-100 px-6 py-14 dark:border-gray-900">
+                    <div class="mb-8 flex items-center justify-between">
+                        <h3 class="text-2xl font-bold tracking-tight uppercase">Featured Articles</h3>
+                        <span class="text-xs tracking-widest text-gray-400 uppercase">Editor Picks</span>
+                    </div>
+                    <div class="grid gap-4 md:grid-cols-3">
+                        {featuredPosts.map((post) => (
+                            <a href={`/garden/${post.slug}`} class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800">
+                                <p class="text-[10px] tracking-widest text-gray-400 uppercase">Featured / {post.publishedAt || 'Digital Garden'}</p>
+                                <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
+                                <h4 class="mt-2 text-lg font-bold">{post.title}</h4>
+                                <p class="mt-2 line-clamp-3 text-sm text-gray-500 dark:text-gray-300">{post.excerpt}</p>
+                            </a>
+                        ))}
+                    </div>
+                </section>
             )}
-        </section>
 
-        <section id="about" class="border-t border-gray-100 bg-linear-to-br from-white via-[#f7f9ff] to-white py-24 dark:border-gray-900 dark:from-[#060606] dark:via-[#0a0a12] dark:to-[#060606]">
-            <div class="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-center">
-                <div class="relative">
-                    <img src="/adeyemi.jpg" alt="Adeyemi Adeniji portrait" class="h-[22.5rem] w-full rounded-3xl object-cover shadow-2xl" />
-                    <div class="absolute -bottom-4 right-4 rounded-full border border-brandBlue bg-white px-4 py-2 text-[10px] font-bold tracking-widest text-brandBlue uppercase dark:bg-[#050505]">
-                        Builder + Writer
+            <section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
+                <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+                    <h3 class="text-2xl font-bold tracking-tight uppercase">Trending Now</h3>
+                    <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Audience Signal</span>
+                </div>
+                <div id="trendingPosts" role="status" aria-live="polite" class="grid gap-4 md:grid-cols-2">
+                    <p class="text-gray-500">Loading trending posts...</p>
+                </div>
+            </section>
+
+            <section id="garden" class="mx-auto max-w-7xl border-t border-gray-100 px-6 py-20 dark:border-gray-900">
+                <div class="mb-10 flex items-center justify-between">
+                    <h3 class="text-3xl font-bold tracking-tighter uppercase">Digital Garden</h3>
+                    <div class="flex items-center gap-3">
+                        <a href="/garden" class="ui-btn ui-btn-secondary">Browse Articles</a>
                     </div>
                 </div>
-                <div>
-                    <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">About Adeyemi</p>
-                    <h3 class="mt-3 text-4xl font-bold tracking-tight uppercase md:text-5xl">Computer Science, Story, and Systems</h3>
-                    <p class="mt-5 max-w-3xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
-                        I build software systems, write deeply researched essays, and design explainable workflows where technical rigor and human clarity move together.
-                    </p>
-                    <div class="mt-8 grid gap-3 sm:grid-cols-3">
-                        <a href="https://linktr.ee/_adeyemiadeniji" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">Linktree</a>
-                        <a href="https://www.linkedin.com/in/adeyemi-adeniji-828204253/" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">LinkedIn</a>
-                        <a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-neutral rounded-xl">Email</a>
+
+                {posts.length > 0 ? (
+                    <div class="grid gap-8 md:grid-cols-3">
+                        {posts.map((post) => (
+                            <a href={`/garden/${post.slug}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800 ui-card post-card" aria-describedby={`excerpt-${post.slug}`}>
+                                <p class="text-[10px] tracking-widest text-gray-400 uppercase">{post.publishedAt ? `Digital Garden / ${post.publishedAt}` : 'Digital Garden'}</p>
+                                <p class="mt-1 text-[10px] tracking-widest text-brandBlue uppercase">{post.readingLabel}</p>
+                                <h4 class="mt-2 text-2xl font-bold transition group-hover:text-brandBlue">{post.title}</h4>
+                                <p id={`excerpt-${post.slug}`} class="mt-3 line-clamp-3 text-gray-500 excerpt">{post.excerpt}</p>
+                            </a>
+                        ))}
                     </div>
-                    <div class="mt-6">
-                        <a href="/about" class="ui-btn ui-btn-primary">Open Full About Page</a>
+                ) : (
+                    <div class="grid gap-8 md:grid-cols-3">
+                        {fallbackCards.map((card) => (
+                            <div class="ui-card rounded-xl p-5">
+                                <p class="text-[10px] tracking-widest text-gray-400 uppercase">{card.label}</p>
+                                <h4 class="mt-2 text-2xl font-bold">{card.title}</h4>
+                                <p class="mt-3 text-gray-500">{card.excerpt}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            <section id="about" class="border-t border-gray-100 bg-linear-to-br from-white via-[#f7f9ff] to-white py-24 dark:border-gray-900 dark:from-[#060606] dark:via-[#0a0a12] dark:to-[#060606]">
+                <div class="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-center">
+                    <div class="relative">
+                        <img src="/adeyemi.jpg" alt="Adeyemi Adeniji portrait" class="h-[22.5rem] w-full rounded-3xl object-cover shadow-2xl" />
+                        <div class="absolute -bottom-4 right-4 rounded-full border border-brandBlue bg-white px-4 py-2 text-[10px] font-bold tracking-widest text-brandBlue uppercase dark:bg-[#050505]">
+                            Builder + Writer
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">About Adeyemi</p>
+                        <h3 class="mt-3 text-4xl font-bold tracking-tight uppercase md:text-5xl">Computer Science, Story, and Systems</h3>
+                        <p class="mt-5 max-w-3xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+                            I build software systems, write deeply researched essays, and design explainable workflows where technical rigor and human clarity move together.
+                        </p>
+                        <div class="mt-8 grid gap-3 sm:grid-cols-3">
+                            <a href="https://linktr.ee/_adeyemiadeniji" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">Linktree</a>
+                            <a href="https://www.linkedin.com/in/adeyemi-adeniji-828204253/" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral rounded-xl">LinkedIn</a>
+                            <a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-neutral rounded-xl">Email</a>
+                        </div>
+                        <div class="mt-6">
+                            <a href="/about" class="ui-btn ui-btn-primary">Open Full About Page</a>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <Footer />
+            <section class="border-t border-gray-100 py-20 dark:border-gray-900">
+                <div class="mx-auto grid max-w-7xl gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+                    <div>
+                        <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Newsletter</p>
+                        <h3 class="mt-3 text-3xl font-bold tracking-tight uppercase md:text-4xl">Get New Essays In Your Inbox</h3>
+                        <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">
+                            Join the mailing list for new digital garden articles, systems notes, and publishing updates.
+                        </p>
+                        <div class="mt-8">
+                            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                <h4 class="text-xl font-bold tracking-tight uppercase">Real Talk Newsletter</h4>
+                                <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Substack Sync</span>
+                            </div>
+                            <SubstackFeed />
+                        </div>
+                    </div>
+                    <form id="newsletterForm" class="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
+                        <label for="newsletterEmail" class="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">Email address</label>
+                        <input id="newsletterEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-2 w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
+                        <button type="submit" class="ui-btn ui-btn-primary mt-3 w-full rounded-xl">Subscribe</button>
+                        <p id="newsletterStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
+                    </form>
+                </div>
+            </section>
+
+            <Footer />
         </main>
 
         <div class="mobile-contact-chip md:hidden">
             <a href="mailto:danieladeniji001@gmail.com" class="ui-btn ui-btn-primary">Email</a>
             <a href="https://linktr.ee/_adeyemiadeniji" target="_blank" rel="noreferrer" class="ui-btn ui-btn-neutral">Linktree</a>
         </div>
-
-        <section class="border-t border-gray-100 py-20 dark:border-gray-900">
-            <div class="mx-auto grid max-w-7xl gap-8 px-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-                <div>
-                    <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Newsletter</p>
-                    <h3 class="mt-3 text-3xl font-bold tracking-tight uppercase md:text-4xl">Get New Essays In Your Inbox</h3>
-                    <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">
-                        Join the mailing list for new digital garden articles, systems notes, and publishing updates.
-                    </p>
-                    <div class="mt-8">
-                        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                            <h4 class="text-xl font-bold tracking-tight uppercase">Real Talk Newsletter</h4>
-                            <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Substack Sync</span>
-                        </div>
-                        <SubstackFeed />
-                    </div>
-                </div>
-                <form id="newsletterForm" class="rounded-2xl border border-gray-200 p-4 dark:border-gray-800">
-                    <label for="newsletterEmail" class="text-[10px] font-bold tracking-[0.2em] text-gray-500 uppercase">Email address</label>
-                    <input id="newsletterEmail" type="email" autocomplete="email" required placeholder="you@example.com" class="mt-2 w-full rounded-xl border border-gray-300 bg-transparent px-4 py-3 text-sm focus:border-brandBlue focus:outline-none dark:border-gray-700" />
-                    <button type="submit" class="ui-btn ui-btn-primary mt-3 w-full rounded-xl">Subscribe</button>
-                    <p id="newsletterStatus" role="status" aria-live="polite" class="mt-3 text-sm text-gray-500 dark:text-gray-300"></p>
-                </form>
-            </div>
-        </section>
 
         <div id="commandPalette" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="commandPaletteTitle" class="fixed inset-0 z-70 hidden items-start justify-center bg-black/70 p-6">
             <div class="mt-24 w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-4 shadow-2xl dark:border-gray-800 dark:bg-[#0c0c0c]">
