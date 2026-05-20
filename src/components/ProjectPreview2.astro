@@ -30,7 +30,8 @@ const toggleId = `toggle-${iframeId}`;
   </p>
 </div>
 
-<script define:vars={{ iframeId, toggleId }}>
+<script is:inline define:vars={{ iframeId, toggleId }}>
+  // @ts-nocheck
   document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById(toggleId);
     const container = document.getElementById(`container-` + iframeId);

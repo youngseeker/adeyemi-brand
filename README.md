@@ -20,7 +20,14 @@ Personal brand platform built with Astro Content Collections and server APIs for
 - `/publish` Publishing workflow cockpit
 - `/admin` Admin hub
 - `/admin/insights` Moderation + diagnostics + analytics
-- `/qa` Pre-deploy manual QA checklist
+
+## PWA Support
+
+The site ships with a web app manifest and service worker:
+
+- Installable home-screen app metadata lives at `/manifest.webmanifest`.
+- `/sw.js` caches public pages and static assets for offline reading.
+- API routes are intentionally excluded from service-worker caching so analytics, newsletter, polls, comments, and admin actions stay live.
 
 ## Local Development
 
@@ -32,6 +39,7 @@ npm run dev
 Build check:
 
 ```bash
+npm run astro -- check
 npm run build
 ```
 

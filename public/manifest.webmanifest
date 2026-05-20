@@ -1,0 +1,50 @@
+{
+  "name": "A.ADENIJI Systems and Writing",
+  "short_name": "A.ADENIJI",
+  "description": "Digital garden, work archive, and publishing platform for Adeyemi Adeniji.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "background_color": "#050505",
+  "theme_color": "#2B59C3",
+  "orientation": "portrait-primary",
+  "categories": ["education", "productivity", "books"],
+  "icons": [
+    {
+      "src": "/aa-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Digital Garden",
+      "short_name": "Garden",
+      "description": "Open the article archive.",
+      "url": "/garden",
+      "icons": [{ "src": "/aa-logo.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Work",
+      "short_name": "Work",
+      "description": "Open work and experience.",
+      "url": "/work",
+      "icons": [{ "src": "/aa-logo.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Publish",
+      "short_name": "Publish",
+      "description": "Open the protected publishing cockpit.",
+      "url": "/publish",
+      "icons": [{ "src": "/aa-logo.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}

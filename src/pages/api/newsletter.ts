@@ -8,7 +8,6 @@ import { logAppError } from '../../lib/errorTelemetry';
 import { runtimeStore } from '../../lib/runtimeStore';
 
 const CONTACT_EMAIL = import.meta.env.PUBLIC_CONTACT_EMAIL || 'danieladeniji001@gmail.com';
-const ADMIN_KEY = import.meta.env.REVIEW_ADMIN_KEY || '';
 const SMTP_HOST = import.meta.env.SMTP_HOST || '';
 const SMTP_PORT = Number(import.meta.env.SMTP_PORT || 587);
 const SMTP_USER = import.meta.env.SMTP_USER || '';

@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import PwaHead from '../components/PwaHead.astro';
 
 const workflow = [
     ['Draft', 'Open VS Code and create a new .mdx file in your content folder.'],
@@ -41,6 +42,7 @@ const topicAngles = [
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <title>MDX Publishing Cockpit | Adeyemi Adeniji</title>
         <meta name="description" content="A focused MDX publishing cockpit for drafting, previewing, publishing, and validating articles." />
+        <PwaHead />
         <link
             href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
             rel="stylesheet"
@@ -129,6 +131,16 @@ const topicAngles = [
                         <button id="openPreviewButton" type="button" aria-describedby="previewStatus" class="w-full bg-brandBlue px-4 py-3 text-xs font-bold tracking-widest text-white uppercase md:w-auto">Open Preview</button>
                     </section>
 
+                    <section id="newsletter-dispatch" class="grid gap-5 border border-gray-200 p-5 md:grid-cols-[minmax(0,1fr)_220px] md:items-end dark:border-gray-800">
+                        <div>
+                            <p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Newsletter</p>
+                            <h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Send New Published Articles</h2>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">Dispatches any published article that has not already been sent to subscribers.</p>
+                            <p id="newsletterDispatchStatus" role="status" aria-live="polite" class="mt-3 min-h-5 text-sm text-gray-500 dark:text-gray-300"></p>
+                        </div>
+                        <button id="dispatchNewsletterButton" type="button" aria-describedby="newsletterDispatchStatus" class="w-full bg-black px-4 py-3 text-xs font-bold tracking-widest text-white uppercase md:w-auto dark:bg-white dark:text-black">Dispatch Now</button>
+                    </section>
+
                     <section id="components">
                         <p class="text-xs font-bold tracking-[0.22em] text-brandBlue uppercase">Blocks</p>
                         <h2 class="mt-2 text-2xl font-bold uppercase sm:text-3xl">Article Components</h2>
@@ -173,6 +185,8 @@ const topicAngles = [
             const slugInput = document.getElementById('previewSlugInput');
             const openPreviewButton = document.getElementById('openPreviewButton');
             const previewStatus = document.getElementById('previewStatus');
+            const dispatchNewsletterButton = document.getElementById('dispatchNewsletterButton');
+            const newsletterDispatchStatus = document.getElementById('newsletterDispatchStatus');
 
             const normalizeToSlug = (value) => {
                 const trimmed = String(value || '').trim();
@@ -201,6 +215,43 @@ const topicAngles = [
                 if (event.key === 'Enter') {
                     event.preventDefault();
                     openPreview();
+                }
+            });
+
+            const parseJsonSafe = async (response) => {
+                try {
+                    return await response.json();
+                } catch {
+                    return {};
+                }
+            };
+
+            dispatchNewsletterButton?.addEventListener('click', async () => {
+                if (!(dispatchNewsletterButton instanceof HTMLButtonElement)) return;
+                dispatchNewsletterButton.disabled = true;
+                if (newsletterDispatchStatus) newsletterDispatchStatus.textContent = 'Checking published articles...';
+
+                try {
+                    const response = await fetch('/api/newsletter/dispatch', { method: 'POST' });
+                    const payload = await parseJsonSafe(response);
+                    if (!response.ok) {
+                        throw new Error(payload?.error || 'Dispatch failed.');
+                    }
+
+                    const sent = Array.isArray(payload.dispatched)
+                        ? payload.dispatched.reduce((total, item) => total + Number(item.recipients || 0), 0)
+                        : 0;
+                    if (newsletterDispatchStatus) {
+                        newsletterDispatchStatus.textContent = sent > 0
+                            ? `Newsletter sent to ${sent} subscriber${sent === 1 ? '' : 's'}.`
+                            : payload.message || 'No new published article to dispatch.';
+                    }
+                } catch (error) {
+                    if (newsletterDispatchStatus) {
+                        newsletterDispatchStatus.textContent = error instanceof Error ? error.message : 'Unable to dispatch newsletter right now.';
+                    }
+                } finally {
+                    dispatchNewsletterButton.disabled = false;
                 }
             });
         </script>

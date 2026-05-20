@@ -154,7 +154,7 @@ Dev server still running on **http://localhost:4322**
 Changes apply automatically when you:
 1. Save the integration change in `/src/pages/work.astro`
 2. Save the import in `/src/pages/garden/[slug].astro`
-3. Create an article with a poll in Keystatic
+3. Create or edit an article MDX file in `src/content/posts`
 
 Then refresh the browser to see:
 - Professional article layout

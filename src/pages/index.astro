@@ -6,6 +6,7 @@ import { isPubliclyVisiblePost } from '../lib/postVisibility';
 import '../styles/global.css';
 import Footer from '../components/Footer.astro';
 import SubstackFeed from '../components/SubstackFeed.astro';
+import PwaHead from '../components/PwaHead.astro';
 
 const rawPosts = await getCollection('posts');
 const logo = 'A.ADENIJI // SYSTEMS';
@@ -112,6 +113,7 @@ const fallbackCards = [
         <meta property="og:description" content="CS-focused portfolio and writing platform for systems thinking, architecture, and human logic." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary" />
+        <PwaHead />
         <link
             href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
             rel="stylesheet"
@@ -218,7 +220,7 @@ const fallbackCards = [
                 </section>
             )}
 
-            <section class="mx-auto max-w-[1400px] border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
+            <section class="mx-auto max-w-350 border-t border-gray-100 px-4 py-14 sm:px-6 dark:border-gray-900">
                 <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
                     <h3 class="text-2xl font-bold tracking-tight uppercase">Trending Now</h3>
                     <span class="text-xs font-bold tracking-widest text-gray-400 uppercase">Audience Signal</span>
@@ -263,7 +265,7 @@ const fallbackCards = [
             <section id="about" class="border-t border-gray-100 bg-linear-to-br from-white via-[#f7f9ff] to-white py-24 dark:border-gray-900 dark:from-[#060606] dark:via-[#0a0a12] dark:to-[#060606]">
                 <div class="mx-auto grid max-w-7xl gap-10 px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-center">
                     <div class="relative">
-                        <img src="/adeyemi.jpg" alt="Adeyemi Adeniji portrait" class="h-[22.5rem] w-full rounded-3xl object-cover shadow-2xl" />
+                        <img src="/adeyemi.jpg" alt="Adeyemi Adeniji portrait" class="h-90 w-full rounded-3xl object-cover shadow-2xl" />
                         <div class="absolute -bottom-4 right-4 rounded-full border border-brandBlue bg-white px-4 py-2 text-[10px] font-bold tracking-widest text-brandBlue uppercase dark:bg-[#050505]">
                             Builder + Writer
                         </div>
@@ -333,7 +335,6 @@ const fallbackCards = [
                 { label: 'Open Articles', href: '/garden', keywords: 'garden posts writing essays analytics' },
                 { label: 'Open Devotionals', href: '/devotionals', keywords: 'faith biblical studies reflections daily insights context scripture' },
                 { label: 'Open About', href: '/about', keywords: 'bio profile mission socials profile' },
-                { label: 'Open QA Console', href: '/qa', keywords: 'quality assurance pre deploy checklist checks console' },
                 { label: 'Open Linktree', href: 'https://linktr.ee/_adeyemiadeniji', keywords: 'social links profiles ecosystem hub presence' },
             ];
 
@@ -363,6 +364,13 @@ const fallbackCards = [
             const loadTrendingPosts = async () => {
                 const container = document.getElementById('trendingPosts');
                 if (!container) return;
+                const escapeHtml = (value) =>
+                    String(value || '')
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
                 try {
                     const fetchPromise = fetch('/api/trending').then((r) => {
                         if (!r.ok) throw new Error('Failed');
@@ -377,11 +385,13 @@ const fallbackCards = [
                     }
                     container.innerHTML = trending
                         .map((post) => {
-                            const title = String(post.slug || '')
+                            const slug = String(post.slug || '');
+                            const title = post.title || slug
                                 .split('-')
                                 .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                                 .join(' ');
-                            return `<a href="/garden/${post.slug}" class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800"><p class="text-[10px] tracking-widest text-gray-400 uppercase">Trending / ${post.views} views</p><h4 class="mt-2 text-lg font-bold">${title}</h4></a>`;
+                            const sourceLabel = post.source === 'recent' ? 'Recent Article' : `${Number(post.views || 0)} views`;
+                            return `<a href="/garden/${encodeURIComponent(slug)}" class="rounded-xl border border-gray-200 p-4 transition hover:border-brandBlue dark:border-gray-800"><p class="text-[10px] tracking-widest text-gray-400 uppercase">Trending / ${escapeHtml(sourceLabel)}</p><h4 class="mt-2 text-lg font-bold">${escapeHtml(title)}</h4></a>`;
                         })
                         .join('');
                 } catch {

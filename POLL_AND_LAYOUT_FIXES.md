@@ -163,17 +163,13 @@ The issue was a classic **frontend/backend disconnect**:
 
 This is a common pitfall in SPA/framework development where rendering and interactivity are separated. The fix was straightforward: add the missing client-side event handling.
 
-## CMS vs Frontend
+## Authoring vs Frontend
 
-**Important Distinction:**
-- **Keystatic (CMS)**: Where you _author_ articles with poll components
-- **Frontend (Article page)**: Where users _interact_ with polls
+Articles are authored as MDX files in `src/content/posts`. The article page is responsible for turning poll definitions into interactive voting controls for readers.
 
 The improvements made:
-1. **CMS (Keystatic)**: Better UI/UX for article creation (from previous session)
-2. **Frontend (Article page)**: Functional polls + improved layout (this session)
-
-Both needed work to create a complete, professional article authoring and reading experience.
+1. **Authoring format**: Poll definitions live with the article content.
+2. **Frontend**: Article pages provide functional polls with improved layout and result rendering.
 
 ---
 

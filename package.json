@@ -15,7 +15,7 @@
     "db:push": "drizzle-kit push --config drizzle.config.ts"
   },
   "dependencies": {
-    "@astrojs/mdx": "^5.0.6",
+    "@astrojs/mdx": "^4.3.6",
     "@astrojs/vercel": "^9.0.5",
     "@neondatabase/serverless": "^1.0.2",
     "@tailwindcss/vite": "^4.2.2",
@@ -29,7 +29,9 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
     "drizzle-kit": "^0.31.10",
-    "vite": "^8.0.13"
+    "typescript": "^5.9.3",
+    "vite": "^6.4.2"
   }
 }

@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { desc, sql } from 'drizzle-orm';
 import nodemailer from 'nodemailer';
 import { db } from '../../../db';
-import { newsletterSubscribers } from '../../../db/schema';
+import { newsletterArticleDispatches, newsletterSubscribers } from '../../../db/schema';
 import { isPubliclyVisiblePost } from '../../../lib/postVisibility';
 import { hasValidAdminSession } from '../../../lib/adminAuth';
 import { logAppError } from '../../../lib/errorTelemetry';
@@ -27,14 +27,6 @@ const SMTP_FROM_EMAIL = import.meta.env.SMTP_FROM_EMAIL || '';
 const SMTP_FROM_NAME = import.meta.env.SMTP_FROM_NAME || 'A.ADENIJI';
 const SMTP_SECURE = String(import.meta.env.SMTP_SECURE || '').toLowerCase() === 'true';
 
-const newsletterDispatches = {
-    table: sql.identifier('newsletter_article_dispatches'),
-    slug: sql.identifier('slug'),
-    title: sql.identifier('title'),
-    sentAt: sql.identifier('sent_at'),
-    recipients: sql.identifier('recipients'),
-};
-
 const isValidAdminRequest = (request: Request) => {
     if (hasValidAdminSession(request)) return true;
 
@@ -43,6 +35,11 @@ const isValidAdminRequest = (request: Request) => {
 
     const authHeader = request.headers.get('authorization') || '';
     if (CRON_SECRET && authHeader === `Bearer ${CRON_SECRET}`) return true;
+
+    const userAgent = request.headers.get('user-agent') || '';
+    if (!CRON_SECRET && import.meta.env.VERCEL === '1' && userAgent.toLowerCase().includes('vercel-cron')) {
+        return true;
+    }
 
     return false;
 };
@@ -90,36 +87,38 @@ const listSubscriberEmails = async (): Promise<string[]> => {
 };
 
 const listDispatchedSlugs = async (): Promise<string[]> => {
-    const rows = await db.execute(sql`SELECT ${newsletterDispatches.slug} FROM ${newsletterDispatches.table}`);
-    if (!Array.isArray(rows)) return [];
+    const rows = await db.select({ slug: newsletterArticleDispatches.slug }).from(newsletterArticleDispatches);
     return rows.map((row) => String((row as { slug?: unknown }).slug || '').trim()).filter(Boolean);
 };
 
 const getLatestDispatch = async (): Promise<DispatchRecord | null> => {
-    const rows = await db.execute(sql`
-        SELECT ${newsletterDispatches.slug}, ${newsletterDispatches.title}, ${newsletterDispatches.sentAt}, ${newsletterDispatches.recipients}
-        FROM ${newsletterDispatches.table}
-        ORDER BY ${newsletterDispatches.sentAt} DESC
-        LIMIT 1
-    `);
+    const rows = await db
+        .select({
+            slug: newsletterArticleDispatches.slug,
+            title: newsletterArticleDispatches.title,
+            sentAt: newsletterArticleDispatches.sentAt,
+            recipients: newsletterArticleDispatches.recipients,
+        })
+        .from(newsletterArticleDispatches)
+        .orderBy(desc(newsletterArticleDispatches.sentAt))
+        .limit(1);
 
-    if (!Array.isArray(rows) || !rows.length) return null;
-    const row = rows[0] as { slug?: unknown; title?: unknown; sent_at?: unknown; recipients?: unknown };
+    if (!rows.length) return null;
+    const row = rows[0];
 
     return {
         slug: String(row.slug || ''),
         title: String(row.title || ''),
-        sentAt: row.sent_at ? new Date(String(row.sent_at)).toISOString() : '',
+        sentAt: row.sentAt ? new Date(String(row.sentAt)).toISOString() : '',
         recipients: Number(row.recipients || 0),
     };
 };
 
 const recordDispatch = async (slug: string, title: string, recipients: number) => {
-    await db.execute(sql`
-        INSERT INTO ${newsletterDispatches.table} (${newsletterDispatches.slug}, ${newsletterDispatches.title}, ${newsletterDispatches.recipients})
-        VALUES (${slug}, ${title}, ${recipients})
-        ON CONFLICT (${newsletterDispatches.slug}) DO NOTHING
-    `);
+    await db
+        .insert(newsletterArticleDispatches)
+        .values({ slug, title, recipients })
+        .onConflictDoNothing({ target: newsletterArticleDispatches.slug });
 };
 
 const chunk = <T>(items: T[], size: number) => {

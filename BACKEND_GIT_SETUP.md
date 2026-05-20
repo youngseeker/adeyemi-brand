@@ -11,13 +11,6 @@ Set these in your hosting platform and local `.env`:
 - `REVIEW_ADMIN_KEY`: Optional admin API key for external tools.
 - `PUBLIC_CONTACT_EMAIL`: Public support/contact email.
 
-For Keystatic GitHub write access in production:
-
-- `KEYSTATIC_GITHUB_REPO` (format: `owner/repo`)
-- `KEYSTATIC_SECRET` (minimum 32 chars)
-- `KEYSTATIC_GITHUB_CLIENT_ID`
-- `KEYSTATIC_GITHUB_CLIENT_SECRET`
-
 For email/newsletter dispatch:
 
 - `SMTP_HOST`
@@ -53,10 +46,11 @@ npm run db:push
 
 ## 3) Verify Core Health Before Launch
 
-1. Open `/publish` and run **CMS Health Check**.
-2. Open `/qa` and complete the checklist.
-3. Open `/admin/insights` and confirm analytics/poll/newsletter sections load.
-4. Open one article page and test:
+1. Run `npm run astro -- check`.
+2. Run `npm run build`.
+3. Open `/publish` and use the preview/newsletter dispatch controls.
+4. Open `/admin/insights` and confirm analytics/poll/newsletter sections load.
+5. Open one article page and test:
 - Poll voting
 - Like reaction
 - Review submission
@@ -85,8 +79,8 @@ Recommended branch naming:
 
 1. Merge PR into `main`.
 2. Wait for deploy.
-3. Re-run `/publish` CMS health check.
-4. Re-run `/qa` checklist.
+3. Re-run `npm run astro -- check` and `npm run build` locally for the release commit if CI is unavailable.
+4. Open `/publish` and dispatch newsletter updates if new published articles were added.
 5. Validate one live article path and one admin path.
 
 ## 6) Known Fallback Behavior

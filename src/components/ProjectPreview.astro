@@ -11,7 +11,7 @@ const previewId = `preview-wrap-${iframeId}`;
   </div>
 
   <div id={previewId} class="border border-gray-200 dark:border-gray-800">
-    <div class="preview-placeholder flex min-h-[18rem] items-center justify-center bg-gray-100 px-6 py-10 text-center text-sm text-gray-500 dark:bg-gray-900 dark:text-gray-300">
+    <div class="preview-placeholder flex min-h-72 items-center justify-center bg-gray-100 px-6 py-10 text-center text-sm text-gray-500 dark:bg-gray-900 dark:text-gray-300">
       Preview is optional. Some sites block embedding, so use the live link above if this stays blank.
     </div>
   </div>
@@ -19,7 +19,8 @@ const previewId = `preview-wrap-${iframeId}`;
   <p class="mt-2 text-xs text-gray-500">If the iframe is blank the target site prevents embedding; click "Open live site" instead.</p>
 </div>
 
-<script define:vars={{ iframeId, toggleId, url, previewId }}>
+<script is:inline define:vars={{ iframeId, toggleId, url, previewId }}>
+  // @ts-nocheck
   document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById(toggleId);
     const previewWrap = document.getElementById(previewId);

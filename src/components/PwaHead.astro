@@ -1,0 +1,18 @@
+<link rel="manifest" href="/manifest.webmanifest" />
+<meta name="theme-color" content="#2B59C3" />
+<meta name="application-name" content="A.ADENIJI" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="A.ADENIJI" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="apple-touch-icon" href="/aa-logo.svg" />
+<script is:inline>
+	if ('serviceWorker' in navigator) {
+		window.addEventListener('load', () => {
+			navigator.serviceWorker.register('/sw.js').catch(() => {
+				// PWA registration is progressive; normal browsing must not fail.
+			});
+		});
+	}
+</script>

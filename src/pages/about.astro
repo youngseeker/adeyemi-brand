@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Footer from '../components/Footer.astro';
+import PwaHead from '../components/PwaHead.astro';
 
 const profileImage = '/adeyemi.jpg';
 const linktreeUrl = 'https://linktr.ee/_adeyemiadeniji';
@@ -13,6 +14,7 @@ const linktreeUrl = 'https://linktr.ee/_adeyemiadeniji';
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>About | Adeyemi Adeniji</title>
 		<meta name="description" content="About Adeyemi Adeniji: computer science builder, technical writer, and systems thinker." />
+		<PwaHead />
 		<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap" rel="stylesheet" />
 		<script is:inline>
 			const theme = (() => {
@@ -59,7 +61,7 @@ const linktreeUrl = 'https://linktr.ee/_adeyemiadeniji';
 		<main class="mx-auto max-w-6xl px-6 py-14">
 			<a href="/" class="text-xs font-bold tracking-[0.2em] text-brandBlue uppercase">Back Home</a>
 			<div class="mt-8 grid gap-10 border-t border-gray-200 pt-10 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start dark:border-gray-800">
-				<img src={profileImage} alt="Adeyemi Adeniji portrait" class="h-[26.25rem] w-full border border-gray-200 object-cover dark:border-gray-800" />
+				<img src={profileImage} alt="Adeyemi Adeniji portrait" class="h-105 w-full border border-gray-200 object-cover dark:border-gray-800" />
 				<div>
 					<p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">About</p>
 					<h1 class="mt-3 text-5xl font-bold leading-tight tracking-tight uppercase md:text-6xl">Adeyemi Adeniji</h1>

@@ -1,13 +1,5 @@
 import type { APIRoute } from 'astro';
 import { runtimeStore } from '../../lib/runtimeStore';
-import { createHash } from 'node:crypto';
-
-const getIpHash = (request: Request): string => {
-	const forwarded = request.headers.get('x-forwarded-for') || '';
-	const realIp = request.headers.get('x-real-ip') || '';
-	const ip = (forwarded.split(',')[0] || realIp || 'unknown').trim();
-	return createHash('sha256').update(ip).digest('hex');
-};
 
 export const GET: APIRoute = async ({ url }) => {
 	const slug = url.searchParams.get('slug') || undefined;
@@ -35,7 +27,7 @@ export const POST: APIRoute = async ({ request }) => {
 		runtimeStore.commentReactions[commentId][type] = current + 1;
 
 		return new Response(JSON.stringify({ ok: true, reactions: runtimeStore.commentReactions[commentId] }), { status: 200 });
-	} catch (err) {
+	} catch {
 		return new Response(JSON.stringify({ error: 'Invalid body' }), { status: 400 });
 	}
 };

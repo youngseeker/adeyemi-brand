@@ -16,6 +16,8 @@ type PollMetrics = {
 	recentErrors: Array<{ area: string; code: string; detail: string; path: string; createdAt: string }>;
 };
 
+type QueryRows = Array<Record<string, unknown>>;
+
 const defaultMetrics: PollMetrics = {
 	totalVotes: 0,
 	votesLast24h: 0,
@@ -27,6 +29,14 @@ const defaultMetrics: PollMetrics = {
 	topPolls24h: [],
 	recentVotes: [],
 	recentErrors: [],
+};
+
+const rowsFromResult = (result: unknown): QueryRows => {
+	if (Array.isArray(result)) return result as QueryRows;
+	if (result && typeof result === 'object' && Array.isArray((result as { rows?: unknown }).rows)) {
+		return (result as { rows: QueryRows }).rows;
+	}
+	return [];
 };
 
 export const GET: APIRoute = async () => {
@@ -54,7 +64,7 @@ export const GET: APIRoute = async () => {
 
 	try {
 		const tableResult = await db.execute(sql`select to_regclass('public.poll_votes') as regclass`);
-		const tableRow = Array.isArray(tableResult) ? tableResult[0] : tableResult?.rows?.[0];
+		const tableRow = rowsFromResult(tableResult)[0];
 		tableExists = Boolean((tableRow as { regclass?: unknown } | undefined)?.regclass);
 	} catch {
 		tableExists = false;
@@ -81,7 +91,7 @@ export const GET: APIRoute = async () => {
 		metrics.newsletterErrors24h = errorMetrics.newsletterErrors24h;
 		metrics.recentErrors = errorMetrics.recentErrors;
 
-		const [totals] = await db.execute(sql`
+		const totalsResult = await db.execute(sql`
 			select
 				count(*)::int as total_votes,
 				count(*) filter (where created_at >= now() - interval '24 hours')::int as votes_last_24h,
@@ -89,6 +99,7 @@ export const GET: APIRoute = async () => {
 				count(distinct slug)::int as active_articles
 			from poll_votes
 		`);
+		const totals = rowsFromResult(totalsResult)[0];
 
 		metrics.totalVotes = Number((totals as { total_votes?: unknown })?.total_votes || 0);
 		metrics.votesLast24h = Number((totals as { votes_last_24h?: unknown })?.votes_last_24h || 0);
@@ -103,7 +114,7 @@ export const GET: APIRoute = async () => {
 			order by votes desc
 			limit 5
 		`);
-		metrics.topPolls24h = (Array.isArray(topPollRows) ? topPollRows : [])
+		metrics.topPolls24h = rowsFromResult(topPollRows)
 			.map((row) => ({
 				slug: String((row as { slug?: unknown }).slug || ''),
 				pollKey: String((row as { poll_key?: unknown }).poll_key || ''),
@@ -117,7 +128,7 @@ export const GET: APIRoute = async () => {
 			order by created_at desc
 			limit 8
 		`);
-		metrics.recentVotes = (Array.isArray(recentRows) ? recentRows : [])
+		metrics.recentVotes = rowsFromResult(recentRows)
 			.map((row) => ({
 				slug: String((row as { slug?: unknown }).slug || ''),
 				pollKey: String((row as { poll_key?: unknown }).poll_key || ''),

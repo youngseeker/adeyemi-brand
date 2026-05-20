@@ -22,20 +22,20 @@ High-standard stabilization and readiness pass across branding, resilience, resp
   - Command palette dialog semantics
   - Live-region status announcements
   - Form autocomplete and labeling improvements
-- Added Vite manual chunk strategy for Keystatic/editor dependencies.
-- Disabled Astro prefetch for `/keystatic` entry links to avoid CMS asset loading during normal browsing.
+- Added Vite manual chunk strategy for editor dependencies.
+- Disabled prefetch for heavy editor entry links to avoid loading authoring assets during normal browsing.
 
 ## Validation
 
 - Build status: PASS (`npm run build`)
 - Diagnostics status: PASS on modified files
-- Known warning remaining: large Keystatic chunk in client build
-- Keystatic route chunk reduced from ~2765 kB to ~2365 kB after split strategy.
+- Known warning remaining at the time: large editor chunk in client build.
+- Editor route chunk reduced after split strategy.
 
 ## Remaining Risk / Next Batch
 
-- Keystatic client chunk size remains high; optimize with route-level chunk strategy and manual chunking review.
-- Keystatic page remains the largest route chunk, but it is now better isolated from normal visitor navigation.
+- Editor client chunk size remains high; optimize with route-level chunk strategy and manual chunking review.
+- Authoring routes remain isolated from normal visitor navigation.
 - Run a full visual QA sweep on real devices after deployment.
 
 ## Suggested Git Commit Plan

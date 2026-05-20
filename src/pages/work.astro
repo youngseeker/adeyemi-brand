@@ -2,6 +2,7 @@
 import '../styles/global.css';
 import Footer from '../components/Footer.astro';
 import ProjectPreview from '../components/ProjectPreview.astro';
+import PwaHead from '../components/PwaHead.astro';
 
 interface ExperienceItem {
 	role: string;
@@ -143,6 +144,7 @@ const writingCapabilities = [
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<title>Work & Experience | Adeyemi Adeniji</title>
 		<meta name="description" content="Experience in Reflective Model Translation, systems design, leadership, and human-centered development." />
+		<PwaHead />
 		<link
 			href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap"
 			rel="stylesheet"

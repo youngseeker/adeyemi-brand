@@ -47,7 +47,7 @@ const year = new Date().getFullYear();
 
 		// Command palette hint (Ctrl/Cmd+K)
 		document.addEventListener('keydown', (e) => {
-			const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+			const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.userAgent);
 			if ((isMac && e.metaKey && e.key === 'k') || (!isMac && e.ctrlKey && e.key === 'k')) {
 				e.preventDefault();
 				if (openPalette) openPalette.click();

@@ -22,6 +22,13 @@
       "when": 1776344479767,
       "tag": "0002_keen_logan",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779271200000,
+      "tag": "0003_newsletter_dispatches",
+      "breakpoints": true
     }
   ]
 }

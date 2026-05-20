@@ -5,6 +5,7 @@ import { reviews } from '../../db/schema';
 import { createHash, randomUUID } from 'node:crypto';
 import { isAdminAuthorized } from '../../lib/adminAuth';
 import { runtimeStore } from '../../lib/runtimeStore';
+import type { FeedbackItem } from '../../lib/runtimeStore';
 
 type FeedbackStatus = 'pending' | 'approved' | 'rejected';
 
@@ -173,13 +174,13 @@ export const POST: APIRoute = async ({ request }) => {
 
 		const nextStatus: FeedbackStatus = autoApproveReviews ? 'approved' : 'pending';
 
-		let item = {
+		let item: FeedbackItem = {
 			id: 'pending',
 			slug,
 			title,
-			name: payload.name,
-			rating: payload.rating,
-			comment: payload.comment,
+			name: payload.name || 'Anonymous',
+			rating: payload.rating || 0,
+			comment: payload.comment || '',
 			status: nextStatus,
 			createdAt: new Date().toISOString(),
 		};
@@ -199,9 +200,9 @@ export const POST: APIRoute = async ({ request }) => {
 				id: String(created.id),
 				slug: created.slug,
 				title,
-				name: payload.name,
-				rating: payload.rating,
-				comment: payload.comment,
+				name: payload.name || 'Anonymous',
+				rating: payload.rating || 0,
+				comment: payload.comment || '',
 				status: (created.status as FeedbackStatus) || nextStatus,
 				createdAt: created.createdAt ? new Date(created.createdAt).toISOString() : new Date().toISOString(),
 			};
@@ -210,9 +211,9 @@ export const POST: APIRoute = async ({ request }) => {
 				id: `runtime-${randomUUID()}`,
 				slug,
 				title,
-				name: payload.name,
-				rating: payload.rating,
-				comment: payload.comment,
+				name: payload.name || 'Anonymous',
+				rating: payload.rating || 0,
+				comment: payload.comment || '',
 				status: nextStatus,
 				createdAt: new Date().toISOString(),
 			};

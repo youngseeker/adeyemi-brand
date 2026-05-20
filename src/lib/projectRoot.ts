@@ -3,8 +3,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 const hasProjectMarkers = (candidate: string) =>
-	existsSync(path.join(candidate, 'src', 'content')) &&
-	(existsSync(path.join(candidate, 'keystatic.config.ts')) || existsSync(path.join(candidate, 'package.json')));
+	existsSync(path.join(candidate, 'src', 'content')) && existsSync(path.join(candidate, 'package.json'));
 
 const resolveProjectRoot = () => {
 	const fromModule = fileURLToPath(import.meta.url);

@@ -37,6 +37,20 @@ export const newsletterSubscribers = pgTable(
   }),
 );
 
+export const newsletterArticleDispatches = pgTable(
+  'newsletter_article_dispatches',
+  {
+    id: serial('id').primaryKey(),
+    slug: varchar('slug', { length: 255 }).notNull(),
+    title: varchar('title', { length: 255 }).notNull(),
+    recipients: integer('recipients').notNull().default(0),
+    sentAt: timestamp('sent_at').defaultNow(),
+  },
+  (table) => ({
+    slugUnique: uniqueIndex('newsletter_article_dispatches_slug_unique').on(table.slug),
+  }),
+);
+
 export const articleReactions = pgTable(
   'article_reactions',
   {
