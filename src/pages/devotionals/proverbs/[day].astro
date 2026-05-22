@@ -4,6 +4,9 @@ import '../../../styles/global.css';
 import Footer from '../../../components/Footer.astro';
 import PwaHead from '../../../components/PwaHead.astro';
 
+// ADD THIS LINE: Tell Astro to pre-build these 31 pages
+export const prerender = true;
+
 export async function getStaticPaths() {
   const proverbs = await getCollection('proverbs');
   return proverbs.map(proverb => ({
