@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.6",
+    "@astrojs/sitemap": "^3.7.2",
     "@astrojs/vercel": "^9.0.5",
     "@neondatabase/serverless": "^1.0.2",
     "@tailwindcss/vite": "^4.2.2",

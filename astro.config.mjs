@@ -4,8 +4,11 @@ import vercel from '@astrojs/vercel';
 import mdx from '@astrojs/mdx';
 import tailwindcss from '@tailwindcss/vite';
 
+import sitemap from '@astrojs/sitemap';
+
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://adeyemiadeniji.vercel.app', // Added for sitemap generation
   security: {
     allowedDomains: [
       { protocol: 'https', hostname: 'adeyemiadeniji.vercel.app' },
@@ -14,7 +17,7 @@ export default defineConfig({
   },
   output: 'server',
   adapter: vercel(),
-  integrations: [mdx()],
+  integrations: [mdx(), sitemap()],
   vite: {
     plugins: [tailwindcss()],
   },

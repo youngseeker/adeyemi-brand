@@ -31,4 +31,15 @@ const devotionals = defineCollection({
     }),
 });
 
-export const collections = { posts, devotionals };
+// New collection for the 31-Day Challenge
+const proverbs = defineCollection({
+    loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/proverbs' }),
+    schema: z.object({
+        title: z.string(),
+        day: z.number(),
+        scripture: z.string(),
+        tags: z.array(z.string()).optional().default([]),
+    }),
+});
+
+export const collections = { posts, devotionals, proverbs };

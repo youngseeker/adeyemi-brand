@@ -4,13 +4,17 @@ import '../../styles/global.css';
 import Footer from '../../components/Footer.astro';
 import PwaHead from '../../components/PwaHead.astro';
 
-// Fetch all devotionals and sort them by newest first
+// Fetch standard devotionals
 const devotionals = await getCollection('devotionals');
 devotionals.sort((a, b) => {
     const featuredDiff = Number(Boolean(b.data.featured)) - Number(Boolean(a.data.featured));
     if (featuredDiff !== 0) return featuredDiff;
     return new Date(b.data.publishedAt || 0).valueOf() - new Date(a.data.publishedAt || 0).valueOf();
 });
+
+// Fetch Proverbs challenge
+const proverbs = await getCollection('proverbs');
+proverbs.sort((a, b) => a.data.day - b.data.day);
 ---
 
 <html lang="en">
@@ -60,13 +64,14 @@ devotionals.sort((a, b) => {
         </header>
 
         <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
+            
             <div class="mb-10 border-b border-gray-200 pb-6 dark:border-gray-800">
                 <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Faith & Practice</p>
                 <h1 class="mt-4 text-4xl font-bold uppercase tracking-tighter md:text-5xl">Biblical Devotionals</h1>
                 <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">Scripture-centered reflections designed for practical living, thoughtful faith, and daily formation.</p>
             </div>
 
-            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-24">
                 {devotionals.map((entry) => (
                     <a href={`/devotionals/${entry.id}`} class="group block rounded-xl border border-gray-200 p-5 transition hover:border-brandBlue dark:border-gray-800 ui-card post-card">
                         <p class="text-[10px] tracking-widest text-brandBlue uppercase">{entry.data.scriptureRef || 'Devotional'}</p>
@@ -76,6 +81,22 @@ devotionals.sort((a, b) => {
                     </a>
                 ))}
             </div>
+
+            <div id="proverbs-challenge" class="mb-10 border-b border-gray-200 pb-6 dark:border-gray-800">
+                <p class="text-xs font-bold tracking-[0.25em] text-brandBlue uppercase">Special Series</p>
+                <h2 class="mt-4 text-3xl font-bold uppercase tracking-tighter md:text-4xl">The 31-Day Proverbs Challenge</h2>
+                <p class="mt-4 max-w-2xl text-gray-600 dark:text-gray-300">A daily journey through the Book of Proverbs. One chapter a day, deeply analyzed for modern application.</p>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4 sm:grid-cols-6 lg:grid-cols-8">
+                {proverbs.map((entry) => (
+                    <a href={`/devotionals/proverbs/${entry.data.day}`} class="group flex aspect-square flex-col items-center justify-center rounded-xl border border-gray-200 bg-gray-50 transition hover:border-brandBlue hover:bg-white dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-[#050505]">
+                        <span class="text-[10px] font-bold tracking-widest text-gray-500 transition group-hover:text-brandBlue uppercase">Day</span>
+                        <span class="mt-1 text-2xl font-black transition group-hover:text-brandBlue">{entry.data.day}</span>
+                    </a>
+                ))}
+            </div>
+
         </main>
 
         <Footer />
@@ -86,6 +107,16 @@ devotionals.sort((a, b) => {
                 const root = document.documentElement;
                 root.classList.toggle('dark');
                 localStorage.setItem('theme', root.classList.contains('dark') ? 'dark' : 'light');
+            });
+
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenuToggle?.addEventListener('click', () => {
+                const isHidden = mobileMenu.classList.contains('hidden');
+                mobileMenu.classList.toggle('hidden', !isHidden);
+                mobileMenu.classList.toggle('flex', isHidden);
+                mobileMenu.classList.toggle('flex-col', isHidden);
+                mobileMenuToggle.setAttribute('aria-expanded', isHidden.toString());
             });
         </script>
     </body>
