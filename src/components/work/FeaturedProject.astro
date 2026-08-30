@@ -1,0 +1,30 @@
+---
+import type { Project } from '../../data/projects';
+import ButtonLink from '../ui/ButtonLink.astro';
+
+const { project, index } = Astro.props as { project: Project; index: number };
+const number = String(index + 1).padStart(2, '0');
+const hostname = project.links.live ? new URL(project.links.live).hostname.replace(/^www\./, '') : '';
+---
+
+<article class="featured-project" data-reveal>
+    <div class="featured-project__index" aria-hidden="true">{number}</div>
+    <div class="featured-project__title">
+        <p class="project-kicker">{project.statusLabel} <span aria-hidden="true">·</span> {project.technology.join(' · ')}</p>
+        <h3>{project.name}</h3>
+        <p>{project.summary}</p>
+    </div>
+    <div class="featured-project__evidence">
+        {project.image && (
+            <div class="project-media">
+                <img src={project.image.src} alt={project.image.alt} loading="lazy" decoding="async" />
+            </div>
+        )}
+        <p><span>Contribution</span>{project.contribution.join(' · ')}</p>
+        {project.links.live && (
+            <ButtonLink href={project.links.live} variant="text" external>
+                Visit {hostname}
+            </ButtonLink>
+        )}
+    </div>
+</article>

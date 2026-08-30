@@ -1,0 +1,41 @@
+<button class="theme-toggle" type="button" data-theme-toggle aria-pressed="false">
+    <svg class="theme-toggle__sun" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="3.5"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path>
+    </svg>
+    <svg class="theme-toggle__moon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+        <path d="M20.2 15.3A8.5 8.5 0 0 1 8.7 3.8 8.5 8.5 0 1 0 20.2 15.3Z"></path>
+    </svg>
+    <span class="sr-only" data-theme-label>Light theme active. Switch to dark theme.</span>
+</button>
+
+<script>
+    const setupThemeToggles = () => {
+        document.querySelectorAll<HTMLElement>('[data-theme-toggle]').forEach((button) => {
+            if (button.dataset.ready === 'true') return;
+            button.dataset.ready = 'true';
+            const label = button.querySelector<HTMLElement>('[data-theme-label]');
+            const syncAccessibleState = () => {
+                const isDark = document.documentElement.dataset.theme === 'dark';
+                button.setAttribute('aria-pressed', String(isDark));
+                if (label) {
+                    label.textContent = isDark
+                        ? 'Dark theme active. Switch to light theme.'
+                        : 'Light theme active. Switch to dark theme.';
+                }
+            };
+            syncAccessibleState();
+            button.addEventListener('click', () => {
+                const root = document.documentElement;
+                const nextTheme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+                root.dataset.theme = nextTheme;
+                root.classList.toggle('dark', nextTheme === 'dark');
+                localStorage.setItem('theme', nextTheme);
+                syncAccessibleState();
+            });
+        });
+    };
+
+    setupThemeToggles();
+    document.addEventListener('astro:page-load', setupThemeToggles);
+</script>

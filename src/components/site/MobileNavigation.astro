@@ -1,0 +1,30 @@
+---
+import { contactLink, externalLinks, navigation } from '../../data/site';
+
+const { pathname } = Astro.props as { pathname: string };
+const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
+---
+
+<div
+    class="mobile-navigation"
+    id="mobile-navigation"
+    data-mobile-navigation
+    role="dialog"
+    aria-modal="true"
+    aria-label="Site menu"
+    hidden
+>
+    <nav aria-label="Mobile navigation">
+        <ul class="mobile-navigation__primary">
+            {navigation.map((item) => (
+                <li><a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a></li>
+            ))}
+        </ul>
+        <a class="button-link button-link--primary mobile-navigation__cta" href={contactLink.href}>Let’s talk</a>
+        <ul class="mobile-navigation__external" aria-label="Elsewhere">
+            {externalLinks.filter((link) => link.kind !== 'email').map((link) => (
+                <li><a href={link.href} target="_blank" rel="noreferrer">{link.label}<span aria-hidden="true"> ↗</span></a></li>
+            ))}
+        </ul>
+    </nav>
+</div>

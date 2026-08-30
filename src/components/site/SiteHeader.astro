@@ -1,0 +1,84 @@
+---
+import { contactLink, site } from '../../data/site';
+import DesktopNavigation from './DesktopNavigation.astro';
+import MobileNavigation from './MobileNavigation.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+const { pathname } = Astro.props as { pathname: string };
+---
+
+<header class="site-header" data-site-header>
+    <div class="site-container site-header__inner">
+        <a class="wordmark" href="/" aria-label={`${site.name}, home`}>{site.wordmark}</a>
+        <DesktopNavigation pathname={pathname} />
+        <div class="site-header__actions">
+            <a class="header-cta" href={contactLink.href}>Let’s talk</a>
+            <ThemeToggle />
+            <button
+                class="menu-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="mobile-navigation"
+                data-menu-toggle
+            >
+                <span data-menu-label>Menu</span>
+            </button>
+        </div>
+    </div>
+    <MobileNavigation pathname={pathname} />
+</header>
+
+<script>
+    const setupMobileNavigation = () => {
+        const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+        const menu = document.querySelector<HTMLElement>('[data-mobile-navigation]');
+        const label = toggle?.querySelector<HTMLElement>('[data-menu-label]');
+        if (!toggle || !menu || toggle.dataset.ready === 'true') return;
+
+        toggle.dataset.ready = 'true';
+        const focusableSelector = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const backgroundTargets = Array.from(document.querySelectorAll<HTMLElement>(
+            'main, .site-footer, .site-header .wordmark, .desktop-navigation, .header-cta, .theme-toggle',
+        ));
+
+        const setOpen = (open: boolean) => {
+            toggle.setAttribute('aria-expanded', String(open));
+            menu.hidden = !open;
+            document.body.classList.toggle('menu-open', open);
+            if (label) label.textContent = open ? 'Close' : 'Menu';
+            backgroundTargets.forEach((target) => {
+                target.inert = open;
+                if (open) target.setAttribute('aria-hidden', 'true');
+                else target.removeAttribute('aria-hidden');
+            });
+            if (open) menu.querySelector<HTMLElement>(focusableSelector)?.focus();
+            else toggle.focus();
+        };
+
+        toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+        menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+        document.addEventListener('keydown', (event) => {
+            const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+            if (event.key === 'Escape' && isOpen) {
+                setOpen(false);
+                return;
+            }
+            if (event.key === 'Tab' && isOpen) {
+                const focusable = Array.from(menu.querySelectorAll<HTMLElement>(focusableSelector));
+                const first = focusable[0];
+                const last = focusable.at(-1);
+                if (!first || !last) return;
+                if (event.shiftKey && document.activeElement === first) {
+                    event.preventDefault();
+                    last.focus();
+                } else if (!event.shiftKey && document.activeElement === last) {
+                    event.preventDefault();
+                    first.focus();
+                }
+            }
+        });
+    };
+
+    setupMobileNavigation();
+    document.addEventListener('astro:page-load', setupMobileNavigation);
+</script>

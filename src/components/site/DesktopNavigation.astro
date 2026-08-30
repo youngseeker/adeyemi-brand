@@ -1,0 +1,16 @@
+---
+import { navigation } from '../../data/site';
+
+const { pathname } = Astro.props as { pathname: string };
+const isActive = (href: string) => pathname === href || (href !== '/' && pathname.startsWith(`${href}/`));
+---
+
+<nav class="desktop-navigation" aria-label="Primary navigation">
+    <ul>
+        {navigation.map((item) => (
+            <li>
+                <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>{item.label}</a>
+            </li>
+        ))}
+    </ul>
+</nav>

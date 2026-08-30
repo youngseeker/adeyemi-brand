@@ -1,0 +1,31 @@
+---
+import type { WritingItem } from '../../lib/writingFeed';
+import ButtonLink from '../ui/ButtonLink.astro';
+
+const { item, featured = false, headingLevel = 'h2' } = Astro.props as {
+    item: WritingItem;
+    featured?: boolean;
+    headingLevel?: 'h2' | 'h3';
+};
+const Heading = headingLevel;
+const parsedDate = item.publishedAt ? new Date(item.publishedAt) : undefined;
+const hasValidDate = parsedDate && !Number.isNaN(parsedDate.getTime());
+const formattedDate = hasValidDate
+    ? new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(parsedDate)
+    : '';
+---
+
+<article class:list={['writing-card', featured && 'writing-card--featured']} data-reveal>
+    {item.imageUrl && (
+        <div class="writing-card__media">
+            <img src={item.imageUrl} alt="" loading="lazy" decoding="async" />
+        </div>
+    )}
+    <div class="writing-card__meta">
+        <span>{item.platform}</span>
+        {formattedDate && <time datetime={parsedDate!.toISOString()}>{formattedDate}</time>}
+    </div>
+    <Heading>{item.title}</Heading>
+    {item.excerpt && <p>{item.excerpt}</p>}
+    <ButtonLink href={item.url} variant="text" external>Read on {item.platform}</ButtonLink>
+</article>

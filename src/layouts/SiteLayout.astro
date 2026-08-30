@@ -1,0 +1,77 @@
+---
+import PwaHead from '../components/PwaHead.astro';
+import SeoHead from '../components/site/SeoHead.astro';
+import SiteFooter from '../components/site/SiteFooter.astro';
+import SiteHeader from '../components/site/SiteHeader.astro';
+import '../styles/public.css';
+
+type Props = {
+    title?: string;
+    description?: string;
+    canonicalPath?: string;
+    noindex?: boolean;
+    image?: string;
+};
+
+const { title, description, canonicalPath, noindex, image } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="generator" content={Astro.generator} />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap"
+        />
+        <SeoHead title={title} description={description} canonicalPath={canonicalPath} noindex={noindex} image={image} />
+        <PwaHead />
+        <script is:inline>
+            (() => {
+                document.documentElement.classList.add('js');
+                const stored = localStorage.getItem('theme');
+                const theme = stored === 'light' || stored === 'dark'
+                    ? stored
+                    : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                document.documentElement.dataset.theme = theme;
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+            })();
+        </script>
+    </head>
+    <body>
+        <a class="skip-link" href="#main-content">Skip to main content</a>
+        <SiteHeader pathname={Astro.url.pathname} />
+        <main id="main-content">
+            <slot />
+        </main>
+        <SiteFooter />
+        <script>
+            const setupReveals = () => {
+                const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+                if (
+                    window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+                    !('IntersectionObserver' in window)
+                ) {
+                    targets.forEach((target) => target.dataset.revealed = 'true');
+                    return;
+                }
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        (entry.target as HTMLElement).dataset.revealed = 'true';
+                        observer.unobserve(entry.target);
+                    });
+                }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+                targets.forEach((target) => observer.observe(target));
+            };
+
+            setupReveals();
+            document.addEventListener('astro:page-load', setupReveals);
+        </script>
+    </body>
+</html>

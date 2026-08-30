@@ -1,0 +1,21 @@
+---
+import type { Project } from '../../data/projects';
+import ButtonLink from '../ui/ButtonLink.astro';
+
+const { project, headingLevel = 'h3' } = Astro.props as { project: Project; headingLevel?: 'h3' | 'h4' };
+const Heading = headingLevel;
+---
+
+<article class="supporting-project" data-reveal>
+    {project.image && (
+        <div class="project-media project-media--compact">
+            <img src={project.image.src} alt={project.image.alt} loading="lazy" decoding="async" />
+        </div>
+    )}
+    <div>
+        <p class="project-kicker">{project.statusLabel}</p>
+        <Heading>{project.name}</Heading>
+    </div>
+    <p>{project.summary}</p>
+    {project.links.live && <ButtonLink href={project.links.live} variant="text" external>Visit project</ButtonLink>}
+</article>
