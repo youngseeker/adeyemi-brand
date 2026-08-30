@@ -7,7 +7,7 @@
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "browser"],
   "background_color": "#050505",
-  "theme_color": "#2B59C3",
+  "theme_color": "#244537",
   "orientation": "portrait-primary",
   "categories": ["education", "productivity", "books"],
   "icons": [

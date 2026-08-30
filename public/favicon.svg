@@ -1,11 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="AA monogram favicon">
-    <defs>
-        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#0b1328"/>
-            <stop offset="100%" stop-color="#2B59C3"/>
-        </linearGradient>
-    </defs>
-    <rect width="128" height="128" rx="28" fill="url(#bg)"/>
-    <path d="M40 92L64 33L88 92H76L71 79H57L52 92H40ZM60.5 69H67.5L64 58L60.5 69Z" fill="#ffffff"/>
-    <path d="M19 92L43 33L67 92H55L50 79H36L31 92H19ZM39.5 69H46.5L43 58L39.5 69Z" fill="#9ec5ff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Adeyemi Adeniji monogram favicon">
+  <rect width="128" height="128" rx="30" fill="#244537"/>
+  <g transform="translate(30.51 103.00) scale(0.115385)">
+    <path d="M493.500-233L173.500-233L190.500-283L510-283L493.500-233M518.500-676L587-48L649.500-20.500L643.500 0L373.500 0L380-20.500L467-46.500L414-586.500L445-588.500L79.500-45.500L147-20.500L141 0L-69 0L-63-20.500L17-45.500L449.500-676" fill="#f4f1ea"/>
+  </g>
 </svg>
