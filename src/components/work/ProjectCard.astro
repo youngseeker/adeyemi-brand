@@ -1,0 +1,36 @@
+---
+import type { Project } from '../../data/projects';
+import ButtonLink from '../ui/ButtonLink.astro';
+
+const { project, featured = false } = Astro.props as { project: Project; featured?: boolean };
+---
+
+<article class:list={['project-card', featured && 'project-card--featured']} data-reveal>
+    <div class="project-card__meta">
+        <span>{project.statusLabel}</span>
+        {project.period && <span>{project.period}</span>}
+    </div>
+    <div class="project-card__body">
+        <div>
+            <h3>{project.name}</h3>
+            <p class="project-card__summary">{project.summary}</p>
+        </div>
+        <div class="project-card__detail">
+            {project.image && (
+                <div class="project-media">
+                    <img src={project.image.src} alt={project.image.alt} loading="lazy" decoding="async" />
+                </div>
+            )}
+            <p><strong>Why it exists</strong>{project.context}</p>
+            <p><strong>Contribution</strong>{project.contribution.join(' · ')}</p>
+            {project.outcome && <p><strong>Outcome</strong>{project.outcome}</p>}
+        </div>
+    </div>
+    <div class="project-card__footer">
+        <p>{project.technology.join(' · ')}</p>
+        <div class="project-card__links">
+            {project.links.live && <ButtonLink href={project.links.live} variant="text" external>Visit project</ButtonLink>}
+            {project.links.code && <ButtonLink href={project.links.code} variant="text" external>View code</ButtonLink>}
+        </div>
+    </div>
+</article>

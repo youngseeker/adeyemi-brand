@@ -1,0 +1,20 @@
+---
+import type { WritingSource } from '../../data/writing';
+import ButtonLink from '../ui/ButtonLink.astro';
+
+const { sources } = Astro.props as { sources: WritingSource[] };
+const linkedSources = sources.filter((source) => source.profileUrl);
+---
+
+<div class="empty-state" role="status">
+    <p class="eyebrow">Writing</p>
+    <h2>Recent publications are unavailable right now.</h2>
+    <p>The feed could not be loaded, but the original publications remain available directly.</p>
+    {linkedSources.length > 0 && (
+        <div class="button-row">
+            {linkedSources.map((source) => (
+                <ButtonLink href={source.profileUrl!} variant="secondary" external>Visit {source.platform}</ButtonLink>
+            ))}
+        </div>
+    )}
+</div>

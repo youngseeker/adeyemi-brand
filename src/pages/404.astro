@@ -1,0 +1,31 @@
+---
+import ButtonLink from '../components/ui/ButtonLink.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+---
+
+<SiteLayout
+    title="Page not found"
+    description="The page you were looking for could not be found."
+    canonicalPath="/404"
+    noindex
+>
+    <section class="page-intro">
+        <div class="site-container page-intro__grid">
+            <div>
+                <p class="eyebrow">404 · Page not found</p>
+                <h1>Nothing lives here yet.</h1>
+            </div>
+            <div>
+                <p class="page-intro__lead">
+                    The address may have changed, or the page may no longer exist. You can return home or continue to
+                    the work and writing.
+                </p>
+                <div class="button-row">
+                    <ButtonLink href="/">Return home</ButtonLink>
+                    <ButtonLink href="/work" variant="secondary">View work</ButtonLink>
+                    <ButtonLink href="/writing" variant="text">Read writing</ButtonLink>
+                </div>
+            </div>
+        </div>
+    </section>
+</SiteLayout>

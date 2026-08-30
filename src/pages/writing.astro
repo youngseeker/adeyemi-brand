@@ -1,0 +1,28 @@
+---
+import WritingCard from '../components/writing/WritingCard.astro';
+import WritingEmptyState from '../components/writing/WritingEmptyState.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { configuredWritingSources, writingSources } from '../data/writing';
+import { fetchWritingItems } from '../lib/writingFeed';
+
+const writingItems = await fetchWritingItems(configuredWritingSources);
+---
+
+<SiteLayout title="Writing" description="External essays and reflections by Adeyemi Adeniji, published on Substack." canonicalPath="/writing">
+    <header class="page-intro">
+        <div class="site-container page-intro__grid">
+            <div><p class="eyebrow">Writing · Published externally</p><h1>Ideas that leave the notebook.</h1></div>
+            <p class="page-intro__lead">A discovery layer for essays and field notes. The original publication remains the canonical place to read each piece.</p>
+        </div>
+    </header>
+
+    <section class="page-section" aria-label="Recent writing">
+        <div class="site-container">
+            {writingItems.length > 0 ? (
+                <div class="writing-list">{writingItems.map((item) => <WritingCard item={item} />)}</div>
+            ) : (
+                <WritingEmptyState sources={writingSources} />
+            )}
+        </div>
+    </section>
+</SiteLayout>

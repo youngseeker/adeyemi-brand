@@ -1,9 +1,11 @@
-const CACHE_NAME = 'adeyemi-brand-v1';
+const CACHE_NAME = 'adeyemi-brand-v2';
 const PRECACHE_URLS = [
   '/',
   '/garden',
   '/work',
+  '/writing',
   '/about',
+  '/now',
   '/devotionals',
   '/offline.html',
   '/favicon.svg',

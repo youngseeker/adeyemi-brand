@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { activeNowCategories, now } from '../data/now';
+---
+
+<SiteLayout title="Now" description="What Adeyemi Adeniji is studying, building, writing, learning, and exploring now." canonicalPath="/now">
+    <header class="page-intro">
+        <div class="site-container page-intro__grid">
+            <div><p class="eyebrow">Now · Updated {now.updatedAt}</p><h1>A snapshot, not a status feed.</h1></div>
+            <p class="page-intro__lead">A lightweight snapshot of current work and learning. Updated deliberately, not automatically.</p>
+        </div>
+    </header>
+
+    <section class="page-section" aria-label="Current focus">
+        <div class="site-container now-list">
+            {activeNowCategories.map((category) => (
+                <section class="now-item" data-reveal>
+                    <h2>{category.label}</h2>
+                    <ul>{category.items.map((item) => <li>{item}</li>)}</ul>
+                </section>
+            ))}
+        </div>
+    </section>
+</SiteLayout>
