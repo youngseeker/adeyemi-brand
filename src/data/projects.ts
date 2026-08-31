@@ -84,7 +84,7 @@ export const projects: Project[] = [
         statusLabel: 'Completed',
         period: 'December 2025',
         outcome: 'Published a persistent academic-progress tool designed for NOUN students.',
-        links: { live: 'https://my-student-os.vercel.app/index.html' },
+        links: { live: 'https://my-student-os.vercel.app' },
         image: { src: '/work/student-os.webp', alt: 'Screenshot of the My Student OS CGPA dashboard' },
         featured: false,
         order: 4,
