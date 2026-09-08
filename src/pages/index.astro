@@ -1,10 +1,12 @@
 ---
+import FaqAccordion from '../components/FaqAccordion.astro';
 import FeaturedProject from '../components/work/FeaturedProject.astro';
 import SupportingProject from '../components/work/SupportingProject.astro';
 import WritingCard from '../components/writing/WritingCard.astro';
 import WritingEmptyState from '../components/writing/WritingEmptyState.astro';
 import ButtonLink from '../components/ui/ButtonLink.astro';
 import SiteLayout from '../layouts/SiteLayout.astro';
+import { homepageFaqItems } from '../data/faq';
 import { activeNowCategories, now } from '../data/now';
 import { featuredProjects, supportingProjects } from '../data/projects';
 import { configuredWritingSources, writingSources } from '../data/writing';
@@ -93,6 +95,17 @@ const recentWriting = writingItems.slice(1, 4);
                 what he’s learning along the way.
             </h2>
             <ButtonLink href="/about" variant="text">More about me</ButtonLink>
+        </div>
+    </section>
+
+    <section class="page-section" aria-labelledby="faq-heading">
+        <div class="site-container">
+            <div class="section-heading" data-reveal>
+                <div><p class="eyebrow">FAQ</p><h2 id="faq-heading">Questions people actually ask.</h2></div>
+                <p>A few things worth clarifying up front, before you read further or reach out.</p>
+            </div>
+            <FaqAccordion items={homepageFaqItems} headingLevel="h3" />
+            <div class="section-action"><ButtonLink href="/faq" variant="secondary">See all questions</ButtonLink></div>
         </div>
     </section>
 

@@ -1,0 +1,64 @@
+---
+import ButtonLink from '../components/ui/ButtonLink.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { contactLink, externalLinks } from '../data/site';
+
+const otherChannels = externalLinks.filter((link) => link.kind === 'social');
+---
+
+<SiteLayout
+    title="Contact"
+    description="How to reach Adeyemi Adeniji—email, LinkedIn, and GitHub, plus what to get in touch about."
+    canonicalPath="/contact"
+>
+    <header class="page-intro">
+        <div class="site-container page-intro__grid">
+            <div><p class="eyebrow">Contact · How to reach me</p><h1>Let’s talk.</h1></div>
+            <p class="page-intro__lead">The channels below all reach me directly. Email is the most reliable.</p>
+        </div>
+    </header>
+
+    <section class="page-section" aria-labelledby="contact-channels-heading">
+        <div class="site-container">
+            <div class="section-heading" data-reveal>
+                <div><p class="eyebrow">Reach me</p><h2 id="contact-channels-heading">Ways to get in touch.</h2></div>
+            </div>
+            <div class="contact-channels">
+                <article class="contact-channel contact-channel--primary" data-reveal>
+                    <p class="project-kicker">Primary · Email</p>
+                    <a href={contactLink.href}>{contactLink.href.replace('mailto:', '')}</a>
+                    <p>The most direct way to reach me—project enquiries, collaboration, or questions about anything on this site.</p>
+                </article>
+                {otherChannels.map((link) => (
+                    <article class="contact-channel" data-reveal>
+                        <p class="project-kicker">{link.label}</p>
+                        <a href={link.href} target="_blank" rel="noreferrer">{link.href.replace('https://', '')}<span aria-hidden="true"> ↗</span></a>
+                        <p>
+                            {link.label === 'LinkedIn'
+                                ? 'For professional context, experience, and recommendations.'
+                                : 'For code, technical detail, and how things are actually built.'}
+                        </p>
+                    </article>
+                ))}
+            </div>
+        </div>
+    </section>
+
+    <section class="page-section page-section--compact">
+        <div class="site-container split-grid" data-reveal>
+            <div class="prose">
+                <p class="eyebrow">What to contact me about</p>
+                <h2>Work, writing, or a project you’re weighing.</h2>
+                <p>
+                    Most enquiries are about a defined technical or product role on an existing project, a website that
+                    needs rebuilding or improving, or a question about something I’ve written. If you’re not sure it’s a
+                    fit, send it anyway—I’ll tell you plainly if it isn’t.
+                </p>
+            </div>
+            <div class="button-row">
+                <ButtonLink href="/work" variant="secondary">See my work</ButtonLink>
+                <ButtonLink href="/about" variant="text">More about me</ButtonLink>
+            </div>
+        </div>
+    </section>
+</SiteLayout>

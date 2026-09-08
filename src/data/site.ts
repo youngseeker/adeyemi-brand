@@ -14,6 +14,14 @@ export const navigation = [
     { label: 'Now', href: '/now' },
 ] as const;
 
+// Footer-only: extends the primary nav with secondary pages that don't need
+// top-level header placement, without touching the header nav components.
+export const footerNavigation = [
+    ...navigation,
+    { label: 'FAQ', href: '/faq' },
+    { label: 'Contact', href: '/contact' },
+] as const;
+
 export type ExternalLink = {
     label: string;
     href: string;

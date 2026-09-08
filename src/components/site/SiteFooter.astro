@@ -1,5 +1,5 @@
 ---
-import { externalLinks, navigation, site } from '../../data/site';
+import { externalLinks, footerNavigation, site } from '../../data/site';
 
 const year = new Date().getFullYear();
 ---
@@ -13,7 +13,7 @@ const year = new Date().getFullYear();
         <nav aria-label="Footer navigation">
             <p class="eyebrow">Explore</p>
             <ul>
-                {navigation.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+                {footerNavigation.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
             </ul>
         </nav>
         <nav aria-label="External links">

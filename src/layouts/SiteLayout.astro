@@ -3,6 +3,7 @@ import PwaHead from '../components/PwaHead.astro';
 import SeoHead from '../components/site/SeoHead.astro';
 import SiteFooter from '../components/site/SiteFooter.astro';
 import SiteHeader from '../components/site/SiteHeader.astro';
+import type { FaqItem } from '../data/faq';
 import '../styles/public.css';
 
 type Props = {
@@ -11,9 +12,10 @@ type Props = {
     canonicalPath?: string;
     noindex?: boolean;
     image?: string;
+    faqItems?: FaqItem[];
 };
 
-const { title, description, canonicalPath, noindex, image } = Astro.props;
+const { title, description, canonicalPath, noindex, image, faqItems } = Astro.props;
 ---
 
 <!doctype html>
@@ -29,7 +31,7 @@ const { title, description, canonicalPath, noindex, image } = Astro.props;
             rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap"
         />
-        <SeoHead title={title} description={description} canonicalPath={canonicalPath} noindex={noindex} image={image} />
+        <SeoHead title={title} description={description} canonicalPath={canonicalPath} noindex={noindex} image={image} faqItems={faqItems} />
         <PwaHead />
         <script is:inline>
             (() => {
