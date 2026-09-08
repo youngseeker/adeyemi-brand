@@ -1,0 +1,25 @@
+---
+import type { FaqItem } from '../data/faq';
+
+const { items, headingLevel = 'h3' } = Astro.props as { items: FaqItem[]; headingLevel?: 'h2' | 'h3' };
+const Heading = headingLevel;
+---
+
+<div class="faq-list">
+    {items.map((item) => (
+        <details class="faq-item" data-reveal>
+            <summary>
+                <Heading>{item.question}</Heading>
+                <span class="faq-item__marker" aria-hidden="true"></span>
+            </summary>
+            <div class="faq-item__answer">
+                <p>{item.answer}</p>
+                {item.relatedHref && (
+                    <a class="faq-item__link" href={item.relatedHref}>
+                        {item.relatedLabel ?? 'Learn more'} <span aria-hidden="true">→</span>
+                    </a>
+                )}
+            </div>
+        </details>
+    ))}
+</div>

@@ -1,5 +1,5 @@
 ---
-import { contactLink, site } from '../../data/site';
+import { site } from '../../data/site';
 import DesktopNavigation from './DesktopNavigation.astro';
 import MobileNavigation from './MobileNavigation.astro';
 import ThemeToggle from './ThemeToggle.astro';
@@ -12,7 +12,7 @@ const { pathname } = Astro.props as { pathname: string };
         <a class="wordmark" href="/" aria-label={`${site.name}, home`}>{site.wordmark}</a>
         <DesktopNavigation pathname={pathname} />
         <div class="site-header__actions">
-            <a class="header-cta" href={contactLink.href}>Let’s talk</a>
+            <a class="header-cta" href="/contact" aria-current={pathname === '/contact' ? 'page' : undefined}>Let’s talk</a>
             <ThemeToggle />
             <button
                 class="menu-toggle"

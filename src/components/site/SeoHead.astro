@@ -1,5 +1,6 @@
 ---
-import { site } from '../../data/site';
+import { externalLinks, site } from '../../data/site';
+import type { FaqItem } from '../../data/faq';
 
 type Props = {
     title?: string;
@@ -8,6 +9,7 @@ type Props = {
     noindex?: boolean;
     image?: string;
     type?: 'website' | 'article';
+    faqItems?: FaqItem[];
 };
 
 const {
@@ -17,11 +19,47 @@ const {
     noindex = false,
     image = '/og-cover.jpg',
     type = 'website',
+    faqItems,
 } = Astro.props;
 
 const pageTitle = title ? `${title} — ${site.name}` : `${site.name} — Computer Science, Software, Ideas`;
 const canonical = new URL(canonicalPath, site.url).toString();
 const socialImage = image ? new URL(image, site.url).toString() : undefined;
+
+const personId = `${site.url}/#person`;
+const websiteId = `${site.url}/#website`;
+
+const structuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+        {
+            '@type': 'Person',
+            '@id': personId,
+            name: site.name,
+            url: site.url,
+            jobTitle: 'Software builder',
+            description: site.description,
+            sameAs: externalLinks.filter((link) => link.kind !== 'email').map((link) => link.href),
+        },
+        {
+            '@type': 'WebSite',
+            '@id': websiteId,
+            name: site.name,
+            url: site.url,
+            author: { '@id': personId },
+        },
+    ],
+};
+
+const faqStructuredData = faqItems && faqItems.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map((item) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+} : undefined;
 ---
 
 <title>{pageTitle}</title>
@@ -47,3 +85,6 @@ const socialImage = image ? new URL(image, site.url).toString() : undefined;
 <meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:description" content={description} />
 {socialImage && <meta name="twitter:image" content={socialImage} />}
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
+{faqStructuredData && <script type="application/ld+json" is:inline set:html={JSON.stringify(faqStructuredData)} />}

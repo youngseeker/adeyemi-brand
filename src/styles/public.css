@@ -367,6 +367,31 @@ main { animation: page-in var(--motion-slow) var(--ease-out) both; }
 .experience-item__summary { color: var(--ink-muted); line-height: 1.6; }
 .experience-item__period { text-align: right; color: var(--ink-muted); font-size: 0.82rem; }
 
+.faq-list { border-top: 1px solid var(--line); }
+.faq-item { border-bottom: 1px solid var(--line); }
+.faq-item summary { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-5); padding: var(--space-5) 0; cursor: pointer; list-style: none; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+.faq-item h3 { margin: 0; font: 400 clamp(1.3rem, 2.6vw, 1.75rem)/1.25 var(--font-editorial); letter-spacing: -0.01em; }
+.faq-item__marker { position: relative; flex-shrink: 0; width: 1rem; height: 1rem; margin-top: 0.35rem; }
+.faq-item__marker::before, .faq-item__marker::after { content: ''; position: absolute; inset: 0; margin: auto; background: var(--ink); transition: transform var(--motion-fast) ease; }
+.faq-item__marker::before { width: 100%; height: 1px; }
+.faq-item__marker::after { width: 1px; height: 100%; }
+.faq-item[open] .faq-item__marker::after { transform: scaleY(0); }
+.faq-item__answer { max-width: 46rem; padding-bottom: var(--space-5); }
+.faq-item__answer p { margin: 0; color: var(--ink-muted); line-height: 1.7; }
+.faq-item__link { display: inline-block; margin-top: var(--space-3); color: var(--accent-strong); font-size: 0.9rem; text-decoration: none; border-bottom: 1px solid var(--line-strong); }
+.faq-item__link:hover { border-bottom-color: currentColor; }
+.faq-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-7); padding-top: var(--space-6); border-top: 1px solid var(--line); }
+.faq-cta p { margin: 0; color: var(--ink-muted); }
+
+.contact-channels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.contact-channel { padding: var(--space-6); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.contact-channel a { display: block; padding: var(--space-3) 0; margin: 0; font: 400 clamp(1.15rem, 2.2vw, 1.5rem)/1.25 var(--font-editorial); text-decoration: none; word-break: break-word; }
+.contact-channel a:hover { color: var(--accent-strong); }
+.contact-channel p { margin: 0; color: var(--ink-muted); font-size: 0.92rem; line-height: 1.6; }
+.contact-channel--primary a { color: var(--accent-strong); }
+
 .site-footer { position: relative; padding: var(--space-8) 0 var(--space-5); border-top: 1px solid var(--line); overflow: hidden; background: var(--footer-bg); color: var(--footer-ink); }
 .site-footer::after { content: 'ADEYEMI'; position: absolute; right: -0.02em; bottom: -0.22em; color: color-mix(in srgb, var(--footer-ink) 4%, transparent); font: 400 clamp(6rem, 22vw, 18rem)/0.8 var(--font-editorial); letter-spacing: -0.07em; pointer-events: none; }
 .site-footer > * { position: relative; z-index: 1; }
@@ -420,9 +445,11 @@ main { animation: page-in var(--motion-slow) var(--ease-out) both; }
     .featured-project { grid-template-columns: 1fr; gap: var(--space-4); }
     .featured-project__evidence { grid-column: auto; margin-top: var(--space-4); }
     .featured-project h3 { font-size: clamp(3.25rem, 18vw, 5rem); }
-    .supporting-work__list, .now-preview__grid { grid-template-columns: 1fr; }
+    .supporting-work__list, .now-preview__grid, .contact-channels { grid-template-columns: 1fr; }
     .supporting-project, .supporting-project + .supporting-project { min-height: 15rem; padding: var(--space-6) 0; border-left: 0; }
     .now-preview__grid article, .now-preview__grid article + article { min-height: auto; padding: var(--space-5) 0; border-left: 0; }
+    .contact-channel { border-left: 0; }
+    .faq-cta { flex-direction: column; align-items: flex-start; }
     .now-preview__heading { align-items: start; flex-direction: column; }
     .now-item, .experience-item { grid-template-columns: 1fr; }
     .experience-item__period { grid-column: auto; }

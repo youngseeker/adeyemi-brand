@@ -1,0 +1,31 @@
+---
+import FaqAccordion from '../components/FaqAccordion.astro';
+import ButtonLink from '../components/ui/ButtonLink.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { faqItems } from '../data/faq';
+---
+
+<SiteLayout
+    title="FAQ"
+    description="Answers to common questions about Adeyemi Adeniji—what he does, the technologies he works with, his approach to AI, and how to get in touch."
+    canonicalPath="/faq"
+    faqItems={faqItems}
+>
+    <header class="page-intro">
+        <div class="site-container page-intro__grid">
+            <div><p class="eyebrow">FAQ · Common questions</p><h1>Questions, answered plainly.</h1></div>
+            <p class="page-intro__lead">What people usually want to know before working with me, reading my writing, or trying something I’ve built.</p>
+        </div>
+    </header>
+
+    <section class="page-section" aria-labelledby="faq-heading">
+        <div class="site-container">
+            <h2 id="faq-heading" class="sr-only">Frequently asked questions</h2>
+            <FaqAccordion items={faqItems} headingLevel="h3" />
+            <div class="faq-cta">
+                <p>Still have a question this didn’t answer?</p>
+                <ButtonLink href="/contact">Get in touch</ButtonLink>
+            </div>
+        </div>
+    </section>
+</SiteLayout>
